@@ -68,4 +68,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Department::class, 'id_departamento', 'id_departamento');
     }
+
+    public function jornadas()
+    {
+        return $this->hasMany(Jornada::class, 'id_usuario', 'id_usuario');
+    }
+
+    public function tipoJornada()
+    {
+        return $this->belongsTo(ShiftType::class, 'id_tipo_jornada', 'id_tipo_jornada');
+    }
 }
