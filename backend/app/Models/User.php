@@ -17,10 +17,21 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    protected $table = 'usuarios';
+
+    protected $primaryKey = 'id_usuario';
+
     protected $fillable = [
-        'name',
+        'nombre',
+        'apellidos',
         'email',
         'password',
+        'id_departamento',
+        'id_tipo_jornada',
+        'id_rol',
+        'activo',
+        'fecha_alta',
+        'fecha_baja'
     ];
 
     /**
@@ -41,8 +52,20 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
+            'fecha_alta' => 'date',
+            'fecha_baja' => 'date',
             'password' => 'hashed',
+            'activo' => 'boolean'
         ];
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class, 'id_rol', 'id_rol');
+    }
+
+    public function departamento()
+    {
+        return $this->belongsTo(Department::class, 'id_departamento', 'id_departamento');
     }
 }
