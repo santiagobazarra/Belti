@@ -5,6 +5,10 @@ use App\Models\Jornada;
 
 class JornadaCalculator
 {
+    /**
+     * Recalcula totales de una jornada.
+     * Resta solo pausas NO computables (es_computable = false).
+     */
     public static function recalcular(Jornada $jornada): void
     {
         $entrada = $jornada->hora_entrada;
@@ -12,14 +16,11 @@ class JornadaCalculator
         if (!$entrada || !$salida) {
             return; // no se puede calcular aún
         }
+        $pausas = $jornada->relationLoaded('pausas') ? $jornada->pausas : $jornada->pausas()->get();
 
         $totalSegundos = $salida->timestamp - $entrada->timestamp;
-        $pausaSegundos = $jornada->pausas->reduce(function($carry,$pausa){
-            if ($pausa->hora_inicio && $pausa->hora_fin) {
-                return $carry + ($pausa->hora_fin->timestamp - $pausa->hora_inicio->timestamp);
-            }
-            return $carry;
-        },0);
+        $pausaSegundos = $pausas->filter(fn($p)=>!$p->es_computable && $p->hora_inicio && $p->hora_fin)
+            ->reduce(fn($carry,$p)=> $carry + ($p->hora_fin->timestamp - $p->hora_inicio->timestamp),0);
 
         $netoSegundos = max(0, $totalSegundos - $pausaSegundos);
         $totalHoras = round($netoSegundos / 3600, 2);
