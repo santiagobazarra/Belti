@@ -9,9 +9,22 @@ class FestivoController extends Controller
 {
     public function index(Request $request)
     {
+        // Validación ligera de filtros
+        $request->validate([
+            'desde' => 'sometimes|date',
+            'hasta' => 'sometimes|date|after_or_equal:desde',
+            'tipo'  => 'sometimes|string'
+        ]);
+
         $q = Festivo::query();
-        if($request->filled(['desde','hasta'])) {
-            $q->entre($request->get('desde'),$request->get('hasta'));
+        if ($request->filled('desde')) {
+            $q->whereDate('fecha', '>=', $request->get('desde'));
+        }
+        if ($request->filled('hasta')) {
+            $q->whereDate('fecha', '<=', $request->get('hasta'));
+        }
+        if ($request->filled('tipo')) {
+            $q->where('tipo', $request->get('tipo'));
         }
         return $q->orderBy('fecha')->paginate(50);
     }
@@ -21,36 +34,41 @@ class FestivoController extends Controller
         $this->authorizeAdmin();
         $data = $request->validate([
             'fecha' => 'required|date|unique:calendario_festivos,fecha',
-            'descripcion' => 'required|string',
-            'tipo' => 'required|string'
+            'descripcion' => 'required|string|max:255',
+            'tipo' => 'required|string|max:100'
         ]);
-        return Festivo::create($data);
+        $festivo = Festivo::create($data);
+        return response()->json($festivo, 201);
     }
 
-    public function show($id)
+    public function show(Festivo $festivo)
     {
-        return Festivo::findOrFail($id);
+        return $festivo;
     }
 
-    public function update(Request $request,$id)
+    public function update(Request $request, Festivo $festivo)
     {
         $this->authorizeAdmin();
-        $festivo = Festivo::findOrFail($id);
         $data = $request->validate([
             'fecha' => 'date|unique:calendario_festivos,fecha,'.$festivo->id_festivo.',id_festivo',
-            'descripcion' => 'sometimes|string',
-            'tipo' => 'sometimes|string'
+            'descripcion' => 'sometimes|string|max:255',
+            'tipo' => 'sometimes|string|max:100'
         ]);
         $festivo->update($data);
         return $festivo;
     }
 
-    public function destroy($id)
+    public function destroy(Festivo $festivo)
     {
         $this->authorizeAdmin();
-        $festivo = Festivo::findOrFail($id);
         $festivo->delete();
-        return response()->json(['deleted'=>true]);
+        return response()->json([
+            'deleted' => true,
+            'resource' => 'festivo',
+            'id' => $festivo->id_festivo,
+            'message' => 'Festivo eliminado',
+            'timestamp' => now()->toISOString()
+        ]);
     }
 
     private function authorizeAdmin(): void

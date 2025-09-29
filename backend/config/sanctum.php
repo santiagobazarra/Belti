@@ -15,12 +15,8 @@ return [
     |
     */
 
-    'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
-        '%s%s',
-        'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
-        Sanctum::currentApplicationUrlWithPort(),
-        // Sanctum::currentRequestHost(),
-    ))),
+    // Para API Bearer-only por defecto, dejar vacío excepto que se defina en .env
+    'stateful' => array_filter(explode(',', env('SANCTUM_STATEFUL_DOMAINS', ''))),
 
     /*
     |--------------------------------------------------------------------------
@@ -34,7 +30,8 @@ return [
     |
     */
 
-    'guard' => ['web'],
+    // Para Bearer-only, no comprobar sesiones de guards primero
+    'guard' => [],
 
     /*
     |--------------------------------------------------------------------------

@@ -128,8 +128,8 @@ class JornadaController extends Controller
 
     private function authorizeJornada(Jornada $jornada, $user): void
     {
-        if ($user->id_usuario !== $jornada->id_usuario && (!$user->role || $user->role->nombre !== 'administrador')) {
-            abort(403,'No autorizado');
+        if ($user->id_usuario !== $jornada->id_usuario && (!$user->role || $user->role->slug !== 'administrador')) {
+            abort(403,'Acceso denegado');
         }
     }
 }

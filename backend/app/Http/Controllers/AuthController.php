@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\Role;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -31,8 +32,13 @@ class AuthController extends Controller
             'id_rol' => $rolEmpleado?->id_rol
         ]);
 
-        Auth::login($user);
-        return response()->json(['user' => $user->load('role')], 201);
+    // Crear token personal (nombre descriptivo: 'api') sin sesión web
+        $token = $user->createToken('api')->plainTextToken;
+        return response()->json([
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user->load('role')
+        ], 201);
     }
 
     // Login de usuario
@@ -48,17 +54,30 @@ class AuthController extends Controller
             return response()->json(['message' => 'Credenciales incorrectas'], 401);
         }
 
-        Auth::login($user);
-        return response()->json(['user' => $user->load('role')]);
+    // Invalidar tokens previos para sesión única
+        $user->tokens()->delete();
+        $token = $user->createToken('api')->plainTextToken;
+        return response()->json([
+            'token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user->load('role')
+        ]);
     }
 
     // Logout
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return response()->json(['message' => 'Sesión cerrada']);
+        $user = $request->user();
+        if ($user) {
+            // Revocar todos los tokens personales del usuario
+            $user->tokens()->delete();
+        }
+        // No llamar Auth::logout() sobre guard Sanctum (RequestGuard sin logout)
+        // Hacer logout idempotente: siempre 200
+        return response()->json([
+            'success' => true,
+            'message' => 'Sesión cerrada'
+        ]);
     }
 
     // Perfil del usuario autenticado

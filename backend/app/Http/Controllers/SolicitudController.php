@@ -60,6 +60,15 @@ class SolicitudController extends Controller
                 $data['id_aprobador'] = $user->id_usuario;
             }
         } else {
+            if($request->hasAny(['estado','comentario_resolucion'])) {
+                return response()->json([
+                    'success'=>false,
+                    'error'=>[
+                        'code'=>'FORBIDDEN',
+                        'message'=>'No autorizado a modificar estos campos'
+                    ]
+                ],403);
+            }
             $data = $request->validate([
                 'motivo' => 'required|string'
             ]);
@@ -73,6 +82,12 @@ class SolicitudController extends Controller
         $sol = Solicitud::findOrFail($id);
     $this->authorize('delete', $sol);
         $sol->delete();
-        return response()->json(['deleted'=>true]);
+        return response()->json([
+            'deleted' => true,
+            'resource' => 'solicitud',
+            'id' => $id,
+            'message' => 'Solicitud eliminada',
+            'timestamp' => now()->toISOString()
+        ]);
     }
 }

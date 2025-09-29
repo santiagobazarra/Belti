@@ -13,13 +13,20 @@ class Incidencia extends Model
     protected $primaryKey = 'id_incidencia';
 
     protected $fillable = [
-        'id_usuario','fecha','tipo','descripcion','estado','id_revisor','fecha_revision','comentario_revision'
+        'id_usuario','fecha','hora_inicio','hora_fin','tipo','descripcion','estado','id_revisor','fecha_revision','comentario_revision'
     ];
 
     protected $casts = [
         'fecha' => 'date',
-        'fecha_revision' => 'datetime'
+        'fecha_revision' => 'datetime',
+        'hora_inicio' => 'datetime',
+        'hora_fin' => 'datetime'
     ];
+
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        return $date->format('Y-m-d\TH:i:s.u\Z');
+    }
 
     public function usuario()
     {

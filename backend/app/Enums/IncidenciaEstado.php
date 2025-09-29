@@ -4,8 +4,7 @@ namespace App\Enums;
 enum IncidenciaEstado: string
 {
     case PENDIENTE = 'pendiente';
-    case REVISADA = 'revisada';
-    case RESUELTA = 'resuelta';
+    case APROBADA = 'aprobada';
     case RECHAZADA = 'rechazada';
 
     public static function values(): array

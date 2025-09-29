@@ -24,6 +24,7 @@ class ConfigEmpresaController extends Controller
             'minutos_min_pausa' => 'nullable|integer|min:0',
             'max_pausas_no_computables' => 'nullable|integer|min:0',
             'politica_horas_extra' => 'nullable|string',
+            'zona_horaria' => 'nullable|string',
         ]);
         $filtered = array_filter($data, fn($v) => !is_null($v));
         return $this->service->set($filtered);

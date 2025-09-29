@@ -59,7 +59,7 @@ class UserController extends Controller
         return response()->json(['message' => 'Usuario eliminado']);
     }
 
-    public function assignDepartamento(Request $request, User $usuario)
+    public function asignarDepartamento(Request $request, User $usuario)
     {
         $data = $request->validate([
             'id_departamento' => 'required|exists:departamentos,id_departamento'

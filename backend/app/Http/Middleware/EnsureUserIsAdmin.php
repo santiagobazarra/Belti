@@ -10,8 +10,8 @@ class EnsureUserIsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (!$user || !$user->role || $user->role->nombre !== 'administrador') {
-            return response()->json(['message' => 'No autorizado'], 403);
+    if (!$user || !$user->role || $user->role->slug !== 'administrador') {
+            abort(403, 'Acceso denegado');
         }
         return $next($request);
     }

@@ -12,6 +12,7 @@ use App\Http\Controllers\FestivoController;
 use App\Http\Controllers\ConfigEmpresaController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\TipoPausaController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -24,7 +25,8 @@ if (app()->environment('testing')) {
     Route::post('/fichaje/pausa', [FichajeController::class, 'togglePausa']);
 }
 
-$authMiddleware = app()->environment('testing') ? 'auth' : 'auth:sanctum';
+// Usar siempre sanctum para consistencia de códigos 401
+$authMiddleware = 'auth:sanctum';
 
 Route::middleware([$authMiddleware])->group(function () {
     // Fichaje (solo producción / no-testing)
@@ -39,20 +41,27 @@ Route::middleware([$authMiddleware])->group(function () {
     Route::get('/reportes/resumen.csv', [ReporteController::class, 'resumenCsv']);
     Route::get('/reportes/resumen.pdf', [ReporteController::class, 'resumenPdf']);
 
+    // Tipos de pausa - usuarios pueden ver disponibles
+    Route::get('/tipos-pausa/disponibles', [TipoPausaController::class, 'disponibles']);
+
     // Incidencias (empleado CRUD parcial, admin total)
     Route::apiResource('incidencias', IncidenciaController::class);
+    Route::patch('incidencias/{id}/aprobar',[IncidenciaController::class,'aprobar']);
     Route::apiResource('solicitudes', SolicitudController::class);
-    Route::apiResource('festivos', FestivoController::class)->except(['show']);
-    Route::get('festivos/{id}', [FestivoController::class,'show']);
+    Route::apiResource('festivos', FestivoController::class);
 
     Route::middleware(['ensure.admin'])->group(function () {
         Route::apiResource('roles', RoleController::class);
         Route::apiResource('departamentos', DepartmentController::class);
         Route::apiResource('usuarios', UserController::class);
-        Route::post('/usuarios/{id}/departamento', [UserController::class, 'asignarDepartamento']);
+        Route::post('/usuarios/{usuario}/departamento', [UserController::class, 'asignarDepartamento']);
+
+        // Tipos de pausa - gestión completa solo admin
+        Route::apiResource('tipos-pausa', TipoPausaController::class);
+
         // Configuración empresa (solo admin)
         Route::get('/configuracion', [ConfigEmpresaController::class,'index']);
         Route::put('/configuracion', [ConfigEmpresaController::class,'update']);
-    Route::get('/audit-logs', [AuditLogController::class,'index']);
+        Route::get('/audit-logs', [AuditLogController::class,'index']);
     });
 });
