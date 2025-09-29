@@ -1459,7 +1459,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     z-index: 2;
 }
 
-input[type="date"]::-webkit-datetime-edit { color: rgb(55, 65, 81); padding: 0; pointer-events: auto; }
 input[type="date"]::-webkit-datetime-edit-fields-wrapper { padding: 0; pointer-events: auto; }
 input[type="date"]::-webkit-datetime-edit-text { color: rgb(107, 114, 128); padding: 0 0.25rem; }
 input[type="date"]::-webkit-datetime-edit-month-field,
@@ -1479,7 +1478,7 @@ input[type="date"]::-webkit-datetime-edit-year-field {
 
 input[type="date"]::-webkit-datetime-edit-month-field:focus,
 input[type="date"]::-webkit-datetime-edit-day-field:focus,
-input[type="date"]::-webkit-datetime-edit-year-field:focus { background: rgba(37, 99, 235, 0.1); outline: none; }
+input[type="date"]::-webkit-datetime-edit-year-field:focus { background: rgba(37, 99, 235, 0.15); outline: none; }
 
 input[type="date"]:focus { outline: none; border-color: rgb(37, 99, 235); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05); background: white; }
 input[type="date"]:hover { border-color: rgb(156, 163, 175); }
@@ -1546,4 +1545,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     pointer-events: auto;
     position: relative;
     z-index: 2;
+}
+
+/* Sutilezas visuales en el wrapper y separadores para mayor claridad */
+input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+  padding: 0 0.125rem;
+  border-radius: 0.5rem;
+}
+
+input[type="date"]::-webkit-datetime-edit-text {
+  color: rgb(107, 114, 128);
+  opacity: 0.9;
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import Modal from '../../components/Modal'
@@ -36,13 +36,56 @@ export default function Usuarios() {
 
   const isAdmin = user?.role?.slug === 'administrador' || user?.role?.nombre?.toLowerCase() === 'administrador'
 
+  const loadUsuarios = useCallback(async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) params.append(key, value)
+      })
+      // Añadir alias comuns por si el backend espera otros nombres
+      if (filters.departamento_id) params.append('id_departamento', filters.departamento_id)
+      if (filters.rol_id) params.append('id_rol', filters.rol_id)
+
+      const { data } = await api.get(`/usuarios?${params}`)
+      setUsuarios(data.data || data || [])
+    } catch (error) {
+      console.error('Error al cargar usuarios:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [filters])
+
+  const loadRoles = useCallback(async () => {
+    try {
+      const { data } = await api.get('/roles')
+      setRoles(data.data || data || [])
+    } catch (error) {
+      console.error('Error al cargar roles:', error)
+    }
+  }, [])
+
+  const loadDepartamentos = useCallback(async () => {
+    try {
+      const { data } = await api.get('/departamentos')
+      setDepartamentos(data.data || data || [])
+    } catch (error) {
+      console.error('Error al cargar departamentos:', error)
+    }
+  }, [])
+
   useEffect(() => {
     if (isAdmin) {
-      loadUsuarios()
       loadRoles()
       loadDepartamentos()
     }
-  }, [filters, isAdmin])
+  }, [isAdmin, loadRoles, loadDepartamentos])
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadUsuarios()
+    }
+  }, [isAdmin, filters, loadUsuarios])
 
   // Verificar permisos - solo administradores pueden acceder
   if (!isAdmin) {
@@ -54,45 +97,15 @@ export default function Usuarios() {
     )
   }
 
-  const loadUsuarios = async () => {
-    try {
-      setLoading(true)
-      const params = new URLSearchParams()
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value)
-      })
-
-      const { data } = await api.get(`/usuarios?${params}`)
-      setUsuarios(data.data || data || [])
-    } catch (error) {
-      console.error('Error al cargar usuarios:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadRoles = async () => {
-    try {
-      const { data } = await api.get('/roles')
-      setRoles(data.data || data || [])
-    } catch (error) {
-      console.error('Error al cargar roles:', error)
-    }
-  }
-
-  const loadDepartamentos = async () => {
-    try {
-      const { data } = await api.get('/departamentos')
-      setDepartamentos(data.data || data || [])
-    } catch (error) {
-      console.error('Error al cargar departamentos:', error)
-    }
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
       const payload = { ...formData }
+
+      // Normalizar ids (backend suele esperar números)
+      if (payload.id_rol !== '') payload.id_rol = Number(payload.id_rol)
+      if (payload.id_departamento === '') delete payload.id_departamento
+      else payload.id_departamento = Number(payload.id_departamento)
 
       // No enviar password vacía en edición
       if (selectedUsuario && !payload.password) {
@@ -149,8 +162,8 @@ export default function Usuarios() {
         apellidos: usuario.apellidos,
         email: usuario.email,
         password: '',
-        id_rol: usuario.id_rol || '',
-        id_departamento: usuario.id_departamento || ''
+        id_rol: usuario.id_rol ? String(usuario.id_rol) : '',
+        id_departamento: usuario.id_departamento ? String(usuario.id_departamento) : ''
       })
     } else {
       setSelectedUsuario(null)
@@ -195,13 +208,13 @@ export default function Usuarios() {
                 Departamento
               </label>
               <select
-                value={filters.departamento_id}
+                value={String(filters.departamento_id ?? '')}
                 onChange={(e) => setFilters(prev => ({...prev, departamento_id: e.target.value}))}
-                className="w-full"
+                className="form-input"
               >
                 <option value="">Todos los departamentos</option>
                 {departamentos.map(dept => (
-                  <option key={dept.id} value={dept?.id || ''}>
+                  <option key={dept.id_departamento} value={String(dept.id_departamento)}>
                     {dept?.nombre || 'Sin nombre'}
                   </option>
                 ))}
@@ -212,13 +225,13 @@ export default function Usuarios() {
                 Rol
               </label>
               <select
-                value={filters.rol_id}
+                value={String(filters.rol_id ?? '')}
                 onChange={(e) => setFilters(prev => ({...prev, rol_id: e.target.value}))}
-                className="w-full"
+                className="form-input"
               >
                 <option value="">Todos los roles</option>
                 {roles.map(rol => (
-                  <option key={rol.id} value={rol?.id || ''}>
+                  <option key={rol.id_rol} value={String(rol.id_rol)}>
                     {rol?.nombre || 'Sin nombre'}
                   </option>
                 ))}
@@ -384,14 +397,14 @@ export default function Usuarios() {
                 Rol *
               </label>
               <select
-                value={formData.id_rol}
+                value={String(formData.id_rol)}
                 onChange={(e) => setFormData(prev => ({...prev, id_rol: e.target.value}))}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                className="form-input"
               >
                 <option value="">Seleccionar rol</option>
                 {roles.map(rol => (
-                  <option key={rol.id} value={rol?.id || ''}>
+                  <option key={rol.id_rol} value={String(rol.id_rol)}>
                     {rol?.nombre || 'Sin nombre'}
                   </option>
                 ))}
@@ -403,13 +416,13 @@ export default function Usuarios() {
                 Departamento
               </label>
               <select
-                value={formData.id_departamento}
+                value={String(formData.id_departamento)}
                 onChange={(e) => setFormData(prev => ({...prev, id_departamento: e.target.value}))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                className="form-input"
               >
                 <option value="">Sin departamento</option>
                 {departamentos.map(dept => (
-                  <option key={dept.id} value={dept?.id || ''}>
+                  <option key={dept.id_departamento} value={String(dept.id_departamento)}>
                     {dept?.nombre || 'Sin nombre'}
                   </option>
                 ))}
