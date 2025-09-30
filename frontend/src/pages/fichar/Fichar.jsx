@@ -3,6 +3,7 @@
   import api from '../../lib/api'
   import LiveClock from '../../components/LiveClock'
   import Modal from '../../components/Modal'
+  import { Link } from 'react-router-dom'
   import ModalFooter from '../../components/ModalFooter'
   import {
     ClockIcon,
@@ -12,7 +13,8 @@
     CalendarDaysIcon,
     CheckCircleIcon,
     ExclamationCircleIcon,
-    XMarkIcon
+    XMarkIcon,
+    LockClosedIcon
   } from '@heroicons/react/24/outline'
 
   export default function Fichar() {
@@ -23,6 +25,7 @@
     const [estadoFichaje, setEstadoFichaje] = useState({
       puede_iniciar_jornada: true,
       jornada_activa: false,
+      ya_fichado: false,
       en_pausa: false
     })
     const [loading, setLoading] = useState(false)
@@ -58,11 +61,15 @@
         const { data } = await api.get('/fichaje/estado')
         setJornadaActual(data.jornada)
   // No actualizar pausaActiva local, solo confiar en estadoFichaje.en_pausa
-        setEstadoFichaje({
+        const nuevoEstado = {
           puede_iniciar_jornada: data.puede_iniciar_jornada,
           jornada_activa: data.jornada_activa,
-          en_pausa: data.en_pausa
-        })
+          en_pausa: data.en_pausa,
+          ya_fichado: data.ya_fichado
+        }
+        console.log('📊 Nuevo estado fichaje:', nuevoEstado) // DEBUG
+        console.log('🔢 Tipo de ya_fichado:', typeof data.ya_fichado, '| Valor:', data.ya_fichado) // DEBUG
+        setEstadoFichaje(nuevoEstado)
 
         // Calcular resumen de horas si hay jornada activa
         if (data.jornada && data.jornada_activa) {
@@ -261,6 +268,7 @@
     // Usar el estado del backend en lugar de calcular localmente
     const jornadaEnCurso = estadoFichaje.jornada_activa
     const puedeIniciarJornada = estadoFichaje.puede_iniciar_jornada
+    const yaFichado = estadoFichaje.ya_fichado
 
     return (
       <div className="space-y-6">
@@ -359,32 +367,40 @@
                 <div className="space-y-4">
                   {/* Botón de jornada */}
                   <button
-                    onClick={handleFicharJornada}
-                    disabled={loading}
-                    className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-white transition-all ${
-                      puedeIniciarJornada
-                        ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
-                        : 'bg-red-600 hover:bg-red-700 focus:ring-red-500'
-                    } focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed`}
+                    onClick={yaFichado ? null : handleFicharJornada}
+                    disabled={loading || yaFichado}
+                    style={yaFichado ? {
+                      backgroundImage: 'repeating-linear-gradient(45deg, #f3f4f6 0px, #f3f4f6 10px, #e5e7eb 10px, #e5e7eb 20px)'
+                    } : {}}
+                    className={`w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold transition-all relative overflow-hidden ${
+                      yaFichado
+                        ? 'text-gray-500 cursor-not-allowed border-2 border-gray-300'
+                        : jornadaEnCurso
+                        ? 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-sm hover:shadow-md'
+                        : 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500 shadow-sm hover:shadow-md'
+                    } focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:shadow-none`}
                   >
                     {loading ? (
                       <>
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Procesando...
+                        <span>Procesando...</span>
+                      </>
+                    ) : yaFichado ? (
+                      <>
+                        <div className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-200">
+                          <LockClosedIcon className="h-4 w-4 text-gray-500" />
+                        </div>
+                        <span>Jornada Completada</span>
+                      </>
+                    ) : jornadaEnCurso ? (
+                      <>
+                        <StopIcon className="h-5 w-5" />
+                        <span>Finalizar Jornada</span>
                       </>
                     ) : (
                       <>
-                        {puedeIniciarJornada ? (
-                          <>
-                            <PlayIcon className="h-5 w-5" />
-                            Iniciar Jornada
-                          </>
-                        ) : (
-                          <>
-                            <StopIcon className="h-5 w-5" />
-                            Finalizar Jornada
-                          </>
-                        )}
+                        <PlayIcon className="h-5 w-5" />
+                        <span>Iniciar Jornada</span>
                       </>
                     )}
                   </button>
@@ -411,61 +427,74 @@
                     </button>
                   )}
 
-                  {/* Cuadro informativo para jornada no iniciada */}
-                  {!jornadaEnCurso && (
-                    <div className="mt-4 bg-slate-50/50 rounded-lg p-3 border border-slate-100">
-                      
-                      
-                      <div className="text-xs text-slate-600">
-                        <div className="flex items-start gap-2">
-                          <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                          <p>Pulsa <span className="font-medium text-slate-700">"Iniciar Jornada"</span> para registrar y comenzar tu jornada</p>
+                  {loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        <span>Procesando...</span>
+                      </>
+                    ) : yaFichado ? (
+                      <>
+                        <div className="mt-4 mb-0 bg-slate-50/50 rounded-lg p-3 border border-slate-100">
+                          <div className="text-xs text-slate-600">
+                            <div className="flex items-start gap-2">
+                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
+                              <p>Ya se ha registrado una jornada hoy, registrala <Link to="/incidencias" className="font-medium text-slate-900">aquí</Link></p>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Separador y cuadro informativo - solo si hay jornada activa */}
-                  {jornadaEnCurso && (
-                    <>
-                      <div className="border-t border-gray-100 my-4 opacity-5 w-full"></div>
-                      <div className="bg-slate-50/50 rounded-lg p-4 border border-slate-100">
-                        <div className="flex items-center gap-2 mb-4">
-                          <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
-                          <h4 className="font-medium text-slate-700 text-sm">Información</h4>
-                        </div>
-                        
-                        <div className="space-y-3 text-xs text-slate-600">
-                          <div className="flex items-start gap-2">
-                            <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                            <p>Usa <span className="font-medium text-slate-700">Iniciar Pausa</span> para tomar descansos</p>
+                      </>
+                    ) : jornadaEnCurso ? (
+                      <>
+                        <div className="border-t border-gray-100 my-4 opacity-5 w-full"></div>
+                        <div className="bg-slate-50/50 rounded-lg p-4 border border-slate-100">
+                          <div className="flex items-center gap-2 mb-4">
+                            <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
+                            <h4 className="font-medium text-slate-700 text-sm">Información</h4>
                           </div>
                           
-                          <div className="flex items-start gap-2">
-                            <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                            <p>Pulsa <span className="font-medium text-slate-700">Finalizar Jornada</span> al terminar</p>
-                          </div>
+                          <div className="space-y-3 text-xs text-slate-600">
+                            <div className="flex items-start gap-2">
+                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
+                              <p>Usa <span className="font-medium text-slate-700">Iniciar Pausa</span> para tomar descansos</p>
+                            </div>
+                            
+                            <div className="flex items-start gap-2">
+                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
+                              <p>Pulsa <span className="font-medium text-slate-700">Finalizar Jornada</span> al terminar</p>
+                            </div>
 
-                          <div className="flex items-start gap-2">
-                            <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                            <p>El tiempo se calcula automáticamente excluyendo pausas</p>
-                          </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
+                              <p>El tiempo se calcula automáticamente excluyendo pausas</p>
+                            </div>
 
-                          <div className="flex items-start gap-2">
-                            <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                            <p>Tus horas se actualizan en tiempo real cada 30 segundos</p>
-                          </div>
-                          
+                            <div className="flex items-start gap-2">
+                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
+                              <p>Tus horas se actualizan en tiempo real cada 30 segundos</p>
+                            </div>
+                            
 
-                          <div className="mt-4 pt-3 border-t border-slate-100">
-                            <p className="text-xs text-slate-500 italic">
-                              💡 Tip: Puedes ver el resumen completo en la pestaña "Jornadas"
-                            </p>
+                            <div className="mt-4 pt-3 border-t border-slate-100">
+                              <p className="text-xs text-slate-500 italic">
+                                💡 Tip: Puedes ver el resumen completo en la pestaña "Jornadas"
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="mt-4 bg-slate-50/50 rounded-lg p-3 border border-slate-100">
+                          <div className="text-xs text-slate-600">
+                            <div className="flex items-start gap-2">
+                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
+                              <p>Pulsa <span className="font-medium text-slate-700">"Iniciar Jornada"</span> para registrar y comenzar tu jornada</p>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
                 </div>
               </div>
             </div>

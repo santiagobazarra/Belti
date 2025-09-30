@@ -67,6 +67,7 @@ class FichajeService
             }
             $jornadaAbierta->hora_salida = now();
             $jornadaAbierta->estado = 'cerrada';
+            $jornadaAbierta->ya_fichado = true;
             $jornadaAbierta->ip_salida = $context['ip'] ?? request()->ip();
             $jornadaAbierta->hora_salida_dispositivo = $context['device_time'] ?? now();
             $jornadaAbierta->save();
@@ -198,6 +199,7 @@ class FichajeService
                 'puede_iniciar_jornada' => true,
                 'jornada_activa' => false,
                 'en_pausa' => false,
+                'ya_fichado' => false,
                 'jornada' => null,
                 'pausa_activa' => null
             ];
@@ -236,6 +238,7 @@ class FichajeService
             'puede_iniciar_jornada' => !$jornadaActiva && is_null($jornada->hora_salida),
             'jornada_activa' => $jornadaActiva,
             'en_pausa' => !is_null($pausaActiva),
+            'ya_fichado' => (bool) $jornada->ya_fichado,
             'jornada' => $jornada,
             'pausa_activa' => $pausaActiva
         ];
