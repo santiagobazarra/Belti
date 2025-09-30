@@ -1,5 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -34,9 +35,59 @@ Route::middleware([$authMiddleware])->group(function () {
         Route::post('/fichaje/jornada', [FichajeController::class, 'toggleJornada']);
         Route::post('/fichaje/pausa', [FichajeController::class, 'togglePausa']);
     }
+    
+    // Estado actual del fichaje del usuario
+    Route::get('/fichaje/estado', [FichajeController::class, 'estado']);
+    
+    // Debug temporal - eliminar después
+    Route::get('/debug/jornadas-hoy', function() {
+        $user = Auth::user();
+        $hoy = now()->toDateString();
+        
+        $jornadas = \App\Models\Jornada::where('id_usuario', $user->id_usuario)
+            ->whereDate('fecha', $hoy)
+            ->with('pausas')
+            ->get();
+            
+        return response()->json([
+            'fecha_hoy' => $hoy,
+            'user_id' => $user->id_usuario,
+            'jornadas_count' => $jornadas->count(),
+            'jornadas' => $jornadas->toArray()
+        ]);
+    });
+    
+    // Debug resumen específico
+    Route::get('/debug/resumen-test', function() {
+        $user = Auth::user();
+        $desde = '2025-09-30';
+        $hasta = '2025-09-30';
+        
+        $todasJornadas = \App\Models\Jornada::where('id_usuario', $user->id_usuario)->get();
+        $jornadasFiltradas = \App\Models\Jornada::where('id_usuario', $user->id_usuario)
+            ->whereBetween('fecha', [$desde, $hasta])
+            ->get();
+            
+        return response()->json([
+            'user_id' => $user->id_usuario,
+            'desde' => $desde,
+            'hasta' => $hasta,
+            'todas_jornadas_count' => $todasJornadas->count(),
+            'todas_jornadas' => $todasJornadas->map(function($j) {
+                return [
+                    'id' => $j->id_jornada,
+                    'fecha' => $j->fecha,
+                    'estado' => $j->estado
+                ];
+            })->toArray(),
+            'jornadas_filtradas_count' => $jornadasFiltradas->count(),
+            'jornadas_filtradas' => $jornadasFiltradas->toArray()
+        ]);
+    });
 
     Route::get('/jornadas', [JornadaController::class, 'listarJornadas']);
     Route::get('/jornadas/resumen', [JornadaController::class, 'resumen']);
+    Route::get('/jornadas/resumen-diario', [JornadaController::class, 'resumenDiario']);
     Route::get('/reportes/resumen', [ReporteController::class, 'resumen']);
     Route::get('/reportes/resumen.csv', [ReporteController::class, 'resumenCsv']);
     Route::get('/reportes/resumen.pdf', [ReporteController::class, 'resumenPdf']);

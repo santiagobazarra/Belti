@@ -149,8 +149,8 @@ export default function Dashboard() {
 
       {/* Estado de jornada actual */}
       {stats.jornadaActual && (
-        <div className="card card-hover">
-          <div className="card-content">
+        <Link to="/fichar" className="card card-hover !py-2 !px-6 h-auto block">
+          <div className="card-content !py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className={`p-3 rounded-full ${stats.jornadaActual.hora_fin ? 'bg-gray-100' : 'bg-green-100'}`}>
@@ -165,7 +165,12 @@ export default function Dashboard() {
                     {stats.jornadaActual.hora_fin ? 'Jornada finalizada' : 'Jornada en curso'}
                   </h3>
                   <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span>Inicio: {formatDateTime(stats.jornadaActual.hora_inicio)}</span>
+                    <span>Inicio: {(() => {
+                      const h = stats.jornadaActual.hora_inicio;
+                      if (!h) return '--:--';
+                      const d = new Date(h);
+                      return isNaN(d) ? '--:--' : d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+                    })()}</span>
                     {stats.jornadaActual.hora_fin && (
                       <span>Fin: {formatDateTime(stats.jornadaActual.hora_fin)}</span>
                     )}
@@ -174,18 +179,18 @@ export default function Dashboard() {
               </div>
               <div className="text-right">
                 <p className="text-2xl font-bold text-blue-600">
-                  {formatTime(stats.jornadaActual.duracion_minutos)}
+                  {formatTime(stats.resumenSemanal.horas_trabajadas_minutos || stats.resumenSemanal.total_minutos || 0)}
                 </p>
                 <p className="text-sm text-gray-500">Trabajadas hoy</p>
               </div>
             </div>
           </div>
-        </div>
+        </Link>
       )}
 
       {/* Métricas principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card card-hover">
+        <Link to="/jornadas" className="card card-hover block">
           <div className="card-content">
             <div className="flex items-center justify-between">
               <div>
@@ -199,7 +204,7 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
+        </Link>
 
         <Link to="/incidencias" className="card card-hover block">
           <div className="card-content">

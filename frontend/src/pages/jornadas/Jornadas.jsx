@@ -16,8 +16,8 @@ export default function Jornadas() {
   const [resumen, setResumen] = useState(null)
   const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState({
-    desde: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    hasta: new Date().toISOString().split('T')[0]
+    desde: new Date().toISOString().split('T')[0], // Hoy
+    hasta: new Date().toISOString().split('T')[0]  // Hoy
   })
 
   const isAdmin = user?.role?.slug === 'administrador' || user?.role?.nombre?.toLowerCase() === 'administrador'
@@ -29,14 +29,16 @@ export default function Jornadas() {
         desde: dateRange.desde,
         hasta: dateRange.hasta
       })
+      console.log('Cargando jornadas con fechas:', dateRange)
       const { data } = await api.get(`/jornadas?${params}`)
+      console.log('Jornadas recibidas:', data)
       setJornadas(data.data || data)
     } catch (error) {
       console.error('Error al cargar jornadas:', error)
     } finally {
       setLoading(false)
     }
-  }, [dateRange.desde, dateRange.hasta])
+  }, [dateRange])
 
   const loadResumen = useCallback(async () => {
     try {
@@ -44,7 +46,9 @@ export default function Jornadas() {
         desde: dateRange.desde,
         hasta: dateRange.hasta
       })
+      console.log('Cargando resumen con fechas:', dateRange)
       const { data } = await api.get(`/jornadas/resumen?${params}`)
+      console.log('Datos del resumen recibidos:', data)
       setResumen(data)
     } catch (error) {
       console.error('Error al cargar resumen:', error)
@@ -54,6 +58,13 @@ export default function Jornadas() {
   useEffect(() => {
     loadJornadas()
     loadResumen()
+    
+    // Actualizar cada minuto para mostrar progreso en tiempo real
+    const interval = setInterval(() => {
+      loadResumen() // Solo recargar el resumen, no toda la lista
+    }, 60000) // cada 60 segundos
+    
+    return () => clearInterval(interval)
   }, [loadJornadas, loadResumen])
 
   const formatTime = useCallback((minutes) => {

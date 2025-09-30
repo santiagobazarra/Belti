@@ -182,4 +182,62 @@ class FichajeService
             ];
         }, 3);
     }
+
+    public function obtenerEstadoActual(User $user): array
+    {
+        $hoy = now()->toDateString();
+        
+        // Buscar jornada de hoy
+        $jornada = Jornada::where('id_usuario', $user->id_usuario)
+            ->whereDate('fecha', $hoy)
+            ->with('pausas')
+            ->first();
+
+        if (!$jornada) {
+            return [
+                'puede_iniciar_jornada' => true,
+                'jornada_activa' => false,
+                'en_pausa' => false,
+                'jornada' => null,
+                'pausa_activa' => null
+            ];
+        }
+
+    $jornadaActiva = is_null($jornada->hora_salida);
+    // Solo considerar pausa activa si no tiene hora_fin
+    $pausaActiva = $jornada->pausas->whereNull('hora_fin')->first();
+
+        // Calcular duración en tiempo real para jornadas activas
+        if ($jornadaActiva && $jornada->hora_entrada) {
+            $inicio = $jornada->hora_entrada;
+            $fin = now();
+            
+            // Calcular tiempo total en minutos
+            $tiempoTotalMinutos = $inicio->diffInMinutes($fin);
+            
+            // Calcular tiempo de pausas finalizadas
+            $tiempoPausasMinutos = $jornada->pausas()
+                ->whereNotNull('hora_fin')
+                ->get()
+                ->sum(function($pausa) {
+                    return $pausa->hora_inicio->diffInMinutes($pausa->hora_fin);
+                });
+            
+            // Tiempo neto trabajado
+            $tiempoNetoMinutos = $tiempoTotalMinutos - $tiempoPausasMinutos;
+            
+            // Agregar campos calculados al objeto jornada
+            $jornada->duracion_minutos = $tiempoNetoMinutos;
+            $jornada->hora_inicio = $jornada->hora_entrada; // Para compatibilidad con frontend
+            $jornada->hora_fin = null; // Jornada activa
+        }
+
+        return [
+            'puede_iniciar_jornada' => !$jornadaActiva && is_null($jornada->hora_salida),
+            'jornada_activa' => $jornadaActiva,
+            'en_pausa' => !is_null($pausaActiva),
+            'jornada' => $jornada,
+            'pausa_activa' => $pausaActiva
+        ];
+    }
 }
