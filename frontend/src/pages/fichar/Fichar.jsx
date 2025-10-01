@@ -3,6 +3,7 @@
   import api from '../../lib/api'
   import LiveClock from '../../components/LiveClock'
   import Modal from '../../components/Modal'
+  import Toast from '../../components/Toast'
   import { Link } from 'react-router-dom'
   import ModalFooter from '../../components/ModalFooter'
   import {
@@ -30,6 +31,7 @@
     })
     const [loading, setLoading] = useState(false)
     const [loadingPausa, setLoadingPausa] = useState(false)
+    const [initialLoading, setInitialLoading] = useState(true) // Loading inicial
     const [message, setMessage] = useState({ type: '', text: '' })
     const [showModalPausa, setShowModalPausa] = useState(false)
     const [tiposPausa, setTiposPausa] = useState([])
@@ -67,8 +69,7 @@
           en_pausa: data.en_pausa,
           ya_fichado: data.ya_fichado
         }
-        console.log('📊 Nuevo estado fichaje:', nuevoEstado) // DEBUG
-        console.log('🔢 Tipo de ya_fichado:', typeof data.ya_fichado, '| Valor:', data.ya_fichado) // DEBUG
+        
         setEstadoFichaje(nuevoEstado)
 
         // Calcular resumen de horas si hay jornada activa
@@ -117,8 +118,16 @@
 
     // Cargar estado inicial y auto-refresh
     useEffect(() => {
-      loadJornadaActual()
-      loadTiposPausa()
+      const initialize = async () => {
+        setInitialLoading(true)
+        await Promise.all([
+          loadJornadaActual(),
+          loadTiposPausa()
+        ])
+        setInitialLoading(false)
+      }
+      
+      initialize()
 
       // Auto-refresh cada 30 segundos para actualizar horas trabajadas
       const interval = setInterval(() => {
@@ -154,11 +163,13 @@
           })
         }
 
-        // Recargar estado
+        // Actualizar estado INMEDIATAMENTE
+        await loadJornadaActual()
+        
+        // Solo ocultar el mensaje después de 5 segundos
         setTimeout(() => {
-          loadJornadaActual()
           setMessage({ type: '', text: '' })
-        }, 3000)
+        }, 5000)
 
       } catch (error) {
         console.error('Error al fichar jornada:', error)
@@ -194,8 +205,6 @@
     }
 
     const handleConfirmPausa = async () => {
-      
-
       try {
         setLoadingPausa(true)
 
@@ -206,6 +215,7 @@
             type: 'success',
             text: `¡Pausa finalizada! Duración: ${data.duracion_minutos} minutos`
           })
+          handleCloseModalPausa()
         } else {
           if (!selectedTipoPausa) return
           // Iniciar nueva pausa con tipo seleccionado
@@ -216,14 +226,17 @@
             type: 'success',
             text: `¡Pausa "${selectedTipoPausa.nombre}" iniciada! Hora: ${formatTime(new Date())}`
           })
+          handleCloseModalPausa()
         }
 
+        // Actualizar estado INMEDIATAMENTE
+        await loadJornadaActual()
+        await loadTiposPausa() // Recargar para actualizar límites de uso
+        
+        // Solo ocultar el mensaje después de 5 segundos
         setTimeout(() => {
           setMessage({ type: '', text: '' })
-          loadJornadaActual()
-          loadTiposPausa() // Recargar para actualizar límites de uso
-          handleCloseModalPausa()
-        }, 3000)
+        }, 5000)
 
       } catch (error) {
         console.error('Error al registrar pausa:', error)
@@ -256,6 +269,16 @@
       return `${hours}h ${mins}m`
     }
 
+    const formatDateSafely = (dateString) => {
+      if (!dateString) return 'N/A'
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'N/A'
+      return date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
     const getCurrentDate = () => {
       return currentTime.toLocaleDateString('es-ES', {
         weekday: 'long',
@@ -267,8 +290,19 @@
 
     // Usar el estado del backend en lugar de calcular localmente
     const jornadaEnCurso = estadoFichaje.jornada_activa
-    const puedeIniciarJornada = estadoFichaje.puede_iniciar_jornada
     const yaFichado = estadoFichaje.ya_fichado
+
+    // Mostrar loading inicial mientras carga los datos
+    if (initialLoading) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Cargando información...</p>
+          </div>
+        </div>
+      )
+    }
 
     return (
       <div className="space-y-6">
@@ -282,40 +316,26 @@
           </p>
         </div>
 
-        {/* Mensaje de estado */}
-        {message.text && (
-          <div className={`rounded-md p-4 ${
-            message.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
-          }`}>
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                {message.type === 'success' ? (
-                  <CheckCircleIcon className="h-5 w-5 text-green-400" />
-                ) : (
-                  <ExclamationCircleIcon className="h-5 w-5 text-red-400" />
-                )}
-              </div>
-              <div className="ml-3">
-                <p className={`text-sm font-medium ${
-                  message.type === 'success' ? 'text-green-800' : 'text-red-800'
-                }`}>
-                  {message.text}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Toast Notification Component */}
+        <Toast
+          type={message.type}
+          message={message.text}
+          isVisible={!!message.text}
+          onClose={() => setMessage({ type: '', text: '' })}
+          duration={5000}
+          position="bottom-right"
+        />
 
         {/* Primera fila: Reloj (ancho) + Acciones (estrecho) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Reloj principal minimalista - 2 columnas */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="card">
-              <div className="card-content py-2">
+            <div className="card h-full">
+              <div className="card-content py-2 h-full flex flex-col">
                 <LiveClock />
                 {/* Cards adicionales cuando hay jornada activa - debajo del LiveClock */}
                 {jornadaEnCurso && (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                     {/* Card de Horas Trabajadas */}
                     <div className="card card-hover">
                       <div className="card-header">
@@ -358,13 +378,14 @@
           </div>
 
           {/* Acciones - 1 columna */}
-          <div className="lg:col-span-1 h-full flex flex-col">
-            <div className={`card h-full flex flex-col`}>
+          <div className="lg:col-span-1">
+            <div className="card h-full flex flex-col">
               <div className="card-header py-2">
                 <h3 className="card-title">Acciones</h3>
               </div>
-              <div className="card-content py-2 flex-1 flex flex-col justify-between">
-                <div className="space-y-4">
+              <div className="card-content py-2 flex-1 flex flex-col">
+                {/* Botones principales - altura fija */}
+                <div className="space-y-3 mb-4">
                   {/* Botón de jornada */}
                   <button
                     onClick={yaFichado ? null : handleFicharJornada}
@@ -409,7 +430,7 @@
                   {jornadaEnCurso && estadoFichaje.en_pausa === true && (
                     <button
                       onClick={handleConfirmPausa}
-                      className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg font-semibold bg-orange-600 hover:bg-orange-700 text-white focus:ring-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full flex items-center justify-center gap-3 px-6 py-3 rounded-lg font-semibold bg-orange-400 hover:bg-orange-600 text-white focus:ring-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={loadingPausa}
                     >
                       <PauseIcon className="h-4 w-4" />
@@ -426,75 +447,77 @@
                       Iniciar Pausa
                     </button>
                   )}
+                </div>
 
+                {/* Información contextual - flex-grow para llenar el espacio restante */}
+                <div className="flex-grow flex items-start">
                   {loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        <span>Procesando...</span>
-                      </>
-                    ) : yaFichado ? (
-                      <>
-                        <div className="mt-4 mb-0 bg-slate-50/50 rounded-lg p-3 border border-slate-100">
-                          <div className="text-xs text-slate-600">
-                            <div className="flex items-start gap-2">
-                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                              <p>Ya se ha registrado una jornada hoy, registrala <Link to="/incidencias" className="font-medium text-slate-900">aquí</Link></p>
-                            </div>
+                    <div className="w-full bg-gradient-to-br from-blue-50/30 to-slate-50/50 rounded-xl p-3.5 border border-blue-100/50 shadow-sm">
+                      <div className="flex items-center gap-2.5 text-xs text-slate-600">
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-slate-300 border-t-blue-500"></div>
+                        <span className="font-medium">Procesando tu solicitud...</span>
+                      </div>
+                    </div>
+                  ) : yaFichado ? (
+                    <div className="w-full bg-gradient-to-br from-amber-50/40 to-orange-50/30 rounded-xl p-3.5 border border-amber-100/60 shadow-sm">
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center mt-0.5">
+                          <svg className="w-3 h-3 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="flex-1 text-xs text-amber-900/80 leading-relaxed">
+                          <p>Ya has completado tu jornada de hoy. Si necesitas registrar una nueva, créala como <Link to="/incidencias" className="font-semibold text-amber-700 hover:text-amber-800 underline decoration-dotted underline-offset-2 transition-colors">incidencia</Link>.</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : jornadaEnCurso ? (
+                    <div className="w-full bg-gradient-to-br from-slate-50/60 to-gray-50/40 rounded-xl p-4 border border-slate-200/60 shadow-sm">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-1 bg-slate-400 rounded-full"></div>
+                        <h4 className="font-semibold text-slate-800 text-xs uppercase tracking-wider">Guía Rápida</h4>
+                      </div>
+                      
+                      <div className="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+                        <div className="flex items-start gap-2.5">
+                          <div className="flex-shrink-0 w-1 h-1 bg-blue-400/60 rounded-full mt-1.5"></div>
+                          <p><span className="font-semibold text-slate-700">Iniciar Pausa:</span> Para descansos y pausas permitidas</p>
+                        </div>
+                        
+                        <div className="flex items-start gap-2.5">
+                          <div className="flex-shrink-0 w-1 h-1 bg-blue-400/60 rounded-full mt-1.5"></div>
+                          <p><span className="font-semibold text-slate-700">Finalizar Jornada:</span> Cuando termines tu día laboral</p>
+                        </div>
+
+                        <div className="flex items-start gap-2.5">
+                          <div className="flex-shrink-0 w-1 h-1 bg-blue-400/60 rounded-full mt-1.5"></div>
+                          <p>El tiempo se actualiza automáticamente cada 30 segundos</p>
+                        </div>
+
+                        <div className="pt-2 mt-2 border-t border-slate-200/50">
+                          <div className="flex items-start gap-2">
+                            <span className="text-xs">💡</span>
+                            <p className="text-xs text-slate-500 italic leading-relaxed">
+                              Revisa tu historial completo en la pestaña "Jornadas"
+                            </p>
                           </div>
                         </div>
-                      </>
-                    ) : jornadaEnCurso ? (
-                      <>
-                        <div className="border-t border-gray-100 my-4 opacity-5 w-full"></div>
-                        <div className="bg-slate-50/50 rounded-lg p-4 border border-slate-100">
-                          <div className="flex items-center gap-2 mb-4">
-                            <div className="w-1.5 h-1.5 bg-slate-400 rounded-full"></div>
-                            <h4 className="font-medium text-slate-700 text-sm">Información</h4>
-                          </div>
-                          
-                          <div className="space-y-3 text-xs text-slate-600">
-                            <div className="flex items-start gap-2">
-                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                              <p>Usa <span className="font-medium text-slate-700">Iniciar Pausa</span> para tomar descansos</p>
-                            </div>
-                            
-                            <div className="flex items-start gap-2">
-                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                              <p>Pulsa <span className="font-medium text-slate-700">Finalizar Jornada</span> al terminar</p>
-                            </div>
-
-                            <div className="flex items-start gap-2">
-                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                              <p>El tiempo se calcula automáticamente excluyendo pausas</p>
-                            </div>
-
-                            <div className="flex items-start gap-2">
-                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                              <p>Tus horas se actualizan en tiempo real cada 30 segundos</p>
-                            </div>
-                            
-
-                            <div className="mt-4 pt-3 border-t border-slate-100">
-                              <p className="text-xs text-slate-500 italic">
-                                💡 Tip: Puedes ver el resumen completo en la pestaña "Jornadas"
-                              </p>
-                            </div>
-                          </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full bg-gradient-to-br from-green-50/30 to-emerald-50/20 rounded-xl p-3.5 border border-green-100/50 shadow-sm">
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mt-0.5">
+                          <svg className="w-3 h-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
                         </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="mt-4 bg-slate-50/50 rounded-lg p-3 border border-slate-100">
-                          <div className="text-xs text-slate-600">
-                            <div className="flex items-start gap-2">
-                              <div className="w-1 h-1 bg-slate-300 rounded-full mt-1.5 flex-shrink-0"></div>
-                              <p>Pulsa <span className="font-medium text-slate-700">"Iniciar Jornada"</span> para registrar y comenzar tu jornada</p>
-                            </div>
-                          </div>
+                        <div className="flex-1 text-xs text-green-900/80 leading-relaxed">
+                          <p>Pulsa <span className="font-semibold text-green-700">"Iniciar Jornada"</span> cuando llegues para comenzar el registro de tu día laboral.</p>
                         </div>
-                      </>
-                    )}
-
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -502,81 +525,105 @@
         </div>
 
         {/* Segunda fila: Estado de la jornada + Tu información */}
-        <div className="flex flex-col md:flex-row gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {/* Estado de la jornada */}
-          <div className="card flex-1">
-            <div className="card-header">
-              <h3 className="card-title flex items-center gap-2">
-                <CalendarDaysIcon className="h-5 w-5" />
+          <div className="card h-full">
+            <div className="card-header bg-gradient-to-r from-gray-50 to-white">
+              <h3 className="card-title flex items-center gap-2 text-gray-800">
+                <CalendarDaysIcon className="h-5 w-5 text-blue-600" />
                 Estado de la Jornada
               </h3>
             </div>
             <div className="card-content">
               {!jornadaActual ? (
-                <div className="flex items-center gap-4 py-4">
-                  <div className="bg-gray-100 p-3 rounded-full flex-shrink-0">
-                    <ClockIcon className="h-6 w-6 text-gray-500" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-semibold text-gray-900 mb-1">
+                <div className="py-6 px-2">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-gradient-to-br from-gray-100 to-gray-50 p-4 rounded-2xl mb-4 shadow-sm">
+                      <ClockIcon className="h-10 w-10 text-gray-400" />
+                    </div>
+                    <h4 className="text-lg font-bold text-gray-900 mb-2">
                       Jornada no iniciada
                     </h4>
-                    <p className="text-sm text-gray-600">
-                      Pulsa el botón "Iniciar Jornada" para comenzar tu día laboral
+                    <p className="text-sm text-gray-600 max-w-sm">
+                      Pulsa <span className="font-semibold text-gray-900">"Iniciar Jornada"</span> para comenzar tu día laboral
                     </p>
                   </div>
                 </div>
               ) : jornadaEnCurso ? (
-                <div className="flex items-center gap-4 py-4">
-                  <div className="bg-green-100 p-3 rounded-full flex-shrink-0">
-                    <PlayIcon className="h-6 w-6 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-semibold text-green-900 mb-2">
-                      Jornada en curso
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
-                      <p>
-                        <strong>Inicio:</strong> {new Date(jornadaActual.hora_inicio).toLocaleTimeString('es-ES', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
-                      <p>
-                        <strong>Tiempo trabajado:</strong> {formatDuration(jornadaActual.duracion_minutos)}
-                      </p>
-                      {estadoFichaje.en_pausa && (
-                        <p className="text-yellow-600 col-span-2">
-                          <strong>Estado:</strong> En pausa
-                        </p>
-                      )}
+                <div className="py-4">
+                  <div className="flex items-start gap-4 mb-5">
+                    <div className="bg-gradient-to-br from-green-100 to-green-50 p-3 rounded-xl shadow-sm flex-shrink-0">
+                      <PlayIcon className="h-7 w-7 text-green-600" />
                     </div>
+                    <div className="flex-1 pt-1">
+                      <h4 className="text-lg font-bold text-green-900 mb-1 flex items-center gap-2">
+                        Jornada en curso
+                        <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                      </h4>
+                      <p className="text-sm text-gray-600">Tu jornada está activa</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="bg-gradient-to-br from-blue-50 to-white rounded-lg p-3.5 border border-blue-100">
+                      <p className="text-xs font-medium text-blue-600 mb-1 uppercase tracking-wide">Hora de Inicio</p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {formatDateSafely(jornadaActual.hora_entrada)}
+                      </p>
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-green-50 to-white rounded-lg p-3.5 border border-green-100">
+                      <p className="text-xs font-medium text-green-600 mb-1 uppercase tracking-wide">Tiempo Trabajado</p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {formatDuration(jornadaActual.duracion_minutos || (jornadaActual.total_horas ? parseFloat(jornadaActual.total_horas) * 60 : 0))}
+                      </p>
+                    </div>
+                    
+                    {estadoFichaje.en_pausa && (
+                      <div className="sm:col-span-2 bg-gradient-to-br from-yellow-50 to-white rounded-lg p-3.5 border border-yellow-200">
+                        <div className="flex items-center gap-2">
+                          <PauseIcon className="h-5 w-5 text-yellow-600" />
+                          <p className="text-sm font-semibold text-yellow-900">
+                            En pausa actualmente
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-4 py-4">
-                  <div className="bg-blue-100 p-3 rounded-full flex-shrink-0">
-                    <StopIcon className="h-6 w-6 text-blue-600" />
+                <div className="py-4">
+                  <div className="flex items-start gap-4 mb-5">
+                    <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-3 rounded-xl shadow-sm flex-shrink-0">
+                      <CheckCircleIcon className="h-7 w-7 text-blue-600" />
+                    </div>
+                    <div className="flex-1 pt-1">
+                      <h4 className="text-lg font-bold text-blue-900 mb-1">
+                        Jornada finalizada
+                      </h4>
+                      <p className="text-sm text-gray-600">Has completado tu jornada de hoy</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="text-base font-semibold text-blue-900 mb-2">
-                      Jornada finalizada
-                    </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-600">
-                      <p>
-                        <strong>Inicio:</strong> {new Date(jornadaActual.hora_inicio).toLocaleTimeString('es-ES', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                  
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="bg-gradient-to-br from-green-50 to-white rounded-lg p-3 border border-green-100">
+                      <p className="text-xs font-medium text-green-600 mb-1 uppercase tracking-wide">Inicio</p>
+                      <p className="text-base font-bold text-gray-900">
+                        {formatDateSafely(jornadaActual.hora_entrada)}
                       </p>
-                      <p>
-                        <strong>Fin:</strong> {new Date(jornadaActual.hora_fin).toLocaleTimeString('es-ES', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                    </div>
+                    
+                    <div className="bg-gradient-to-br from-red-50 to-white rounded-lg p-3 border border-red-100">
+                      <p className="text-xs font-medium text-red-600 mb-1 uppercase tracking-wide">Fin</p>
+                      <p className="text-base font-bold text-gray-900">
+                        {formatDateSafely(jornadaActual.hora_salida)}
                       </p>
-                      <p>
-                        <strong>Total trabajado:</strong> {formatDuration(jornadaActual.duracion_minutos)}
+                    </div>
+                    
+                    <div className="col-span-2 lg:col-span-1 bg-gradient-to-br from-blue-50 to-white rounded-lg p-3 border border-blue-100">
+                      <p className="text-xs font-medium text-blue-600 mb-1 uppercase tracking-wide">Total Trabajado</p>
+                      <p className="text-base font-bold text-gray-900">
+                        {formatDuration(jornadaActual.duracion_minutos || (jornadaActual.total_horas ? parseFloat(jornadaActual.total_horas) * 60 : 0))}
                       </p>
                     </div>
                   </div>
@@ -586,50 +633,68 @@
           </div>
 
           {/* Tu información */}
-          <div className="card flex-1">
+          <div className="card h-full">
             <div className="card-header">
-              <h3 className="card-title flex items-center gap-2">
-                <ClockIcon className="h-5 w-5" />
+              <h3 className="card-title flex items-center gap-2 text-gray-800">
+                <CheckCircleIcon className="h-5 w-5 text-blue-600" />
                 Tu Información
               </h3>
             </div>
             <div className="card-content">
-              <div className="flex items-center gap-3 py-2">
-                <div className="flex items-center gap-2 flex-1 bg-gray-50 rounded-lg p-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                    <span className="text-blue-600 text-sm font-bold">
-                      {user?.nombre?.charAt(0)}{user?.apellidos?.charAt(0)}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-600">Usuario</p>
-                    <p className="text-sm font-bold text-gray-900 truncate">
-                      {user?.nombre} {user?.apellidos}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2 flex-1 bg-gray-50 rounded-lg p-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                    <CalendarDaysIcon className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-600">Departamento</p>
-                    <p className="text-sm font-bold text-gray-900 truncate">
-                      {user?.departamento?.nombre || 'Sin asignar'}
-                    </p>
+              <div className="space-y-3 py-2">
+                {/* Usuario */}
+                <div className="bg-gradient-to-r from-blue-50 via-blue-50/50 to-transparent rounded-xl p-4 border border-blue-100 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                      <span className="text-white text-base font-bold">
+                        {user?.nombre?.charAt(0)}{user?.apellidos?.charAt(0)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-0.5">
+                        Usuario
+                      </p>
+                      <p className="text-base font-bold text-gray-900 truncate">
+                        {user?.nombre} {user?.apellidos}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-2 flex-1 bg-gray-50 rounded-lg p-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircleIcon className="h-4 w-4 text-green-600" />
+
+                {/* Departamento y Rol - En grid responsive */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Departamento */}
+                  <div className="bg-gradient-to-r from-purple-50 via-purple-50/50 to-transparent rounded-xl p-4 border border-purple-100 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-50 rounded-full flex items-center justify-center shadow-sm">
+                        <CalendarDaysIcon className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-purple-600 uppercase tracking-wide mb-0.5">
+                          Departamento
+                        </p>
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {user?.departamento?.nombre || 'Sin asignar'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-600">Rol</p>
-                    <p className="text-sm font-bold text-gray-900 truncate">
-                      {user?.role?.nombre || 'Empleado'}
-                    </p>
+
+                  {/* Rol */}
+                  <div className="bg-gradient-to-r from-green-50 via-green-50/50 to-transparent rounded-xl p-4 border border-green-100 hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-green-100 to-green-50 rounded-full flex items-center justify-center shadow-sm">
+                        <CheckCircleIcon className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-0.5">
+                          Rol
+                        </p>
+                        <p className="text-sm font-bold text-gray-900 truncate">
+                          {user?.role?.nombre || 'Empleado'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
