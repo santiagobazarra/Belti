@@ -1,0 +1,308 @@
+/* ============================================
+   TIME PICKER - Diseño Premium y Moderno
+   ============================================ */
+
+.timepicker-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.timepicker-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(55, 65, 81);
+  margin-bottom: 0.5rem;
+}
+
+.timepicker-input-wrapper {
+  position: relative;
+  width: 100%;
+  z-index: 1; /* Base z-index para el contenedor */
+}
+
+/* Cuando el dropdown está abierto, aumentar z-index del contenedor completo */
+.timepicker-input-wrapper-open {
+  z-index: 10002 !important;
+  position: relative;
+}
+
+.timepicker-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(156, 163, 175);
+  transition: color 0.2s;
+}
+
+/* Input principal - ahora editable */
+.timepicker-input {
+  width: 100%;
+  display: block;
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 12px;
+  padding: 0.625rem 3rem 0.625rem 2.75rem;
+  padding-left: 3rem !important; /* Forzar espacio generoso después del icono */
+  background: white;
+  transition: all 0.2s ease;
+  min-height: 44px;
+  font-size: 0.875rem;
+  color: rgb(17, 24, 39);
+  font-weight: 500;
+  outline: none;
+  text-align: left;
+}
+
+.timepicker-input:hover:not(:disabled) {
+  border-color: rgb(156, 163, 175);
+}
+
+.timepicker-input-open,
+.timepicker-input:focus {
+  border-color: rgb(59, 130, 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.timepicker-input-open ~ .timepicker-chevron-button .timepicker-icon,
+.timepicker-input:focus ~ .timepicker-chevron-button .timepicker-icon {
+  color: rgb(59, 130, 246);
+}
+
+.timepicker-input::placeholder {
+  color: rgb(156, 163, 175);
+  font-weight: 400;
+}
+
+/* Botón del chevron - posicionado absolutamente */
+.timepicker-chevron-button {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  z-index: 10;
+}
+
+.timepicker-chevron-button:hover:not(:disabled) {
+  background-color: rgb(243, 244, 246);
+}
+
+.timepicker-chevron-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.timepicker-chevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: rgb(156, 163, 175);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.timepicker-chevron-open {
+  transform: rotate(180deg);
+  color: rgb(59, 130, 246);
+}
+
+/* Error state */
+.timepicker-input-error {
+  border-color: rgb(239, 68, 68);
+}
+
+.timepicker-input-error:focus {
+  border-color: rgb(239, 68, 68);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Disabled state */
+.timepicker-input:disabled {
+  background-color: rgb(249, 250, 251);
+  color: rgb(156, 163, 175);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Dropdown principal */
+.timepicker-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 10000; /* Aumentado para evitar solapamiento en responsive */
+  background: white;
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: timepicker-dropdown-slide 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes timepicker-dropdown-slide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.timepicker-dropdown-content {
+  display: flex;
+  align-items: stretch;
+  padding: 0.5rem;
+  gap: 0.5rem;
+}
+
+/* Columnas de horas y minutos */
+.timepicker-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.timepicker-column-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgb(107, 114, 128);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0.75rem;
+  text-align: center;
+  border-bottom: 1px solid rgb(243, 244, 246);
+  margin-bottom: 0.25rem;
+}
+
+.timepicker-column-list {
+  max-height: 180px; /* Reducido de 280px para un diseño más compacto */
+  overflow-y: auto;
+  padding: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209, 213, 219) transparent;
+}
+
+.timepicker-column-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.timepicker-column-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timepicker-column-list::-webkit-scrollbar-thumb {
+  background-color: rgb(209, 213, 219);
+  border-radius: 20px;
+}
+
+.timepicker-column-list::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(156, 163, 175);
+}
+
+/* Opciones */
+.timepicker-option {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: none;
+  background: transparent;
+  color: rgb(55, 65, 81);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+  margin: 1px 0;
+}
+
+.timepicker-option:hover {
+  background: rgb(239, 246, 255);
+  color: rgb(59, 130, 246);
+}
+
+.timepicker-option-selected {
+  background: rgb(59, 130, 246);
+  color: white;
+  font-weight: 600;
+}
+
+.timepicker-option-selected:hover {
+  background: rgb(37, 99, 235);
+  color: white;
+}
+
+/* Separador : */
+.timepicker-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: rgb(107, 114, 128);
+  padding: 0 0.5rem;
+  user-select: none;
+  margin-top: 2.5rem; /* Alinear con las opciones */
+}
+
+/* Mensaje de error */
+.timepicker-error-message {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(239, 68, 68);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .timepicker-input {
+    padding: 0.625rem 2.75rem 0.625rem 3.25rem;
+  }
+  
+  .timepicker-icon {
+    left: 0.875rem;
+  }
+
+  .timepicker-chevron-button {
+    right: 0.625rem;
+  }
+
+  .timepicker-dropdown {
+    left: 0;
+    right: 0;
+    z-index: 10001 !important; /* Asegurar que siempre esté encima en responsive */
+  }
+
+  .timepicker-column-list {
+    max-height: 180px; /* Mismo valor que desktop para consistencia */
+  }
+
+  .timepicker-option {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* Modal context */
+.modal-body .timepicker-input-wrapper {
+  position: relative;
+  z-index: 1;
+}
+
+.modal-body .timepicker-dropdown {
+  z-index: 10000 !important;
+}

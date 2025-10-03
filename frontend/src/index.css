@@ -850,9 +850,7 @@ body {
     position: fixed;
     inset: 0;
     z-index: 50;
-    background: rgba(15, 23, 42, 0.4);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.7);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -868,17 +866,13 @@ body {
     position: relative;
     width: 100%;
     max-height: 90vh;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(20px);
-    border-radius: 1.25rem;
-    box-shadow:
-            0 25px 50px -12px rgba(0, 0, 0, 0.25),
-            0 0 0 1px rgba(255, 255, 255, 0.1),
-            inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(229, 231, 235, 0.3);
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     overflow: hidden;
     z-index: 51;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
@@ -886,7 +880,6 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem 1.5rem 0 1.5rem;
-    margin-bottom: 1rem;
     position: relative;
 }
 
@@ -897,7 +890,6 @@ body {
     left: 1.5rem;
     right: 1.5rem;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(229, 231, 235, 0.6), transparent);
 }
 
 .modal-title-section {
@@ -948,7 +940,7 @@ body {
 
 .modal-body {
     padding: 0 1.5rem 1.5rem 1.5rem;
-    max-height: 70vh;
+    max-height: 80vh;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -1253,22 +1245,18 @@ body {
 @keyframes backdrop-fade-in-premium {
     from {
         opacity: 0;
-        backdrop-filter: blur(0px);
     }
     to {
         opacity: 1;
-        backdrop-filter: blur(8px);
     }
 }
 
 @keyframes backdrop-fade-out-premium {
     from {
         opacity: 1;
-        backdrop-filter: blur(8px);
     }
     to {
         opacity: 0;
-        backdrop-filter: blur(0px);
     }
 }
 
@@ -1315,8 +1303,26 @@ body {
         transform: translateY(0);
     }
     to {
-        opacity: 0;
+        opacity: 1;
         transform: translateY(100%);
+    }
+}
+
+@keyframes backdrop-fade-in-mobile {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes backdrop-fade-out-mobile {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
     }
 }
 
@@ -1347,21 +1353,41 @@ body {
 /* RESPONSIVE ESPECÍFICO PARA MODALES */
 @media (max-width: 640px) {
     .modal-container {
-        padding: 0.5rem;
+        padding: 0;
         align-items: flex-end;
     }
 
     .modal-content {
         border-radius: 1.25rem 1.25rem 0 0;
-        max-height: 95vh;
+        max-height: 92vh;
+        max-width: 100% !important;
+    }
+
+    /* Sobrescribir animaciones para móvil - entrada desde abajo */
+    .animate-modal-fade-scale {
+        animation: modal-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+
+    .animate-modal-fade-scale-out {
+        animation: modal-slide-down 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    }
+
+    /* Animaciones del backdrop en móvil */
+    .animate-backdrop-fade-in {
+        animation: backdrop-fade-in-mobile 0.3s ease-out forwards !important;
+    }
+
+    .animate-backdrop-fade-out {
+        animation: backdrop-fade-out-mobile 0.3s ease-out forwards !important;
     }
 
     .modal-header {
-        padding: 1.25rem 1.25rem 0 1.25rem;
+        padding: 1rem 1rem 0 1rem;
     }
 
     .modal-body {
-        padding: 0 1.25rem 1.25rem 1.25rem;
+        padding: 0 1rem 1rem 1rem;
+        max-height: 75vh;
     }
 
     .modal-title {
@@ -1376,6 +1402,41 @@ body {
 
     .modal-form-grid {
         gap: 1rem;
+    }
+
+    .modal-footer {
+        flex-direction: column-reverse;
+        padding-top: 1rem;
+        margin-top: 1rem;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .modal-body input, 
+    .modal-body select, 
+    .modal-body textarea {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+    .modal-container {
+        padding: 1rem;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+    }
+
+    .modal-body {
+        max-height: 75vh;
+    }
+
+    .modal-footer {
+        flex-wrap: wrap;
     }
 }
 

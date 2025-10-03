@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
 export default function Modal({
@@ -15,10 +15,29 @@ export default function Modal({
 }) {
   const modalRef = useRef()
   const backdropRef = useRef()
+  const [isClosing, setIsClosing] = useState(false)
+  const [shouldRender, setShouldRender] = useState(false)
+
+  // Manejar el montaje y desmontaje con animación
+  useEffect(() => {
+    if (isOpen) {
+      setShouldRender(true)
+      setIsClosing(false)
+    } else if (shouldRender) {
+      // Iniciar animación de cierre
+      setIsClosing(true)
+      // Esperar a que termine la animación antes de desmontar
+      const timer = setTimeout(() => {
+        setShouldRender(false)
+        setIsClosing(false)
+      }, 350) // Duración de la animación de salida
+      return () => clearTimeout(timer)
+    }
+  }, [isOpen, shouldRender])
 
   // Manejar el scroll del body
   useEffect(() => {
-    if (isOpen) {
+    if (shouldRender && !isClosing) {
       document.body.style.overflow = 'hidden'
       setTimeout(() => {
         modalRef.current?.focus()
@@ -30,11 +49,11 @@ export default function Modal({
     return () => {
       document.body.style.overflow = ''
     }
-  }, [isOpen])
+  }, [shouldRender, isClosing])
 
   // Manejar ESC key
   useEffect(() => {
-    if (!isOpen) return
+    if (!shouldRender || isClosing) return
 
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -45,9 +64,9 @@ export default function Modal({
 
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [isOpen, onClose])
+  }, [shouldRender, isClosing, onClose])
 
-  if (!isOpen) return null
+  if (!shouldRender) return null
 
   const sizeClasses = {
     xs: 'max-w-sm',
@@ -65,10 +84,15 @@ export default function Modal({
     minimal: 'modal-minimal'
   }
 
-  const animationClass = animationType === 'fade-scale' ? 'animate-modal-fade-scale' : 'animate-modal-fade-in'
+  // Elegir animación según estado
+  const animationClass = isClosing
+    ? (animationType === 'fade-scale' ? 'animate-modal-fade-scale-out' : 'animate-modal-fade-out')
+    : (animationType === 'fade-scale' ? 'animate-modal-fade-scale' : 'animate-modal-fade-in')
+
+  const backdropAnimationClass = isClosing ? 'animate-backdrop-fade-out' : 'animate-backdrop-fade-in'
 
   const handleBackdropClick = (e) => {
-    if (closeOnBackdrop && e.target === backdropRef.current) {
+    if (closeOnBackdrop && e.target === backdropRef.current && !isClosing) {
       e.preventDefault()
       onClose()
     }
@@ -76,13 +100,15 @@ export default function Modal({
 
   const handleCloseClick = (e) => {
     e.preventDefault()
-    onClose()
+    if (!isClosing) {
+      onClose()
+    }
   }
 
   return (
     <div
       ref={backdropRef}
-      className="modal-backdrop animate-backdrop-fade-in"
+      className={`modal-backdrop ${backdropAnimationClass}`}
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
@@ -112,6 +138,7 @@ export default function Modal({
                   onClick={handleCloseClick}
                   className="modal-close-btn"
                   aria-label="Cerrar modal"
+                  disabled={isClosing}
                 >
                   <XMarkIcon className="w-5 h-5" />
                 </button>

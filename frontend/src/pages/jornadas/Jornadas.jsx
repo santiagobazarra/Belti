@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
+import DatePicker from '../../components/DatePicker'
+import Card from '../../components/Card'
+import JornadaResumenModal from '../../components/JornadaResumenModal'
+import './css/Jornadas.css'
 import {
   ClockIcon,
   CalendarDaysIcon,
   ChartBarIcon,
   PlayIcon,
   StopIcon,
-  PauseIcon
+  PauseIcon,
+  DocumentChartBarIcon
 } from '@heroicons/react/24/outline'
 
 export default function Jornadas() {
@@ -15,9 +20,11 @@ export default function Jornadas() {
   const [jornadas, setJornadas] = useState([])
   const [resumen, setResumen] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [selectedJornada, setSelectedJornada] = useState(null)
+  const [showModal, setShowModal] = useState(false)
   const [dateRange, setDateRange] = useState({
-    desde: new Date().toISOString().split('T')[0], // Hoy
-    hasta: new Date().toISOString().split('T')[0]  // Hoy
+    desde: new Date(),
+    hasta: new Date()
   })
 
   const isAdmin = user?.role?.slug === 'administrador' || user?.role?.nombre?.toLowerCase() === 'administrador'
@@ -25,13 +32,20 @@ export default function Jornadas() {
   const loadJornadas = useCallback(async () => {
     try {
       setLoading(true)
+      // Convertir fechas a formato ISO para el backend
+      const desdeISO = dateRange.desde instanceof Date 
+        ? dateRange.desde.toISOString().split('T')[0]
+        : dateRange.desde
+      const hastaISO = dateRange.hasta instanceof Date
+        ? dateRange.hasta.toISOString().split('T')[0]
+        : dateRange.hasta
+        
       const params = new URLSearchParams({
-        desde: dateRange.desde,
-        hasta: dateRange.hasta
+        desde: desdeISO,
+        hasta: hastaISO
       })
-      console.log('Cargando jornadas con fechas:', dateRange)
       const { data } = await api.get(`/jornadas?${params}`)
-      console.log('Jornadas recibidas:', data)
+      console.log('📊 Datos de jornadas recibidos:', data.data || data)
       setJornadas(data.data || data)
     } catch (error) {
       console.error('Error al cargar jornadas:', error)
@@ -42,13 +56,19 @@ export default function Jornadas() {
 
   const loadResumen = useCallback(async () => {
     try {
+      // Convertir fechas a formato ISO para el backend
+      const desdeISO = dateRange.desde instanceof Date 
+        ? dateRange.desde.toISOString().split('T')[0]
+        : dateRange.desde
+      const hastaISO = dateRange.hasta instanceof Date
+        ? dateRange.hasta.toISOString().split('T')[0]
+        : dateRange.hasta
+        
       const params = new URLSearchParams({
-        desde: dateRange.desde,
-        hasta: dateRange.hasta
+        desde: desdeISO,
+        hasta: hastaISO
       })
-      console.log('Cargando resumen con fechas:', dateRange)
       const { data } = await api.get(`/jornadas/resumen?${params}`)
-      console.log('Datos del resumen recibidos:', data)
       setResumen(data)
     } catch (error) {
       console.error('Error al cargar resumen:', error)
@@ -77,13 +97,53 @@ export default function Jornadas() {
 
   const formatDateTime = useCallback((dateString) => {
     if (!dateString) return '-'
-    return new Date(dateString).toLocaleString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return '-'
+      return date.toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch (error) {
+      return '-'
+    }
+  }, [])
+
+  const formatTimeOnly = useCallback((dateString) => {
+    if (!dateString) return '-'
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return '-'
+      return date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    } catch (error) {
+      return '-'
+    }
+  }, [])
+
+  const getJornadaStatus = useCallback((jornada) => {
+    // Verificar múltiples campos posibles para hora_fin
+    const hasFin = jornada.hora_fin || jornada.fin || jornada.hora_salida || jornada.salida
+    
+    if (hasFin) {
+      return { label: 'Finalizada', class: 'success' }
+    }
+    return { label: 'En curso', class: 'warning' }
+  }, [])
+
+  const handleOpenResumen = useCallback((jornada) => {
+    setSelectedJornada(jornada)
+    setShowModal(true)
+  }, [])
+
+  const handleCloseModal = useCallback(() => {
+    setShowModal(false)
+    setSelectedJornada(null)
   }, [])
 
   return (
@@ -100,85 +160,73 @@ export default function Jornadas() {
       </div>
 
       {/* Filtros de fecha */}
-      <div className="card">
-        <div className="card-content">
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="flex-1 form-input-container">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Desde
-              </label>
-              <input
-                type="date"
-                value={dateRange.desde}
-                onChange={(e) => setDateRange(prev => ({...prev, desde: e.target.value}))}
-                className="form-input"
-              />
-            </div>
-            <div className="flex-1 form-input-container">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hasta
-              </label>
-              <input
-                type="date"
-                value={dateRange.hasta}
-                onChange={(e) => setDateRange(prev => ({...prev, hasta: e.target.value}))}
-                className="form-input"
-              />
-            </div>
+      <Card className="card-interactive">
+        <div className="flex flex-col sm:flex-row gap-4" style={{ overflow: 'visible', }}>
+          <div className="flex-1" style={{ overflow: 'visible' }}>
+            <DatePicker
+              label="Desde"
+              selected={dateRange.desde}
+              onChange={(date) => setDateRange(prev => ({...prev, desde: date}))}
+              maxDate={dateRange.hasta}
+              placeholder="Selecciona fecha inicial"
+            />
+          </div>
+          <div className="flex-1" style={{ overflow: 'visible' }}>
+            <DatePicker
+              label="Hasta"
+              selected={dateRange.hasta}
+              onChange={(date) => setDateRange(prev => ({...prev, hasta: date}))}
+              minDate={dateRange.desde}
+              placeholder="Selecciona fecha final"
+            />
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Resumen de jornadas */}
       {resumen && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="card card-hover">
-            <div className="card-content">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Horas Trabajadas</p>
-                  <p className="text-2xl font-bold text-blue-600">
-                    {formatTime(resumen.horas_trabajadas_minutos || resumen.total_minutos)}
-                  </p>
-                </div>
-                <div className="bg-blue-100 p-3 rounded-full">
-                  <ClockIcon className="h-6 w-6 text-blue-600" />
-                </div>
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Horas Trabajadas</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {formatTime(resumen.horas_trabajadas_minutos || resumen.total_minutos)}
+                </p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-full">
+                <ClockIcon className="h-6 w-6 text-blue-600" />
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="card card-hover">
-            <div className="card-content">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Horas Extra</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {formatTime(resumen.horas_extra_minutos || 0)}
-                  </p>
-                </div>
-                <div className="bg-green-100 p-3 rounded-full">
-                  <ChartBarIcon className="h-6 w-6 text-green-600" />
-                </div>
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Horas Extra</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {formatTime(resumen.horas_extra_minutos || 0)}
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-full">
+                <ChartBarIcon className="h-6 w-6 text-green-600" />
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="card card-hover">
-            <div className="card-content">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Días Trabajados</p>
-                  <p className="text-2xl font-bold text-purple-600">
-                    {resumen.dias_trabajados || jornadas.length}
-                  </p>
-                </div>
-                <div className="bg-purple-100 p-3 rounded-full">
-                  <CalendarDaysIcon className="h-6 w-6 text-purple-600" />
-                </div>
+          <Card>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Días Trabajados</p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {resumen.dias_trabajados || jornadas.length}
+                </p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-full">
+                <CalendarDaysIcon className="h-6 w-6 text-purple-600" />
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       )}
 
@@ -204,60 +252,107 @@ export default function Jornadas() {
           </div>
         ) : (
           <div className="list-scrollable">
-            {jornadas.map((jornada, index) => (
-              <div key={jornada.id || `jornada-${index}`} className="list-item">
-                <div className="list-item-icon">
-                  <CalendarDaysIcon className="h-5 w-5" />
-                </div>
-
-                <div className="list-item-content">
-                  <div className="list-item-title">
-                    {new Date(jornada.fecha).toLocaleDateString('es-ES', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </div>
-                  <div className="list-item-subtitle">
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="flex items-center gap-1">
-                        <PlayIcon className="h-4 w-4 text-green-600" />
-                        Inicio: {jornada.hora_inicio ? formatDateTime(jornada.hora_inicio) : '-'}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <StopIcon className="h-4 w-4 text-red-600" />
-                        Fin: {jornada.hora_fin ? formatDateTime(jornada.hora_fin) : '-'}
-                      </span>
-                      {jornada.pausa_total_minutos > 0 && (
-                        <span className="flex items-center gap-1">
-                          <PauseIcon className="h-4 w-4 text-yellow-600" />
-                          Pausas: {formatTime(jornada.pausa_total_minutos)}
-                        </span>
-                      )}
+            {jornadas.map((jornada, index) => {
+              const status = getJornadaStatus(jornada)
+              const inicio = jornada.hora_inicio || jornada.inicio || jornada.hora_entrada || jornada.entrada
+              const fin = jornada.hora_fin || jornada.fin || jornada.hora_salida || jornada.salida
+              const pausas = jornada.pausa_total_minutos || jornada.pausas_minutos || jornada.pausas || 0
+              // Calcular duración: total_horas (decimal) * 60 para convertir a minutos
+              const duracion = jornada.total_horas 
+                ? Math.round(jornada.total_horas * 60) 
+                : (jornada.duracion_minutos || jornada.duracion || jornada.total_minutos || 0)
+              
+              return (
+                <div key={jornada.id || `jornada-${index}`} className="jornada-item">
+                  {/* Columna de fecha e icono */}
+                  <div className="jornada-date-col">
+                    <div className="jornada-icon">
+                      <CalendarDaysIcon className="h-5 w-5" />
+                    </div>
+                    <div className="jornada-date">
+                      <div className="jornada-day">
+                        {new Date(jornada.fecha).toLocaleDateString('es-ES', {
+                          weekday: 'short'
+                        })}
+                      </div>
+                      <div className="jornada-date-number">
+                        {new Date(jornada.fecha).getDate()}
+                      </div>
+                      <div className="jornada-month">
+                        {new Date(jornada.fecha).toLocaleDateString('es-ES', {
+                          month: 'short'
+                        })}
+                      </div>
                     </div>
                   </div>
-                  <div className="list-item-meta">
-                    Duración: {formatTime(jornada.duracion_minutos)}
+
+                  {/* Columna de horarios */}
+                  <div className="jornada-times-col">
+                    <div className="jornada-time-item">
+                      <PlayIcon className="h-4 w-4 text-green-600" />
+                      <div>
+                        <div className="jornada-time-label">Inicio</div>
+                        <div className="jornada-time-value">{formatTimeOnly(inicio)}</div>
+                      </div>
+                    </div>
+                    <div className="jornada-time-divider">→</div>
+                    <div className="jornada-time-item">
+                      <StopIcon className="h-4 w-4 text-red-600" />
+                      <div>
+                        <div className="jornada-time-label">Fin</div>
+                        <div className="jornada-time-value">{formatTimeOnly(fin)}</div>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-3">
-                  <span className={`list-item-badge ${jornada.hora_fin ? 'success' : 'warning'}`}>
-                    {jornada.hora_fin ? 'Finalizada' : 'En curso'}
-                  </span>
+                  {/* Columna de pausas y duración */}
+                  <div className="jornada-stats-col">
+                    {pausas > 0 && (
+                      <div className="jornada-stat">
+                        <PauseIcon className="h-4 w-4 text-yellow-600" />
+                        <div>
+                          <div className="jornada-stat-label">Pausas</div>
+                          <div className="jornada-stat-value">{formatTime(pausas)}</div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="jornada-stat">
+                      <ClockIcon className="h-4 w-4 text-blue-600" />
+                      <div>
+                        <div className="jornada-stat-label">Duración</div>
+                        <div className="jornada-stat-value">{formatTime(duracion)}</div>
+                      </div>
+                    </div>
+                  </div>
 
-                  <div className="list-item-actions">
-                    <button className="btn btn-xs btn-ghost">
-                      Ver detalles
+                  {/* Columna de estado y acciones */}
+                  <div className="jornada-actions-col">
+                    <span className={`jornada-badge jornada-badge-${status.class}`}>
+                      {status.label}
+                    </span>
+                    <button
+                      onClick={() => handleOpenResumen(jornada)}
+                      className="btn-resumen"
+                      title="Ver resumen detallado"
+                    >
+                      <DocumentChartBarIcon className="h-4 w-4" />
+                      <span>Resumen</span>
                     </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
+
+      {/* Modal de resumen */}
+      {showModal && selectedJornada && (
+        <JornadaResumenModal
+          jornada={selectedJornada}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   )
 }

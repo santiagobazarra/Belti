@@ -1,0 +1,910 @@
+/* ============================================
+   JORNADA MODAL - Diseño Minimalista
+   ============================================ */
+.jornada-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.jornada-modal-overlay.closing {
+  animation: fadeOut 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.jornada-modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  max-width: 650px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUpDesktop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.jornada-modal-content.closing {
+  animation: slideDownDesktop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUpDesktop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes slideDownDesktop {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  90% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95) translateY(-20px);
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.jornada-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem 2rem 0.5rem 2rem;
+  background: #fafafa;
+  margin-bottom: 0;
+}
+
+.jornada-modal-header-content {
+  flex: 1;
+}
+
+.jornada-modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.jornada-modal-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0.25rem 0;
+  text-transform: capitalize;
+}
+
+.jornada-modal-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.75rem;
+  background: rgba(248, 250, 252, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.4);
+  color: rgb(100, 116, 139);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+.jornada-modal-close-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: rgb(220, 38, 38);
+  transform: scale(1.05);
+}
+
+.jornada-modal-close-btn:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+.jornada-modal-close-btn:focus-visible {
+  outline: 2px solid rgb(59, 130, 246);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   BODY - Solo para contenido con scroll
+   ============================================ */
+.jornada-modal-body {
+  padding: 2rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  /* Scroll suave */
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar personalizado - minimalista y bonito */
+.jornada-modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.jornada-modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.jornada-modal-body::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.jornada-modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.5);
+}
+
+/* Para Firefox */
+.jornada-modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+}
+
+/* ============================================
+   STATS GRID - Minimalista
+   ============================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.stat-card-highlighted {
+  background: #fffbeb !important;
+  border-color: #fbbf24 !important;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.1);
+}
+
+.stat-duracion.stat-card-highlighted {
+  background: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.stat-card-icon-wrapper {
+  margin-bottom: 0.25rem;
+}
+
+.stat-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-entrada .stat-card-icon {
+  color: #16a34a;
+  border-color: #bbf7d0;
+}
+
+.stat-salida .stat-card-icon {
+  color: #dc2626;
+  border-color: #fecaca;
+}
+
+.stat-duracion .stat-card-icon {
+  color: #3b82f6;
+  border-color: #bfdbfe;
+}
+
+.stat-pausas .stat-card-icon {
+  color: #f59e0b;
+  border-color: #fde68a;
+}
+
+.stat-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-card-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.stat-card-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* ============================================
+   TIMELINE - Fijo fuera del scroll
+   ============================================ */
+.jornada-timeline-section {
+  background: #fafafa;
+  border-bottom: 2px solid #e5e7eb;
+  padding: 0.5rem 2rem 1.5rem 2rem;
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.timeline-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.timeline-legend {
+  display: flex;
+  gap: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.legend-color {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+}
+
+.legend-trabajo {
+  background: #3b82f6;
+}
+
+.legend-pausas {
+  background: #f59e0b;
+}
+
+.timeline-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.timeline-bar-wrapper {
+  height: 2.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+  transition: all 0.25s ease-out;
+  position: relative;
+}
+
+.timeline-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease-out;
+  cursor: pointer;
+  position: relative;
+}
+
+.timeline-segment::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.15);
+  opacity: 0;
+  transition: opacity 0.25s ease-out;
+  pointer-events: none;
+}
+
+.timeline-segment:hover::after,
+.timeline-segment.segment-hovered::after {
+  opacity: 1;
+}
+
+.segment-trabajo {
+  background: #3b82f6;
+}
+
+.segment-trabajo:hover,
+.segment-trabajo.segment-hovered {
+  background: #2563eb;
+}
+
+.segment-pausa {
+  background: #f59e0b;
+}
+
+.segment-pausa:hover,
+.segment-pausa.segment-hovered {
+  background: #d97706;
+}
+
+.segment-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  position: relative;
+  z-index: 3;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.timeline-times {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 0.25rem;
+}
+
+.timeline-time {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6b7280;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-time-start {
+  color: #16a34a;
+}
+
+.timeline-time-end {
+  color: #dc2626;
+}
+
+/* ============================================
+   ACTIVIDAD (TRABAJO Y PAUSAS INTERCALADOS)
+   ============================================ */
+.actividad-section {
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.actividad-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  color: #3b82f6;
+}
+
+.actividad-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+.actividad-counts {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.actividad-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.actividad-count-total {
+  background: #6b7280;
+  color: white;
+}
+
+.actividad-count-pausas {
+  background: #f59e0b;
+  color: white;
+}
+
+.actividad-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Items de actividad */
+.actividad-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0.875rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.actividad-item:first-child {
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.actividad-item:last-child {
+  border-bottom: 1px solid #e5e7eb;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+/* Hover states */
+.actividad-item-trabajo:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.actividad-item-pausa:hover {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.actividad-item-highlighted.actividad-item-trabajo {
+  background: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  box-shadow: inset 4px 0 0 #3b82f6;
+  transform: translateX(2px);
+  z-index: 1;
+  animation: pulseHighlight 0.6s ease-in-out;
+}
+
+.actividad-item-highlighted.actividad-item-pausa {
+  background: #fffbeb !important;
+  border-color: #fbbf24 !important;
+  box-shadow: inset 4px 0 0 #f59e0b;
+  transform: translateX(2px);
+  z-index: 1;
+  animation: pulseHighlight 0.6s ease-in-out;
+}
+
+@keyframes pulseHighlight {
+  0%, 100% {
+    transform: translateX(2px) scale(1);
+  }
+  50% {
+    transform: translateX(2px) scale(1.02);
+  }
+}
+
+/* Columna de iconos con conector */
+.actividad-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.actividad-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+  border: 2px solid;
+  position: relative;
+  z-index: 2;
+}
+
+.actividad-icon-trabajo {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.actividad-icon-pausa {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+/* Conector vertical entre items */
+.actividad-connector {
+  width: 2px;
+  flex: 1;
+  min-height: 1rem;
+  background: linear-gradient(to bottom, #e5e7eb 0%, #f3f4f6 50%, #e5e7eb 100%);
+  margin-top: 0.25rem;
+}
+
+/* Contenido del item */
+.actividad-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.actividad-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.actividad-tipo {
+  flex: 1;
+}
+
+.actividad-tipo-badge {
+  display: inline-flex;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border: 1px solid;
+}
+
+.actividad-tipo-trabajo {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.actividad-tipo-pausa {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.actividad-duracion-badge {
+  padding: 0.25rem 0.75rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.actividad-times {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.actividad-time-start,
+.actividad-time-end {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.actividad-separator {
+  color: #d1d5db;
+  font-weight: 300;
+}
+
+/* ============================================
+   NO PAUSAS MESSAGE
+   ============================================ */
+.no-pausas-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #fafafa;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.no-pausas-message p {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.jornada-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1.5rem 2rem;
+  border-top: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.jornada-modal-btn-close {
+  padding: 0.625rem 1.5rem;
+  background: #111827;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jornada-modal-btn-close:hover {
+  background: #1f2937;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+/* Animaciones para móvil */
+@keyframes slideUpMobile {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDownMobile {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes fadeOutSlow {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .jornada-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .jornada-modal-overlay.closing {
+    animation: fadeOutSlow 0.4s ease-out !important;
+  }
+
+  .jornada-modal-content {
+    max-width: 100% !important;
+    max-height: 92vh;
+    border-radius: 1.25rem 1.25rem 0 0;
+    animation: slideUpMobile 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .jornada-modal-content.closing {
+    animation: slideDownMobile 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .jornada-modal-header {
+    padding: 1rem 1rem 0.5rem 1rem;
+  }
+
+  .jornada-modal-title {
+    font-size: 1.125rem;
+  }
+
+  .jornada-modal-date {
+    font-size: 0.8125rem;
+  }
+
+  .jornada-modal-close-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .jornada-modal-body {
+    padding: 1rem;
+    max-height: 75vh;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    padding: 0.875rem;
+  }
+
+  .stat-card-value {
+    font-size: 1.125rem;
+  }
+
+  .stat-card-label {
+    font-size: 0.75rem;
+  }
+
+  .jornada-timeline-section {
+    padding: 1rem;
+  }
+
+  .timeline-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .timeline-title {
+    font-size: 0.875rem;
+  }
+
+  .timeline-legend {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .legend-item {
+    font-size: 0.75rem;
+  }
+
+  .actividad-section {
+    padding: 1rem;
+  }
+
+  .actividad-title {
+    font-size: 0.875rem;
+  }
+
+  .actividad-item {
+    gap: 0.75rem;
+    padding: 0.875rem 0.75rem;
+  }
+
+  .actividad-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .actividad-tipo-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+  }
+
+  .actividad-duracion-badge {
+    font-size: 0.75rem;
+  }
+
+  .actividad-times {
+    font-size: 0.8125rem;
+  }
+
+  .jornada-modal-footer {
+    padding: 1rem;
+  }
+
+  .jornada-modal-btn-close {
+    width: 100%;
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+  .jornada-modal-content {
+    max-width: 100%;
+  }
+
+  .jornada-modal-header {
+    padding: 1.25rem 1.5rem 0.75rem 1.5rem;
+  }
+
+  .jornada-modal-body {
+    padding: 1.5rem;
+    max-height: 80vh;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .jornada-timeline-section {
+    padding: 1.25rem;
+  }
+
+  .actividad-section {
+    padding: 1.25rem;
+  }
+
+  .jornada-modal-footer {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .segment-label {
+    font-size: 0.625rem;
+  }
+}

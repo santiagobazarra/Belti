@@ -7,9 +7,19 @@ import {
   CheckIcon,
   XMarkIcon,
   ClockIcon,
-  EyeIcon
+  EyeIcon,
+  CalendarDaysIcon,
+  UserIcon,
+  DocumentTextIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline'
 import Modal from '../../components/Modal'
+import Select from 'react-select'
+import DatePicker from '../../components/DatePicker'
+import TimePicker from '../../components/TimePicker'
+import Card from '../../components/Card'
+import Toast from '../../components/Toast'
+import './css/Incidencias.css'
 
 const TIPOS_INCIDENCIA = [
   { value: 'falta', label: 'Falta' },
@@ -25,12 +35,135 @@ const ESTADOS = [
   { value: 'rechazada', label: 'Rechazada', color: 'red' }
 ]
 
+// Componente personalizado para el indicador (flecha) del Select
+const DropdownIndicator = (props) => {
+  return (
+    <div style={{ 
+      padding: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.2s ease',
+      transform: props.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+      color: props.isFocused ? 'rgb(59, 130, 246)' : 'rgb(156, 163, 175)'
+    }}>
+      <ChevronDownIcon style={{ width: '1.25rem', height: '1.25rem' }} />
+    </div>
+  )
+}
+
+// Estilos personalizados para React Select - Diseño mejorado y limpio
+const customSelectStyles = {
+  control: (base, state) => ({
+    ...base,
+    minHeight: '44px',
+    borderRadius: '12px',
+    borderColor: state.isFocused ? 'rgb(59, 130, 246)' : 'rgb(209, 213, 219)',
+    borderWidth: '1px',
+    boxShadow: state.isFocused ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none',
+    backgroundColor: 'white',
+    '&:hover': {
+      borderColor: state.isFocused ? 'rgb(59, 130, 246)' : 'rgb(156, 163, 175)'
+    },
+    transition: 'all 0.2s',
+    cursor: 'pointer',
+    padding: '0 4px'
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: '2px 12px'
+  }),
+  input: (base) => ({
+    ...base,
+    margin: 0,
+    padding: 0,
+    color: 'transparent',
+    caretColor: 'transparent'
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: 'rgb(156, 163, 175)',
+    fontSize: '0.875rem'
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: 'rgb(17, 24, 39)',
+    fontSize: '0.875rem',
+    fontWeight: '500'
+  }),
+  indicatorSeparator: () => ({
+    display: 'none'
+  }),
+  dropdownIndicator: () => ({
+    // Estilos manejados por el componente personalizado
+    padding: 0,
+    display: 'flex'
+  }),
+  clearIndicator: (base) => ({
+    ...base,
+    color: 'rgb(156, 163, 175)',
+    padding: '8px',
+    cursor: 'pointer',
+    '&:hover': {
+      color: 'rgb(239, 68, 68)'
+    }
+  }),
+  menu: (base) => ({
+    ...base,
+    borderRadius: '12px',
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+    border: '1px solid rgb(229, 231, 235)',
+    overflow: 'hidden',
+    marginTop: '8px',
+    zIndex: 9999
+  }),
+  menuList: (base) => ({
+    ...base,
+    padding: '8px',
+    maxHeight: '300px'
+  }),
+  option: (base, state) => ({
+    ...base,
+    borderRadius: '8px',
+    padding: '10px 12px',
+    margin: '2px 0',
+    backgroundColor: state.isSelected 
+      ? 'rgb(59, 130, 246)' 
+      : state.isFocused 
+      ? 'rgb(239, 246, 255)' 
+      : 'transparent',
+    color: state.isSelected ? 'white' : 'rgb(17, 24, 39)',
+    fontSize: '0.875rem',
+    fontWeight: state.isSelected ? '600' : '500',
+    cursor: 'pointer',
+    transition: 'all 0.15s',
+    '&:active': {
+      backgroundColor: state.isSelected ? 'rgb(37, 99, 235)' : 'rgb(219, 234, 254)'
+    }
+  }),
+  menuPortal: (base) => ({
+    ...base,
+    zIndex: 9999
+  }),
+  noOptionsMessage: (base) => ({
+    ...base,
+    color: 'rgb(156, 163, 175)',
+    fontSize: '0.875rem',
+    padding: '12px'
+  })
+}
+
 export default function Incidencias() {
   const { user } = useAuth()
   const [incidencias, setIncidencias] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [showAprobarModal, setShowAprobarModal] = useState(false)
+  const [showRechazarModal, setShowRechazarModal] = useState(false)
+  const [showDetalleModal, setShowDetalleModal] = useState(false)
   const [selectedIncidencia, setSelectedIncidencia] = useState(null)
+  const [comentarioRechazo, setComentarioRechazo] = useState('')
+  const [toast, setToast] = useState({ show: false, type: 'success', message: '' })
   const [formData, setFormData] = useState({
     fecha: new Date().toISOString().split('T')[0],
     tipo: 'falta',
@@ -70,17 +203,33 @@ export default function Incidencias() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validar que las horas estén presentes (obligatorias para aprobar)
+    if (!formData.hora_inicio || !formData.hora_fin) {
+      setToast({
+        show: true,
+        type: 'error',
+        message: 'El rango horario es obligatorio para que la incidencia pueda ser aprobada.'
+      })
+      return
+    }
+
+    // Validar que hora_fin sea posterior a hora_inicio
+    if (formData.hora_inicio >= formData.hora_fin) {
+      setToast({
+        show: true,
+        type: 'error',
+        message: 'La hora de fin debe ser posterior a la hora de inicio.'
+      })
+      return
+    }
+
     try {
       const payload = { ...formData }
+      const isEditing = !!selectedIncidencia
 
-      // Solo enviar horas si es necesario según el tipo
-      if (!['anomalia_horas', 'ausencia_parcial'].includes(payload.tipo)) {
-        delete payload.hora_inicio
-        delete payload.hora_fin
-      }
-
-      if (selectedIncidencia) {
-        await api.patch(`/incidencias/${selectedIncidencia.id}`, payload)
+      if (isEditing) {
+        await api.patch(`/incidencias/${selectedIncidencia.id_incidencia}`, payload)
       } else {
         await api.post('/incidencias', payload)
       }
@@ -94,35 +243,104 @@ export default function Incidencias() {
         hora_inicio: '',
         hora_fin: ''
       })
+
+      setToast({
+        show: true,
+        type: 'success',
+        message: isEditing ? 'Incidencia actualizada correctamente' : 'Incidencia creada correctamente'
+      })
+
       loadIncidencias()
     } catch (error) {
       console.error('Error al guardar incidencia:', error)
-      alert('Error al guardar la incidencia')
+      setToast({
+        show: true,
+        type: 'error',
+        message: 'Error al guardar la incidencia. Inténtalo de nuevo.'
+      })
     }
   }
 
-  const handleAprobar = async (incidenciaId) => {
+  const handleAprobar = async () => {
     try {
-      await api.patch(`/incidencias/${incidenciaId}/aprobar`)
+      await api.patch(`/incidencias/${selectedIncidencia.id_incidencia}/aprobar`)
+      setShowAprobarModal(false)
+      setSelectedIncidencia(null)
+      setToast({
+        show: true,
+        type: 'success',
+        message: 'Incidencia aprobada correctamente'
+      })
       loadIncidencias()
     } catch (error) {
       console.error('Error al aprobar incidencia:', error)
-      alert('Error al aprobar la incidencia')
+      
+      // Extraer mensaje de error específico del servidor
+      let errorMessage = 'Error al aprobar la incidencia. Inténtalo de nuevo.'
+      
+      if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      }
+      
+      setToast({
+        show: true,
+        type: 'error',
+        message: errorMessage
+      })
     }
   }
 
-  const handleRechazar = async (incidenciaId) => {
-    const comentario = prompt('Comentario de rechazo (opcional):')
+  const handleRechazar = async () => {
     try {
-      await api.patch(`/incidencias/${incidenciaId}`, {
+      await api.patch(`/incidencias/${selectedIncidencia.id_incidencia}`, {
         estado: 'rechazada',
-        comentario_revision: comentario || ''
+        comentario_revision: comentarioRechazo || ''
+      })
+      setShowRechazarModal(false)
+      setSelectedIncidencia(null)
+      setComentarioRechazo('')
+      setToast({
+        show: true,
+        type: 'success',
+        message: 'Incidencia rechazada correctamente'
       })
       loadIncidencias()
     } catch (error) {
       console.error('Error al rechazar incidencia:', error)
-      alert('Error al rechazar la incidencia')
+      
+      // Extraer mensaje de error específico del servidor
+      let errorMessage = 'Error al rechazar la incidencia. Inténtalo de nuevo.'
+      
+      if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      }
+      
+      setToast({
+        show: true,
+        type: 'error',
+        message: errorMessage
+      })
     }
+  }
+
+  const openAprobarModal = (incidencia) => {
+    setSelectedIncidencia(incidencia)
+    setShowAprobarModal(true)
+  }
+
+  const openRechazarModal = (incidencia) => {
+    setSelectedIncidencia(incidencia)
+    setComentarioRechazo('')
+    setShowRechazarModal(true)
+  }
+
+  const openDetalleModal = (incidencia) => {
+    setSelectedIncidencia(incidencia)
+    setShowDetalleModal(true)
   }
 
   const openModal = (incidencia = null) => {
@@ -139,7 +357,9 @@ export default function Incidencias() {
     setShowModal(true)
   }
 
-  const requiresHours = formData.tipo === 'anomalia_horas' || formData.tipo === 'ausencia_parcial'
+  // Todos los tipos de incidencia requieren rango horario para poder ser aprobadas
+  // ya que al aprobar se registran como horas trabajadas en la jornada
+  const requiresHours = true // Siempre true para cumplir normativa
 
   return (
     <div className="space-y-6">
@@ -161,75 +381,100 @@ export default function Incidencias() {
         </button>
       </div>
 
-      {/* Filtros */}
-      <div className="card">
-        <div className="card-content">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="w-full form-input-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Estado
-              </label>
-              <select
-                value={filters.estado}
-                onChange={(e) => setFilters(prev => ({...prev, estado: e.target.value}))}
-                className="form-input"
-              >
-                <option value="">Todos los estados</option>
-                {ESTADOS.map(estado => (
-                  <option key={estado.value} value={estado.value}>
-                    {estado.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full form-input-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tipo
-              </label>
-              <select
-                value={filters.tipo}
-                onChange={(e) => setFilters(prev => ({...prev, tipo: e.target.value}))}
-                className="form-input"
-              >
-                <option value="">Todos los tipos</option>
-                {TIPOS_INCIDENCIA.map(tipo => (
-                  <option key={tipo.value} value={tipo.value}>
-                    {tipo.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {/* Filtros con componentes mejorados */}
+      <Card className="card-interactive">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" style={{ overflow: 'visible' }}>
+          <div className="w-full" style={{ overflow: 'visible' }}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Estado
+            </label>
+            <Select
+              value={ESTADOS.find(e => e.value === filters.estado) || null}
+              onChange={(option) => setFilters(prev => ({...prev, estado: option?.value || ''}))}
+              options={ESTADOS}
+              isClearable
+              isSearchable={false}
+              placeholder="Todos los estados"
+              styles={customSelectStyles}
+              components={{ DropdownIndicator }}
+              noOptionsMessage={() => 'No hay opciones'}
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+            />
+          </div>
 
-            <div className="w-full form-input-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Desde
-              </label>
-              <input
-                type="date"
-                value={filters.desde}
-                onChange={(e) => setFilters(prev => ({...prev, desde: e.target.value}))}
-                className="form-input"
-              />
-            </div>
-            <div className="w-full form-input-container">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hasta
-              </label>
-              <input
-                type="date"
-                value={filters.hasta}
-                onChange={(e) => setFilters(prev => ({...prev, hasta: e.target.value}))}
-                className="form-input"
-              />
-            </div>
+          <div className="w-full" style={{ overflow: 'visible' }}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Tipo
+            </label>
+            <Select
+              value={TIPOS_INCIDENCIA.find(t => t.value === filters.tipo) || null}
+              onChange={(option) => setFilters(prev => ({...prev, tipo: option?.value || ''}))}
+              options={TIPOS_INCIDENCIA}
+              isClearable
+              isSearchable={false}
+              placeholder="Todos los tipos"
+              styles={customSelectStyles}
+              components={{ DropdownIndicator }}
+              noOptionsMessage={() => 'No hay opciones'}
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+            />
+          </div>
+
+          <div className="w-full" style={{ overflow: 'visible' }}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Desde
+            </label>
+            <DatePicker
+              selected={filters.desde ? new Date(filters.desde + 'T00:00:00') : null}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+                  setFilters(prev => ({
+                    ...prev, 
+                    desde: `${year}-${month}-${day}`
+                  }))
+                } else {
+                  setFilters(prev => ({...prev, desde: ''}))
+                }
+              }}
+              placeholder="Seleccionar fecha"
+            />
+          </div>
+
+          <div className="w-full" style={{ overflow: 'visible' }}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Hasta
+            </label>
+            <DatePicker
+              selected={filters.hasta ? new Date(filters.hasta + 'T00:00:00') : null}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+                  setFilters(prev => ({
+                    ...prev, 
+                    hasta: `${year}-${month}-${day}`
+                  }))
+                } else {
+                  setFilters(prev => ({...prev, hasta: ''}))
+                }
+              }}
+              placeholder="Seleccionar fecha"
+            />
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Lista de incidencias con nuevo diseño premium */}
+      {/* Lista de incidencias - Diseño limpio y profesional */}
       <div className="list">
         <div className="list-header">
-          {isAdmin ? 'Todas las Incidencias' : 'Mis Incidencias'}
+          <span>{isAdmin ? 'Todas las Incidencias' : 'Mis Incidencias'}</span>
+          <span className="list-count">{incidencias.length}</span>
         </div>
 
         {loading ? (
@@ -256,82 +501,107 @@ export default function Incidencias() {
         ) : (
           <div className="list-scrollable">
             {incidencias.map((incidencia) => (
-              <div key={incidencia.id} className="list-item">
-                <div className="list-item-icon">
-                  <ExclamationTriangleIcon className="h-5 w-5" />
+              <div key={incidencia.id_incidencia} className="incidencia-item">
+                
+                {/* COLUMNA IZQUIERDA: Fecha minimalista con indicador */}
+                <div className="incidencia-date-col">
+                  <div className="incidencia-date">
+                    <div className="incidencia-day">
+                      {new Date(incidencia.fecha).toLocaleDateString('es-ES', { weekday: 'short' })}
+                    </div>
+                    <div className="incidencia-date-number">
+                      {new Date(incidencia.fecha).getDate()}
+                    </div>
+                    <div className="incidencia-month">
+                      {new Date(incidencia.fecha).toLocaleDateString('es-ES', { month: 'short' })}
+                    </div>
+                  </div>
+                  <div className={`incidencia-status-indicator ${incidencia.estado}`}></div>
                 </div>
 
-                <div className="list-item-content">
-                  <div className="list-item-title">
-                    {TIPOS_INCIDENCIA.find(t => t.value === incidencia.tipo)?.label}
-                    {isAdmin && (
-                      <span className="text-sm text-gray-500 ml-2">
-                        - {incidencia.usuario?.nombre} {incidencia.usuario?.apellidos}
-                      </span>
+                {/* COLUMNA CENTRAL: Contenido principal */}
+                <div className="incidencia-info-col">
+                  {/* Fila superior: Tipo + Badge */}
+                  <div className="incidencia-header-row">
+                    <div className="incidencia-tipo">
+                      {TIPOS_INCIDENCIA.find(t => t.value === incidencia.tipo)?.label}
+                    </div>
+                    <span className={`incidencia-badge ${
+                      incidencia.estado === 'aprobada' ? 'success' :
+                      incidencia.estado === 'rechazada' ? 'danger' : 'warning'
+                    }`}>
+                      {ESTADOS.find(e => e.value === incidencia.estado)?.label}
+                    </span>
+                  </div>
+
+                  {/* Fila de metadata */}
+                  <div className="incidencia-meta-row">
+                    {isAdmin && incidencia.usuario && (
+                      <div className="incidencia-usuario">
+                        <UserIcon />
+                        {incidencia.usuario.nombre} {incidencia.usuario.apellidos}
+                      </div>
+                    )}
+                    
+                    {(incidencia.hora_inicio || incidencia.hora_fin) && (
+                      <div className="incidencia-time-info">
+                        <ClockIcon />
+                        {incidencia.hora_inicio?.slice(11, 16)} - {incidencia.hora_fin?.slice(11, 16)}
+                      </div>
                     )}
                   </div>
-                  <div className="list-item-subtitle">
-                    {incidencia.descripcion || 'Sin descripción'}
-                  </div>
-                  <div className="list-item-meta">
-                    {new Date(incidencia.fecha).toLocaleDateString('es-ES', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
-                  </div>
+
+                  {/* Descripción */}
+                  {incidencia.descripcion && (
+                    <div className="incidencia-descripcion">
+                      {incidencia.descripcion}
+                    </div>
+                  )}
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <span className={`list-item-badge ${
-                    incidencia.estado === 'aprobada' ? 'success' :
-                    incidencia.estado === 'rechazada' ? 'danger' : 'warning'
-                  }`}>
-                    {ESTADOS.find(e => e.value === incidencia.estado)?.label}
-                  </span>
-
-                  <div className="list-item-actions">
-                    {incidencia.estado === 'pendiente' && !isAdmin && (
+                {/* COLUMNA DERECHA: Acciones */}
+                <div className="incidencia-actions-col">
+                  {/* Botones de acción (Aprobar/Rechazar/Editar) a la izquierda */}
+                  {incidencia.estado === 'pendiente' && isAdmin && (
+                    <>
                       <button
-                        onClick={() => openModal(incidencia)}
-                        className="btn btn-xs btn-secondary"
+                        onClick={() => openAprobarModal(incidencia)}
+                        className="btn-icon btn-icon-success"
+                        title="Aprobar"
                       >
-                        <EyeIcon className="icon-left" />
-                        Editar
+                        <CheckIcon />
                       </button>
-                    )}
-                    {incidencia.estado === 'pendiente' && isAdmin && (
-                      <>
-                        <button
-                          onClick={() => handleAprobar(incidencia.id)}
-                          className="btn btn-xs btn-success"
-                          title="Aprobar incidencia"
-                        >
-                          <CheckIcon className="icon-left" />
-                          Aprobar
-                        </button>
-                        <button
-                          onClick={() => handleRechazar(incidencia.id)}
-                          className="btn btn-xs btn-danger"
-                          title="Rechazar incidencia"
-                        >
-                          <XMarkIcon className="icon-left" />
-                          Rechazar
-                        </button>
-                      </>
-                    )}
-                    {incidencia.estado !== 'pendiente' && (
                       <button
-                        onClick={() => openModal(incidencia)}
-                        className="btn btn-xs btn-ghost"
+                        onClick={() => openRechazarModal(incidencia)}
+                        className="btn-icon btn-icon-danger"
+                        title="Rechazar"
                       >
-                        <EyeIcon className="icon-left" />
-                        Ver
+                        <XMarkIcon />
                       </button>
-                    )}
-                  </div>
+                    </>
+                  )}
+
+                  {incidencia.estado === 'pendiente' && !isAdmin && (
+                    <button
+                      onClick={() => openModal(incidencia)}
+                      className="btn-icon btn-icon-primary"
+                      title="Editar"
+                    >
+                      <DocumentTextIcon />
+                    </button>
+                  )}
+
+                  {/* Botón de ver detalles siempre a la derecha */}
+                  <button
+                    onClick={() => openDetalleModal(incidencia)}
+                    className="btn-resumen"
+                    title="Ver detalles"
+                  >
+                    <EyeIcon />
+                    <span>Detalles</span>
+                  </button>
                 </div>
+
               </div>
             ))}
           </div>
@@ -347,83 +617,85 @@ export default function Incidencias() {
         }}
         title={selectedIncidencia ? 'Editar Incidencia' : 'Nueva Incidencia'}
         size="md"
-        variant="default"
+        variant="elegant"
         animationType="fade-scale"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Fecha *
+            <label>
+              Fecha <span className="required">*</span>
             </label>
-            <input
-              type="date"
-              value={formData.fecha}
-              onChange={(e) => setFormData(prev => ({...prev, fecha: e.target.value}))}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+            <DatePicker
+              selected={formData.fecha ? new Date(formData.fecha + 'T00:00:00') : null}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+                  setFormData(prev => ({
+                    ...prev, 
+                    fecha: `${year}-${month}-${day}`
+                  }))
+                }
+              }}
+              placeholder="Seleccionar fecha"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tipo de Incidencia *
+            <label>
+              Tipo de Incidencia <span className="required">*</span>
             </label>
-            <select
-              value={formData.tipo}
-              onChange={(e) => setFormData(prev => ({...prev, tipo: e.target.value}))}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-            >
-              {TIPOS_INCIDENCIA.map(tipo => (
-                <option key={tipo.value} value={tipo.value}>
-                  {tipo.label}
-                </option>
-              ))}
-            </select>
+            <Select
+              value={TIPOS_INCIDENCIA.find(t => t.value === formData.tipo)}
+              onChange={(option) => setFormData(prev => ({...prev, tipo: option.value}))}
+              options={TIPOS_INCIDENCIA}
+              isSearchable={false}
+              styles={customSelectStyles}
+              components={{ DropdownIndicator }}
+              placeholder="Seleccionar tipo"
+              noOptionsMessage={() => 'No hay opciones'}
+              menuPortalTarget={document.body}
+              menuPosition="fixed"
+            />
           </div>
 
           {requiresHours && (
-            <div className="modal-form-grid cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hora Inicio *
-                </label>
-                <input
-                  type="time"
-                  required={requiresHours}
-                  value={formData.hora_inicio}
-                  onChange={(e) => setFormData(prev => ({...prev, hora_inicio: e.target.value}))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                />
+            <>
+              <div className="modal-form-grid cols-2">
+                <div>
+                  <TimePicker
+                    label="Hora Inicio"
+                    value={formData.hora_inicio}
+                    onChange={(value) => setFormData(prev => ({...prev, hora_inicio: value || ''}))}
+                    required={requiresHours}
+                  />
+                </div>
+                <div>
+                  <TimePicker
+                    label="Hora Fin"
+                    value={formData.hora_fin}
+                    onChange={(value) => setFormData(prev => ({...prev, hora_fin: value || ''}))}
+                    required={requiresHours}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Hora Fin *
-                </label>
-                <input
-                  type="time"
-                  required={requiresHours}
-                  value={formData.hora_fin}
-                  onChange={(e) => setFormData(prev => ({...prev, hora_fin: e.target.value}))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
-                />
+              <div className="modal-field-help" style={{ marginTop: '-0.75rem' }}>
+                ⚠️ El rango horario es obligatorio para que la incidencia pueda ser aprobada y registrada como tiempo trabajado según normativa.
               </div>
-            </div>
+            </>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Descripción
-            </label>
+            <label>Descripción</label>
             <textarea
-              rows="3"
+              rows="4"
               value={formData.descripcion}
               onChange={(e) => setFormData(prev => ({...prev, descripcion: e.target.value}))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
               placeholder="Describe los detalles de la incidencia..."
             />
             <div className="modal-field-help">
-              Proporciona detalles adicionales sobre la incidencia que ayuden a su revisión
+              Proporciona detalles adicionales que ayuden en la revisión de la incidencia
             </div>
           </div>
 
@@ -439,11 +711,384 @@ export default function Incidencias() {
               Cancelar
             </button>
             <button type="submit" className="btn btn-primary">
-              {selectedIncidencia ? 'Actualizar Incidencia' : 'Crear Incidencia'}
+              {selectedIncidencia ? 'Actualizar' : 'Crear Incidencia'}
             </button>
           </div>
         </form>
       </Modal>
+
+      {/* Modal de confirmación para aprobar */}
+      <Modal
+        isOpen={showAprobarModal}
+        onClose={() => {
+          setShowAprobarModal(false)
+          setSelectedIncidencia(null)
+        }}
+        title="Aprobar Incidencia"
+        size="sm"
+        variant="elegant"
+        animationType="fade-scale"
+      >
+        <div className="modal-confirm-approve space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="modal-confirm-icon">
+              <CheckIcon />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-gray-900 mb-2">
+                ¿Confirmar aprobación?
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Vas a aprobar la incidencia de tipo{' '}
+                <strong>
+                  {selectedIncidencia && TIPOS_INCIDENCIA.find(t => t.value === selectedIncidencia.tipo)?.label}
+                </strong>
+                {selectedIncidencia?.usuario && (
+                  <> de{' '}
+                    <strong>
+                      {selectedIncidencia.usuario.nombre} {selectedIncidencia.usuario.apellidos}
+                    </strong>
+                  </>
+                )} del día{' '}
+                <strong>
+                  {selectedIncidencia && new Date(selectedIncidencia.fecha).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </strong>.
+              </p>
+              {selectedIncidencia?.hora_inicio && selectedIncidencia?.hora_fin && (
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs font-semibold text-blue-900 mb-1">
+                    📋 Registro en jornada:
+                  </p>
+                  <p className="text-sm text-blue-800">
+                    Se registrarán las horas de{' '}
+                    <strong>{selectedIncidencia.hora_inicio.slice(11, 16)}</strong>
+                    {' '}a{' '}
+                    <strong>{selectedIncidencia.hora_fin.slice(11, 16)}</strong>
+                    {' '}como tiempo trabajado según normativa.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              onClick={() => {
+                setShowAprobarModal(false)
+                setSelectedIncidencia(null)
+              }}
+              className="btn btn-secondary"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleAprobar}
+              className="btn btn-success"
+            >
+              <CheckIcon className="h-5 w-5 mr-2" />
+              Aprobar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de confirmación para rechazar */}
+      <Modal
+        isOpen={showRechazarModal}
+        onClose={() => {
+          setShowRechazarModal(false)
+          setSelectedIncidencia(null)
+          setComentarioRechazo('')
+        }}
+        title="Rechazar Incidencia"
+        size="md"
+        variant="elegant"
+        animationType="fade-scale"
+      >
+        <div className="modal-confirm-reject space-y-4">
+          <div className="flex items-start gap-4">
+            <div className="modal-confirm-icon">
+              <XMarkIcon />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-gray-900 mb-2">
+                ¿Confirmar rechazo?
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Vas a rechazar la incidencia de tipo{' '}
+                <strong>
+                  {selectedIncidencia && TIPOS_INCIDENCIA.find(t => t.value === selectedIncidencia.tipo)?.label}
+                </strong>
+                {selectedIncidencia?.usuario && (
+                  <> de{' '}
+                    <strong>
+                      {selectedIncidencia.usuario.nombre} {selectedIncidencia.usuario.apellidos}
+                    </strong>
+                  </>
+                )} del día{' '}
+                <strong>
+                  {selectedIncidencia && new Date(selectedIncidencia.fecha).toLocaleDateString('es-ES', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </strong>.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label>Motivo del Rechazo</label>
+            <textarea
+              rows="4"
+              value={comentarioRechazo}
+              onChange={(e) => setComentarioRechazo(e.target.value)}
+              placeholder="Explica el motivo del rechazo..."
+            />
+            <div className="modal-field-help">
+              Proporciona una explicación clara para ayudar al empleado a comprender el motivo
+            </div>
+          </div>
+
+          <div className="modal-footer">
+            <button
+              type="button"
+              onClick={() => {
+                setShowRechazarModal(false)
+                setSelectedIncidencia(null)
+                setComentarioRechazo('')
+              }}
+              className="btn btn-secondary"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleRechazar}
+              className="btn btn-danger"
+            >
+              <XMarkIcon className="h-5 w-5 mr-2" />
+              Rechazar
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal de detalles de incidencia */}
+      <Modal
+        isOpen={showDetalleModal}
+        onClose={() => {
+          setShowDetalleModal(false)
+          setSelectedIncidencia(null)
+        }}
+        title="Detalles de la Incidencia"
+        size="md"
+        variant="elegant"
+        animationType="fade-scale"
+      >
+        {selectedIncidencia && (
+          <div className="space-y-5">
+            {/* Header con tipo y badge */}
+            <div className="flex items-start justify-between pb-4 border-b border-gray-200">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  {TIPOS_INCIDENCIA.find(t => t.value === selectedIncidencia.tipo)?.label}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {new Date(selectedIncidencia.fecha).toLocaleDateString('es-ES', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </p>
+              </div>
+              <span className={`incidencia-badge ${
+                selectedIncidencia.estado === 'aprobada' ? 'success' :
+                selectedIncidencia.estado === 'rechazada' ? 'danger' : 'warning'
+              }`}>
+                {ESTADOS.find(e => e.value === selectedIncidencia.estado)?.label}
+              </span>
+            </div>
+
+            {/* Información estructurada */}
+            <div className="space-y-0">
+              {/* Usuario */}
+              {selectedIncidencia.usuario && (
+                <div className="modal-info-row" >
+                  <div className="modal-info-label">
+                    <UserIcon />
+                    Empleado
+                  </div>
+                  <div className="modal-info-value">
+                    {selectedIncidencia.usuario.nombre} {selectedIncidencia.usuario.apellidos}
+                  </div>
+                </div>
+              )}
+
+              {/* Horario (si aplica) */}
+              {(selectedIncidencia.hora_inicio || selectedIncidencia.hora_fin) && (
+                <div className="modal-info-row">
+                  <div className="modal-info-label">
+                    <ClockIcon />
+                    Horario
+                  </div>
+                  <div className="modal-info-value">
+                    {selectedIncidencia.hora_inicio?.slice(11, 16)} - {selectedIncidencia.hora_fin?.slice(11, 16)}
+                  </div>
+                </div>
+              )}
+
+              {/* Descripción */}
+              {selectedIncidencia.descripcion && (
+                <div className="modal-info-row">
+                  <div className="modal-info-label">
+                    <DocumentTextIcon />
+                    Descripción
+                  </div>
+                  <div className="modal-info-value">
+                    {selectedIncidencia.descripcion}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Comentario de revisión o Motivo de rechazo (destacado) */}
+            {selectedIncidencia.comentario_revision && selectedIncidencia.estado === 'rechazada' && (
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <XMarkIcon className="h-5 w-5 text-red-600" />
+                  <span className="text-xs font-bold text-red-900 uppercase tracking-wide">
+                    Motivo del Rechazo
+                  </span>
+                </div>
+                <p className="text-sm text-red-900 leading-relaxed font-medium">
+                  {selectedIncidencia.comentario_revision}
+                </p>
+              </div>
+            )}
+
+            {selectedIncidencia.comentario_revision && selectedIncidencia.estado === 'aprobada' && (
+              <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckIcon className="h-5 w-5 text-green-600" />
+                  <span className="text-xs font-bold text-green-900 uppercase tracking-wide">
+                    Comentario de Aprobación
+                  </span>
+                </div>
+                <p className="text-sm text-green-900 leading-relaxed font-medium">
+                  {selectedIncidencia.comentario_revision}
+                </p>
+              </div>
+            )}
+
+            {selectedIncidencia.comentario_revision && selectedIncidencia.estado === 'pendiente' && (
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <DocumentTextIcon className="h-5 w-5 text-amber-600" />
+                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                    Comentario de Revisión
+                  </span>
+                </div>
+                <p className="text-sm text-amber-900 leading-relaxed font-medium">
+                  {selectedIncidencia.comentario_revision}
+                </p>
+              </div>
+            )}
+
+            {/* Revisor y fecha */}
+            {selectedIncidencia.revisor && selectedIncidencia.fecha_revision && (
+              <div className="pt-4">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <UserIcon className="h-4 w-4" />
+                    <span>Revisado por:</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedIncidencia.revisor.nombre} {selectedIncidencia.revisor.apellidos}
+                    </span>
+                  </div>
+                  <span className="text-gray-500">
+                    {new Date(selectedIncidencia.fecha_revision).toLocaleDateString('es-ES', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Botones de acción */}
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDetalleModal(false)
+                  setSelectedIncidencia(null)
+                }}
+                className="btn btn-secondary"
+              >
+                Cerrar
+              </button>
+              {selectedIncidencia.estado === 'pendiente' && !isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDetalleModal(false)
+                    openModal(selectedIncidencia)
+                  }}
+                  className="btn btn-primary"
+                >
+                  <DocumentTextIcon className="h-5 w-5 mr-2" />
+                  Editar
+                </button>
+              )}
+              {selectedIncidencia.estado === 'pendiente' && isAdmin && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDetalleModal(false)
+                      openAprobarModal(selectedIncidencia)
+                    }}
+                    className="btn btn-success"
+                  >
+                    <CheckIcon className="h-5 w-5 mr-2" />
+                    Aprobar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDetalleModal(false)
+                      openRechazarModal(selectedIncidencia)
+                    }}
+                    className="btn btn-danger"
+                  >
+                    <XMarkIcon className="h-5 w-5 mr-2" />
+                    Rechazar
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Toast de notificación */}
+      <Toast
+        type={toast.type}
+        message={toast.message}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+        duration={4000}
+        position="bottom-right"
+      />
     </div>
   )
 }
