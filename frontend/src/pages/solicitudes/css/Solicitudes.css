@@ -1,229 +1,219 @@
 /* ============================================
-   INCIDENCIAS LIST STYLES
+   SOLICITUDES - DISEÑO PREMIUM Y MODERNO
    ============================================
-   Diseño limpio y profesional para la lista de incidencias
-   Inspirado en la simplicidad del módulo de Jornadas
+   Sistema de gestión de solicitudes con diseño
+   limpio, minimalista y profesional
    ============================================ */
 
-/* Contenedor de cada incidencia - Grid fluido y natural */
-.incidencia-item {
+/* ============================================
+   LISTA DE SOLICITUDES - DISEÑO MINIMALISTA
+   ============================================ */
+
+/* Item de solicitud - Layout de 3 columnas fluido */
+.solicitud-item {
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 1.5rem;
-  align-items: center;
   padding: 1.25rem 1.5rem;
   background: white;
-  border: none;
   border-left: 3px solid transparent;
-  border-radius: 0;
   transition: all 0.25s ease;
-  margin-bottom: 0;
+  position: relative;
 }
 
-.incidencia-item:not(:last-child) {
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.incidencia-item:hover {
+.solicitud-item:hover {
   background: #fafbfc;
-  border-left-color: #f59e0b;
+  border-left-color: #3b82f6;
   padding-left: 1.625rem;
 }
 
-.incidencia-item:last-child {
-  margin-bottom: 0;
+.solicitud-item:not(:last-child) {
+  border-bottom: 1px solid #f3f4f6;
 }
 
 /* ============================================
-   COLUMNA IZQUIERDA: FECHA MINIMALISTA
+   COLUMNA IZQUIERDA: ICONO Y FECHA
    ============================================ */
-.incidencia-date-col {
+.solicitud-icon-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.75rem;
   min-width: 80px;
-  flex-shrink: 0;
-  padding: 0.5rem 0;
 }
 
-.incidencia-date {
+.solicitud-icon-wrapper {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 0.125rem;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.incidencia-day {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+.solicitud-icon-wrapper svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #3b82f6;
 }
 
-.incidencia-date-number {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #111827;
-  line-height: 1;
-}
-
-.incidencia-month {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-/* Indicador de estado minimalista */
-.incidencia-status-indicator {
+/* Indicador de estado circular */
+.solicitud-status-indicator {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  margin-top: 0.375rem;
+  flex-shrink: 0;
 }
 
-.incidencia-status-indicator.aprobada {
+.solicitud-status-indicator[data-status="pendiente"] {
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.solicitud-status-indicator[data-status="aprobada"] {
   background: #10b981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
-.incidencia-status-indicator.rechazada {
+.solicitud-status-indicator[data-status="rechazada"] {
   background: #ef4444;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
-.incidencia-status-indicator.pendiente {
-  background: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+.solicitud-status-indicator[data-status="cancelada"] {
+  background: #6b7280;
+  box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.1);
+}
+
+/* Duración de días */
+.solicitud-days {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.solicitud-days-number {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #3b82f6;
+  line-height: 1;
+}
+
+.solicitud-days-label {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #9ca3af;
+  margin-top: 0.125rem;
 }
 
 /* ============================================
    COLUMNA CENTRAL: CONTENIDO PRINCIPAL
    ============================================ */
-.incidencia-info-col {
+.solicitud-info-col {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.625rem;
   min-width: 0;
   flex: 1;
 }
 
-/* Fila superior: Tipo y badge */
-.incidencia-header-row {
+/* Fila superior: Tipo + Badge */
+.solicitud-header-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.875rem;
   flex-wrap: wrap;
 }
 
-.incidencia-tipo {
+.solicitud-tipo {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #111827;
-  line-height: 1.3;
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
-.incidencia-badge {
+/* Fila de metadata: Usuario + Fechas */
+.solicitud-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.solicitud-usuario,
+.solicitud-dates {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.solicitud-usuario svg,
+.solicitud-dates svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* Motivo de la solicitud */
+.solicitud-motivo {
+  font-size: 0.875rem;
+  color: #475569;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.125rem;
+}
+
+/* Badges de estado */
+.solicitud-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.25rem 0.625rem;
   border-radius: 6px;
   font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.025em;
-  text-transform: uppercase;
-  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.incidencia-badge.success {
+.solicitud-badge.success {
   background: #d1fae5;
   color: #065f46;
 }
 
-.incidencia-badge.danger {
+.solicitud-badge.danger {
   background: #fee2e2;
   color: #991b1b;
 }
 
-.incidencia-badge.warning {
+.solicitud-badge.warning {
   background: #fef3c7;
   color: #92400e;
 }
 
-/* Fila de metadata */
-.incidencia-meta-row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.incidencia-meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  color: #6b7280;
-}
-
-.incidencia-meta-item svg {
-  width: 0.875rem;
-  height: 0.875rem;
-  color: #9ca3af;
-  flex-shrink: 0;
-}
-
-.incidencia-usuario {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #3b82f6;
-}
-
-.incidencia-usuario svg {
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-.incidencia-time-info {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #6b7280;
-  font-variant-numeric: tabular-nums;
-}
-
-.incidencia-time-info svg {
-  width: 0.875rem;
-  height: 0.875rem;
-  color: #9ca3af;
-}
-
-/* Descripción */
-.incidencia-descripcion {
-  font-size: 0.8125rem;
-  color: #6b7280;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  margin-top: 0.125rem;
+.solicitud-badge.info {
+  background: #e0e7ff;
+  color: #3730a3;
 }
 
 /* ============================================
    COLUMNA DERECHA: ACCIONES
    ============================================ */
-.incidencia-actions-col {
+.solicitud-actions-col {
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -232,11 +222,11 @@
 }
 
 /* Botón de detalles - siempre a la derecha con más peso visual */
-.btn-resumen {
+.btn-solicitud-detalle {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-
+  padding: 0.625rem;
   background: white;
   color: #475569;
   border: 1px solid #cbd5e1;
@@ -246,30 +236,30 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-  margin-left: auto; /* Empuja el botón a la derecha */
+  margin-left: auto;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   min-width: 2.5rem;
 }
 
 /* Ocultar texto en desktop, solo mostrar icono */
-.btn-resumen span {
+.btn-solicitud-detalle span {
   display: none;
 }
 
-.btn-resumen:hover {
+.btn-solicitud-detalle:hover {
   background: #f8fafc;
   color: #0f172a;
   border-color: #94a3b8;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-.btn-resumen svg {
+.btn-solicitud-detalle svg {
   width: 1rem;
   height: 1rem;
 }
 
 /* Botones de acción - minimalistas */
-.btn-icon {
+.btn-icon-solicitud {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -284,99 +274,82 @@
   flex-shrink: 0;
 }
 
-.btn-icon:hover {
+.btn-icon-solicitud:hover {
   transform: translateY(-1px);
 }
 
-.btn-icon:active {
+.btn-icon-solicitud:active {
   transform: translateY(0);
 }
 
-.btn-icon svg {
+.btn-icon-solicitud svg {
   width: 1rem;
   height: 1rem;
 }
 
-.btn-icon-success {
+.btn-icon-solicitud.success {
   color: #10b981;
   background: rgba(16, 185, 129, 0.08);
   border-color: rgba(16, 185, 129, 0.15);
 }
 
-.btn-icon-success:hover {
+.btn-icon-solicitud.success:hover {
   background: rgba(16, 185, 129, 0.15);
   border-color: rgba(16, 185, 129, 0.3);
   color: #059669;
 }
 
-.btn-icon-danger {
+.btn-icon-solicitud.danger {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.08);
   border-color: rgba(239, 68, 68, 0.15);
 }
 
-.btn-icon-danger:hover {
+.btn-icon-solicitud.danger:hover {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.3);
   color: #dc2626;
 }
 
-.btn-icon-primary {
+.btn-icon-solicitud.primary {
   color: #3b82f6;
   background: rgba(59, 130, 246, 0.08);
   border-color: rgba(59, 130, 246, 0.15);
 }
 
-.btn-icon-primary:hover {
+.btn-icon-solicitud.primary:hover {
   background: rgba(59, 130, 246, 0.15);
   border-color: rgba(59, 130, 246, 0.3);
   color: #2563eb;
 }
 
 /* ============================================
-   LISTA CON CONTADOR
-   ============================================ */
-.list-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.75rem;
-  height: 1.75rem;
-  padding: 0 0.5rem;
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-left: 0.5rem;
-}
-
-/* ============================================
    RESPONSIVE - TABLET
    ============================================ */
 @media (max-width: 1024px) {
-  .incidencia-item {
+  .solicitud-item {
     gap: 1.25rem;
   }
 
-  .incidencia-date-col {
+  .solicitud-icon-col {
     min-width: 70px;
   }
 
-  .incidencia-date-number {
-    font-size: 1.5rem;
+  .solicitud-icon-wrapper {
+    width: 2.75rem;
+    height: 2.75rem;
   }
 
-  .incidencia-header-row {
+  .solicitud-header-row {
     gap: 0.5rem;
   }
 
-  .incidencia-tipo {
+  .solicitud-tipo {
     font-size: 0.875rem;
   }
 
   /* Mantener mismo comportamiento que desktop */
-  .incidencia-actions-col {
+  .solicitud-actions-col {
     gap: 0.5rem;
   }
 }
@@ -385,18 +358,18 @@
    RESPONSIVE - MOBILE
    ============================================ */
 @media (max-width: 768px) {
-  .incidencia-item {
+  .solicitud-item {
     grid-template-columns: 1fr;
     gap: 0.875rem;
     padding: 1rem;
   }
 
-  .incidencia-item:hover {
+  .solicitud-item:hover {
     padding-left: 1rem;
     border-left-width: 3px;
   }
 
-  .incidencia-date-col {
+  .solicitud-icon-col {
     flex-direction: row;
     gap: 0.75rem;
     padding: 0;
@@ -405,44 +378,37 @@
     min-width: 0;
   }
 
-  .incidencia-date {
+  .solicitud-icon-wrapper {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .solicitud-icon-wrapper svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .solicitud-days {
     flex-direction: row;
-    align-items: baseline;
+    align-items: center;
     gap: 0.375rem;
   }
 
-  .incidencia-date-number {
-    font-size: 1.375rem;
+  .solicitud-days-number {
+    font-size: 1.125rem;
   }
 
-  .incidencia-day {
-    order: 2;
-  }
-
-  .incidencia-month {
-    order: 3;
-  }
-
-  .incidencia-status-indicator {
-    margin-top: 0;
-    margin-left: auto;
-  }
-
-  .incidencia-info-col {
-    gap: 0.625rem;
-  }
-
-  .incidencia-header-row {
+  .solicitud-header-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
 
-  .incidencia-meta-row {
+  .solicitud-meta-row {
     gap: 0.75rem;
   }
 
-  .incidencia-actions-col {
+  .solicitud-actions-col {
     display: grid;
     grid-template-columns: auto auto 1fr;
     gap: 0.625rem;
@@ -451,110 +417,38 @@
   }
 
   /* En mobile SÍ mostrar el texto del botón */
-  .btn-resumen {
-    grid-column: 3; /* Ocupa la última columna */
+  .btn-solicitud-detalle {
+    grid-column: 3;
     justify-content: center;
     margin-left: 0;
-    padding: 0.625rem 1rem; /* Más padding para el texto */
+    padding: 0.625rem 1rem;
   }
 
-  .btn-resumen span {
-    display: inline; /* Mostrar texto en mobile */
+  .btn-solicitud-detalle span {
+    display: inline;
   }
 
-  .btn-icon {
+  .btn-icon-solicitud {
     width: 2.25rem;
     height: 2.25rem;
   }
 }
 
 /* ============================================
-   ANIMACIONES SUAVES
-   ============================================ */
-.incidencia-item {
-  animation: slideInRight 0.35s ease-out backwards;
-}
-
-.incidencia-item:nth-child(1) { animation-delay: 0.03s; }
-.incidencia-item:nth-child(2) { animation-delay: 0.06s; }
-.incidencia-item:nth-child(3) { animation-delay: 0.09s; }
-.incidencia-item:nth-child(4) { animation-delay: 0.12s; }
-.incidencia-item:nth-child(5) { animation-delay: 0.15s; }
-.incidencia-item:nth-child(n+6) { animation-delay: 0.18s; }
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* ============================================
-   EXTRA SMALL DEVICES
-   ============================================ */
-@media (max-width: 480px) {
-  .incidencia-item {
-    padding: 0.875rem;
-    gap: 0.75rem;
-  }
-
-  .incidencia-date-col {
-    padding-bottom: 0.5rem;
-  }
-
-  .incidencia-date-number {
-    font-size: 1.25rem;
-  }
-
-  .incidencia-day,
-  .incidencia-month {
-    font-size: 0.6875rem;
-  }
-
-  .incidencia-tipo {
-    font-size: 0.8125rem;
-  }
-
-  .incidencia-meta-item,
-  .incidencia-descripcion {
-    font-size: 0.75rem;
-  }
-
-  .incidencia-badge {
-    font-size: 0.625rem;
-    padding: 0.1875rem 0.5rem;
-  }
-
-  .btn-icon {
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .btn-resumen {
-    font-size: 0.75rem;
-    padding: 0.4375rem 0.75rem;
-  }
-}
-
-/* ============================================
-   MODAL STYLES - DISEÑO PREMIUM PARA INCIDENCIAS
+   MODAL STYLES - DISEÑO PREMIUM PARA SOLICITUDES
    ============================================
    Diseño fluido, limpio y verdaderamente moderno
    Sin hovers molestos, con confirmaciones atractivas
    ============================================ */
 
-/* Variante elegante para modales de incidencias */
-.modal-elegant .modal-header {
+/* Variante elegante para modales de solicitudes */
+.modal-elegant-solicitud .modal-header {
   background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
   border-bottom: 1px solid #e2e8f0;
   padding: 2rem 2.5rem 1.5rem;
 }
 
-.modal-elegant .modal-title {
+.modal-elegant-solicitud .modal-title {
   font-size: 1.5rem;
   font-weight: 700;
   color: #0f172a;
@@ -562,33 +456,26 @@
   letter-spacing: -0.03em;
 }
 
-.modal-elegant .modal-body {
+.modal-elegant-solicitud .modal-body {
   background: white;
   padding: 2.25rem 2.5rem;
 }
 
-.modal-elegant .modal-footer {
+.modal-elegant-solicitud .modal-footer {
+  background: #f8fafc;
   border-top: 1px solid #e2e8f0;
-
+  padding: 1.75rem 2.5rem;
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
 }
 
-/* Helper text para campos de formulario */
-.modal-field-help {
-  margin-top: 0.625rem;
-  font-size: 0.8125rem;
-  color: #64748b;
-  line-height: 1.6;
-}
-
 /* ============================================
-   FORMULARIO DE INCIDENCIAS - LIMPIO Y MODERNO
+   FORMULARIO DE SOLICITUDES - LIMPIO Y MODERNO
    ============================================ */
 
 /* Labels claros y directos */
-.modal-elegant .modal-body label {
+.modal-elegant-solicitud .modal-body label {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
@@ -597,14 +484,14 @@
   letter-spacing: -0.01em;
 }
 
-.modal-elegant .modal-body label .required {
+.modal-elegant-solicitud .modal-body label .required {
   color: #ef4444;
   margin-left: 0.25rem;
   font-weight: 700;
 }
 
 /* Textarea moderno y espacioso - SIN HOVER */
-.modal-elegant .modal-body textarea {
+.modal-elegant-solicitud .modal-body textarea {
   width: 100%;
   padding: 1rem 1.25rem;
   border: 2px solid #e2e8f0;
@@ -619,18 +506,18 @@
   font-family: inherit;
 }
 
-.modal-elegant .modal-body textarea::placeholder {
+.modal-elegant-solicitud .modal-body textarea::placeholder {
   color: #94a3b8;
 }
 
-.modal-elegant .modal-body textarea:focus {
+.modal-elegant-solicitud .modal-body textarea:focus {
   outline: none;
   border-color: #3b82f6;
   background: white;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
-.modal-elegant .modal-body textarea:disabled {
+.modal-elegant-solicitud .modal-body textarea:disabled {
   background: #f1f5f9;
   color: #64748b;
   cursor: not-allowed;
@@ -652,12 +539,20 @@
   grid-template-columns: repeat(3, 1fr);
 }
 
+/* Helper text */
+.modal-field-help {
+  margin-top: 0.625rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
 /* ============================================
    MODAL DE DETALLES - LIMPIO Y ESPACIOSO
    ============================================ */
 
 /* Header del modal de detalles */
-.modal-elegant .space-y-5 > div:first-child {
+.modal-elegant-solicitud .space-y-5 > div:first-child {
   position: relative;
   padding-bottom: 1.75rem;
   margin-bottom: 2rem;
@@ -665,25 +560,21 @@
 }
 
 /* Información en formato fila (key-value) - SIN HOVER */
-.modal-info-row {
+.modal-info-row-solicitud {
   display: flex;
   align-items: flex-start;
   gap: 1.75rem;
-  padding: 1rem 0;
+  padding: 1.25rem 0;
   border-bottom: 1px solid #f1f5f9;
   transition: none;
 }
 
-.modal-info-row:first-child {
-  padding-top: 10px;
-}
-
-.modal-info-row:last-child {
+.modal-info-row-solicitud:last-child {
   border-bottom: none;
   padding-bottom: 0;
 }
 
-.modal-info-label {
+.modal-info-label-solicitud {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -694,14 +585,14 @@
   flex-shrink: 0;
 }
 
-.modal-info-label svg {
+.modal-info-label-solicitud svg {
   width: 1.125rem;
   height: 1.125rem;
   color: #94a3b8;
   flex-shrink: 0;
 }
 
-.modal-info-value {
+.modal-info-value-solicitud {
   font-size: 0.9375rem;
   font-weight: 500;
   color: #0f172a;
@@ -709,43 +600,25 @@
   flex: 1;
 }
 
-/* Badges dentro de modales */
-.modal-elegant .incidencia-badge {
-  font-size: 0.75rem;
-  padding: 0.375rem 0.875rem;
-  border-radius: 8px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-/* Badges dentro de modales - mismo estilo que la lista */
-.modal-elegant .incidencia-badge {
-  font-size: 0.6875rem;
-  padding: 0.375rem 0.75rem;
-  border-radius: 6px;
-  display: inline-flex;
-  align-items: center;
-}
-
 /* ============================================
    MODAL DE CONFIRMACIÓN - PREMIUM Y ATRACTIVO
    ============================================ */
 
 /* Contenedor principal con padding generoso */
-.modal-confirm-approve,
-.modal-confirm-reject {
+.modal-confirm-solicitud-approve,
+.modal-confirm-solicitud-reject {
   padding: 0.5rem 0;
 }
 
 /* Layout principal de confirmación */
-.modal-confirm-approve .flex,
-.modal-confirm-reject .flex {
+.modal-confirm-solicitud-approve .flex,
+.modal-confirm-solicitud-reject .flex {
   align-items: flex-start;
   gap: 1.5rem;
 }
 
 /* Iconos de confirmación - Diseño premium vibrante */
-.modal-confirm-approve .modal-confirm-icon {
+.modal-confirm-solicitud-approve .modal-confirm-icon {
   width: 4.5rem;
   height: 4.5rem;
   border-radius: 18px;
@@ -761,7 +634,7 @@
   position: relative;
 }
 
-.modal-confirm-approve .modal-confirm-icon::after {
+.modal-confirm-solicitud-approve .modal-confirm-icon::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -770,7 +643,7 @@
   pointer-events: none;
 }
 
-.modal-confirm-approve .modal-confirm-icon svg {
+.modal-confirm-solicitud-approve .modal-confirm-icon svg {
   width: 2.5rem;
   height: 2.5rem;
   color: white;
@@ -779,7 +652,7 @@
   z-index: 1;
 }
 
-.modal-confirm-reject .modal-confirm-icon {
+.modal-confirm-solicitud-reject .modal-confirm-icon {
   width: 4.5rem;
   height: 4.5rem;
   border-radius: 18px;
@@ -795,7 +668,7 @@
   position: relative;
 }
 
-.modal-confirm-reject .modal-confirm-icon::after {
+.modal-confirm-solicitud-reject .modal-confirm-icon::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -804,7 +677,7 @@
   pointer-events: none;
 }
 
-.modal-confirm-reject .modal-confirm-icon svg {
+.modal-confirm-solicitud-reject .modal-confirm-icon svg {
   width: 2.5rem;
   height: 2.5rem;
   color: white;
@@ -814,8 +687,8 @@
 }
 
 /* Textos de confirmación - Más claros y legibles */
-.modal-confirm-approve h3,
-.modal-confirm-reject h3 {
+.modal-confirm-solicitud-approve h3,
+.modal-confirm-solicitud-reject h3 {
   font-size: 1.25rem;
   font-weight: 700;
   color: #0f172a;
@@ -824,16 +697,16 @@
   letter-spacing: -0.03em;
 }
 
-.modal-confirm-approve p,
-.modal-confirm-reject p {
+.modal-confirm-solicitud-approve p,
+.modal-confirm-solicitud-reject p {
   font-size: 1rem;
   color: #475569;
   line-height: 1.75;
   margin: 0;
 }
 
-.modal-confirm-approve p strong,
-.modal-confirm-reject p strong {
+.modal-confirm-solicitud-approve p strong,
+.modal-confirm-solicitud-reject p strong {
   color: #1e293b;
   font-weight: 650;
 }
@@ -843,7 +716,7 @@
    ============================================ */
 
 /* Motivo de rechazo - diseño prominente en rojo */
-.modal-elegant .bg-red-50 {
+.modal-elegant-solicitud .bg-red-50 {
   background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   border: 2px solid #fca5a5;
   border-radius: 14px;
@@ -853,17 +726,17 @@
   box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
 }
 
-.modal-elegant .bg-red-50 .flex {
+.modal-elegant-solicitud .bg-red-50 .flex {
   margin-bottom: 1rem;
 }
 
-.modal-elegant .bg-red-50 svg {
+.modal-elegant-solicitud .bg-red-50 svg {
   color: #dc2626;
   width: 1.25rem;
   height: 1.25rem;
 }
 
-.modal-elegant .bg-red-50 span {
+.modal-elegant-solicitud .bg-red-50 span {
   font-size: 0.75rem;
   font-weight: 700;
   color: #7f1d1d;
@@ -871,7 +744,7 @@
   letter-spacing: 0.05em;
 }
 
-.modal-elegant .bg-red-50 p {
+.modal-elegant-solicitud .bg-red-50 p {
   font-size: 1rem;
   color: #7f1d1d;
   line-height: 1.75;
@@ -880,7 +753,7 @@
 }
 
 /* Comentario de aprobación - diseño en verde */
-.modal-elegant .bg-green-50 {
+.modal-elegant-solicitud .bg-green-50 {
   background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
   border: 2px solid #86efac;
   border-radius: 14px;
@@ -890,17 +763,17 @@
   box-shadow: 0 4px 16px rgba(34, 197, 94, 0.12);
 }
 
-.modal-elegant .bg-green-50 .flex {
+.modal-elegant-solicitud .bg-green-50 .flex {
   margin-bottom: 1rem;
 }
 
-.modal-elegant .bg-green-50 svg {
+.modal-elegant-solicitud .bg-green-50 svg {
   color: #16a34a;
   width: 1.25rem;
   height: 1.25rem;
 }
 
-.modal-elegant .bg-green-50 span {
+.modal-elegant-solicitud .bg-green-50 span {
   font-size: 0.75rem;
   font-weight: 700;
   color: #14532d;
@@ -908,7 +781,7 @@
   letter-spacing: 0.05em;
 }
 
-.modal-elegant .bg-green-50 p {
+.modal-elegant-solicitud .bg-green-50 p {
   font-size: 1rem;
   color: #14532d;
   line-height: 1.75;
@@ -916,45 +789,8 @@
   font-weight: 500;
 }
 
-/* Comentario de revisión pendiente - diseño en amarillo */
-.modal-elegant .bg-amber-50 {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef9e7 100%);
-  border: 2px solid #fed7aa;
-  border-radius: 14px;
-  padding: 1.75rem;
-  margin-top: 1.75rem;
-  animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.08);
-}
-
-.modal-elegant .bg-amber-50 .flex {
-  margin-bottom: 1rem;
-}
-
-.modal-elegant .bg-amber-50 svg {
-  color: #f59e0b;
-  width: 1.25rem;
-  height: 1.25rem;
-}
-
-.modal-elegant .bg-amber-50 span {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #92400e;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.modal-elegant .bg-amber-50 p {
-  font-size: 1rem;
-  color: #78350f;
-  line-height: 1.75;
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Información de registro de jornada - diseño en azul */
-.modal-elegant .bg-blue-50 {
+/* Información de duración - diseño en azul */
+.modal-elegant-solicitud .bg-blue-50 {
   background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
   border: 1px solid #93c5fd;
   border-radius: 10px;
@@ -962,35 +798,11 @@
   margin-top: 0.75rem;
 }
 
-.modal-elegant .bg-blue-50 p {
+.modal-elegant-solicitud .bg-blue-50 p {
   font-size: 0.8125rem;
   color: #1e40af;
   line-height: 1.6;
   margin: 0;
-}
-
-/* Footer del revisor - limpio y sutil */
-.modal-elegant .pt-4.border-t {
-  background: #f8fafc;
-  margin: 2rem -2.5rem -2.25rem;
-  padding: 1.75rem 2.5rem !important;
-  border-top: 1px solid #e2e8f0 !important;
-  border-radius: 0 0 12px 12px;
-}
-
-.modal-elegant .pt-4.border-t .flex {
-  align-items: center;
-}
-
-.modal-elegant .pt-4.border-t svg {
-  color: #94a3b8;
-  width: 1rem;
-  height: 1rem;
-}
-
-.modal-elegant .pt-4.border-t span {
-  font-size: 0.875rem;
-  color: #64748b;
 }
 
 /* ============================================
@@ -1009,8 +821,8 @@
 }
 
 /* Animación de entrada para el contenido del modal */
-.modal-elegant .space-y-4,
-.modal-elegant .space-y-5 {
+.modal-elegant-solicitud .space-y-4,
+.modal-elegant-solicitud .space-y-5 {
   animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -1025,109 +837,99 @@
   }
 }
 
-/* ============================================
-   ESTADOS Y MICROINTERACCIONES
-   ============================================ */
-
-/* Transiciones suaves en elementos interactivos - Solo focus */
-.modal-elegant .modal-body * {
+/* Estados y microinteracciones - Solo focus */
+.modal-elegant-solicitud .modal-body * {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Focus visible para accesibilidad */
-.modal-elegant .modal-body textarea:focus-visible,
-.modal-elegant .modal-body select:focus-visible,
-.modal-elegant .modal-body input:focus-visible {
+.modal-elegant-solicitud .modal-body textarea:focus-visible,
+.modal-elegant-solicitud .modal-body select:focus-visible,
+.modal-elegant-solicitud .modal-body input:focus-visible {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
 /* ============================================
-   RESPONSIVE OPTIMIZADO
+   RESPONSIVE OPTIMIZADO PARA MODALES
    ============================================ */
 @media (max-width: 768px) {
-  .modal-elegant .modal-header {
+  .modal-elegant-solicitud .modal-header {
     padding: 1.75rem 2rem 1.25rem;
   }
 
-  .modal-elegant .modal-title {
+  .modal-elegant-solicitud .modal-title {
     font-size: 1.375rem;
   }
 
-  .modal-elegant .modal-body {
+  .modal-elegant-solicitud .modal-body {
     padding: 2rem;
   }
 
-  .modal-elegant .modal-footer {
+  .modal-elegant-solicitud .modal-footer {
     padding: 1.5rem 2rem;
     flex-direction: column-reverse;
     gap: 0.75rem;
   }
 
-  .modal-elegant .modal-footer .btn {
+  .modal-elegant-solicitud .modal-footer .btn {
     width: 100%;
     justify-content: center;
     padding: 0.875rem 1.5rem;
   }
 
-  .modal-info-row {
+  .modal-info-row-solicitud {
     flex-direction: column;
     gap: 0.75rem;
     padding: 1rem 0;
   }
 
-  .modal-info-label {
+  .modal-info-label-solicitud {
     min-width: 0;
   }
 
-  .modal-confirm-approve .modal-confirm-icon,
-  .modal-confirm-reject .modal-confirm-icon {
+  .modal-confirm-solicitud-approve .modal-confirm-icon,
+  .modal-confirm-solicitud-reject .modal-confirm-icon {
     width: 4rem;
     height: 4rem;
   }
 
-  .modal-confirm-approve .modal-confirm-icon svg,
-  .modal-confirm-reject .modal-confirm-icon svg {
+  .modal-confirm-solicitud-approve .modal-confirm-icon svg,
+  .modal-confirm-solicitud-reject .modal-confirm-icon svg {
     width: 2.25rem;
     height: 2.25rem;
   }
 
-  .modal-confirm-approve h3,
-  .modal-confirm-reject h3 {
+  .modal-confirm-solicitud-approve h3,
+  .modal-confirm-solicitud-reject h3 {
     font-size: 1.125rem;
   }
 
-  .modal-confirm-approve p,
-  .modal-confirm-reject p {
+  .modal-confirm-solicitud-approve p,
+  .modal-confirm-solicitud-reject p {
     font-size: 0.9375rem;
   }
 
-  .modal-elegant .bg-red-50,
-  .modal-elegant .bg-green-50,
-  .modal-elegant .bg-amber-50 {
+  .modal-elegant-solicitud .bg-red-50,
+  .modal-elegant-solicitud .bg-green-50 {
     padding: 1.5rem;
-  }
-
-  .modal-elegant .pt-4.border-t {
-    margin: 1.75rem -2rem -2rem;
-    padding: 1.5rem 2rem !important;
   }
 }
 
 @media (max-width: 640px) {
-  .modal-elegant .modal-header {
+  .modal-elegant-solicitud .modal-header {
     padding: 1.5rem 1.5rem 1rem;
   }
 
-  .modal-elegant .modal-title {
+  .modal-elegant-solicitud .modal-title {
     font-size: 1.25rem;
   }
 
-  .modal-elegant .modal-body {
+  .modal-elegant-solicitud .modal-body {
     padding: 1.75rem 1.5rem;
   }
 
-  .modal-elegant .modal-footer {
+  .modal-elegant-solicitud .modal-footer {
     padding: 1.25rem 1.5rem;
   }
 
@@ -1136,7 +938,7 @@
     grid-template-columns: 1fr;
   }
 
-  .modal-elegant .modal-body textarea {
+  .modal-elegant-solicitud .modal-body textarea {
     font-size: 0.9375rem;
     min-height: 100px;
     padding: 0.875rem 1rem;
@@ -1146,49 +948,42 @@
     font-size: 0.8125rem;
   }
 
-  .modal-confirm-approve .modal-confirm-icon,
-  .modal-confirm-reject .modal-confirm-icon {
+  .modal-confirm-solicitud-approve .modal-confirm-icon,
+  .modal-confirm-solicitud-reject .modal-confirm-icon {
     width: 3.75rem;
     height: 3.75rem;
     border-radius: 16px;
   }
 
-  .modal-confirm-approve .modal-confirm-icon svg,
-  .modal-confirm-reject .modal-confirm-icon svg {
+  .modal-confirm-solicitud-approve .modal-confirm-icon svg,
+  .modal-confirm-solicitud-reject .modal-confirm-icon svg {
     width: 2rem;
     height: 2rem;
   }
 
-  .modal-confirm-approve h3,
-  .modal-confirm-reject h3 {
+  .modal-confirm-solicitud-approve h3,
+  .modal-confirm-solicitud-reject h3 {
     font-size: 1rem;
   }
 
-  .modal-confirm-approve p,
-  .modal-confirm-reject p {
+  .modal-confirm-solicitud-approve p,
+  .modal-confirm-solicitud-reject p {
     font-size: 0.875rem;
     line-height: 1.6;
   }
 
-  .modal-info-row {
+  .modal-info-row-solicitud {
     padding: 0.875rem 0;
   }
 
-  .modal-elegant .pt-4.border-t {
-    margin: 1.5rem -1.5rem -1.75rem;
-    padding: 1.25rem 1.5rem !important;
-  }
-
-  .modal-elegant .bg-red-50,
-  .modal-elegant .bg-green-50,
-  .modal-elegant .bg-amber-50 {
+  .modal-elegant-solicitud .bg-red-50,
+  .modal-elegant-solicitud .bg-green-50 {
     padding: 1.25rem;
     border-radius: 12px;
   }
 
-  .modal-elegant .bg-red-50 p,
-  .modal-elegant .bg-green-50 p,
-  .modal-elegant .bg-amber-50 p {
+  .modal-elegant-solicitud .bg-red-50 p,
+  .modal-elegant-solicitud .bg-green-50 p {
     font-size: 0.9375rem;
   }
 }
@@ -1198,7 +993,7 @@
    ============================================ */
 
 /* Mejor espaciado en listas de información */
-.modal-elegant .space-y-0 {
+.modal-elegant-solicitud .space-y-0 {
   background: #f8fafc;
   border-radius: 12px;
   padding: 0.75rem 1.5rem;
@@ -1206,33 +1001,32 @@
 }
 
 /* Scroll suave en modales largos */
-.modal-elegant .modal-body {
+.modal-elegant-solicitud .modal-body {
   scroll-behavior: smooth;
 }
 
 /* Scrollbar personalizado minimalista */
-.modal-elegant .modal-body::-webkit-scrollbar {
+.modal-elegant-solicitud .modal-body::-webkit-scrollbar {
   width: 4px;
 }
 
-.modal-elegant .modal-body::-webkit-scrollbar-track {
+.modal-elegant-solicitud .modal-body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.modal-elegant .modal-body::-webkit-scrollbar-thumb {
+.modal-elegant-solicitud .modal-body::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.25);
   border-radius: 10px;
   transition: background 0.2s ease;
 }
 
-.modal-elegant .modal-body::-webkit-scrollbar-thumb:hover {
+.modal-elegant-solicitud .modal-body::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.4);
 }
 
 /* ============================================
    FIX PARA CARD - PERMITIR OVERFLOW VISIBLE
    ============================================ */
-
 /* Necesario para que DatePicker y Select no se corten en el Card */
 .overflow-visible {
   overflow: visible !important;
@@ -1249,7 +1043,7 @@
   z-index: 100 !important;
 }
 
-/* La lista debe estar debajo de los calendarios */
+/* Asegurar que la lista no tape los calendarios */
 .list {
   position: relative;
   z-index: 1;
@@ -1260,21 +1054,22 @@
    ============================================ */
 
 /* Los calendarios en modales usan position: absolute sin animación */
-.modal-elegant .modal-body {
+.modal-elegant-solicitud .modal-body {
   position: relative;
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.modal-elegant .datepicker-wrapper {
+.modal-elegant-solicitud .datepicker-wrapper {
   position: relative;
   z-index: auto;
 }
 
-.modal-elegant .datepicker-wrapper:focus-within {
+.modal-elegant-solicitud .datepicker-wrapper:focus-within {
   z-index: 100;
 }
 
-.modal-elegant .react-datepicker-popper {
+.modal-elegant-solicitud .react-datepicker-popper {
   position: absolute !important;
   transition: none !important;
   animation: none !important;
@@ -1282,14 +1077,17 @@
   will-change: auto !important;
 }
 
-.modal-elegant .react-datepicker-popper[data-placement^='bottom'] {
+.modal-elegant-solicitud .react-datepicker-popper[data-placement^='bottom'] {
   margin-top: 0 !important;
-  padding-top: 8px !important;
+  padding-top: 12px !important;
 }
 
 /* Deshabilitar todas las animaciones del calendario en modales */
-.modal-elegant .react-datepicker,
-.modal-elegant .react-datepicker * {
+.modal-elegant-solicitud .react-datepicker,
+.modal-elegant-solicitud .react-datepicker * {
   transition: none !important;
   animation: none !important;
 }
+
+
+

@@ -88,24 +88,7 @@ const DatePicker = forwardRef(({
           className={`datepicker-input ${error ? 'datepicker-input-error' : ''}`}
           calendarClassName="datepicker-calendar"
           dayClassName={getDayClassName}
-          selectsStart={false}
-          selectsEnd={false}
-          highlightDates={[]}
-          monthsShown={1}
           popperPlacement="bottom-start"
-          popperClassName="datepicker-popper"
-          popperContainer={({ children }) => {
-            // Renderizar el popper en un contenedor con z-index garantizado
-            return (
-              <div style={{ 
-                position: 'fixed', 
-                zIndex: 2147483647,
-                isolation: 'isolate'
-              }}>
-                {children}
-              </div>
-            )
-          }}
           {...props}
         />
       </div>

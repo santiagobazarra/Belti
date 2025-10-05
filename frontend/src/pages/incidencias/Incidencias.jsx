@@ -382,9 +382,9 @@ export default function Incidencias() {
       </div>
 
       {/* Filtros con componentes mejorados */}
-      <Card className="card-interactive">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" style={{ overflow: 'visible' }}>
-          <div className="w-full" style={{ overflow: 'visible' }}>
+      <Card className="card-interactive overflow-visible">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Estado
             </label>
@@ -403,7 +403,7 @@ export default function Incidencias() {
             />
           </div>
 
-          <div className="w-full" style={{ overflow: 'visible' }}>
+          <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tipo
             </label>
@@ -422,7 +422,7 @@ export default function Incidencias() {
             />
           </div>
 
-          <div className="w-full" style={{ overflow: 'visible' }}>
+          <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Desde
             </label>
@@ -445,7 +445,7 @@ export default function Incidencias() {
             />
           </div>
 
-          <div className="w-full" style={{ overflow: 'visible' }}>
+          <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Hasta
             </label>

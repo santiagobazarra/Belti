@@ -110,12 +110,12 @@
    CALENDAR POPUP STYLES - CON POPPER (dropdown)
    ============================================ */
 
-/* Popper container - El calendario flotante debe estar por encima de TODO */
+/* Popper container - Siempre usa position: absolute para estar dentro del flujo del modal */
 .react-datepicker-popper {
-  z-index: 2147483647 !important;
-  will-change: transform;
-  position: fixed !important;
-  isolation: isolate !important;
+  z-index: 9999 !important;
+  will-change: auto;
+  transition: none !important;
+  animation: none !important;
 }
 
 .react-datepicker-popper[data-placement^='bottom'] {
@@ -152,6 +152,9 @@
   overflow: visible;
   position: relative;
   z-index: 99999;
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
 }
 
 /* Header del calendario */
