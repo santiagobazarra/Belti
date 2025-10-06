@@ -126,6 +126,20 @@
   padding-bottom: 8px;
 }
 
+/* DatePicker dentro de modales - más distancia usando transform */
+.modal-body .react-datepicker-popper[data-placement^='bottom'] {
+  padding-top: 0px !important;
+  transform: translateY(50px) !important;
+}
+
+.modal-body .react-datepicker-popper[data-placement='bottom-start'] {
+  transform: translateY(50px) !important;
+}
+
+.modal-body .react-datepicker-popper[data-placement='bottom-end'] {
+  transform: translateY(50px) !important;
+}
+
 /* Ocultar el triángulo/flecha del popper */
 .react-datepicker-popper .react-datepicker__triangle {
   display: none;
@@ -161,7 +175,7 @@
 .react-datepicker__header {
   background-color: white;
   border-bottom: 1px solid #f3f4f6;
-  padding: 0.5rem 0;
+  padding-top: 0rem;
   margin-bottom: 0.75rem;
 }
 
@@ -175,7 +189,7 @@
 
 /* Navegación (flechas) */
 .react-datepicker__navigation {
-  top: 1.5rem;
+  top: 1rem;
   width: 2rem;
   height: 2rem;
   border: none;

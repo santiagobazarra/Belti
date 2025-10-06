@@ -5,6 +5,28 @@
    y responsive optimizado
    ============================================ */
 
+/* ============================================
+   FIX PARA DATEPICKER - PREVENIR QUE SE OCULTE
+   ============================================ */
+
+/* El Card con DatePickers debe tener overflow visible y z-index alto */
+.card-interactive {
+  overflow: visible !important;
+  position: relative;
+  z-index: 100;
+}
+
+/* Asegurar que los DatePickers dentro tengan z-index alto cuando están activos */
+.card-interactive .datepicker-wrapper:focus-within {
+  z-index: 999999 !important;
+}
+
+/* La lista de jornadas debe tener z-index bajo para no tapar el calendario */
+.list {
+  position: relative;
+  z-index: 1;
+}
+
 /* Contenedor de cada jornada */
 .jornada-item {
   display: grid;

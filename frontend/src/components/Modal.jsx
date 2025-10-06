@@ -92,14 +92,22 @@ export default function Modal({
   const backdropAnimationClass = isClosing ? 'animate-backdrop-fade-out' : 'animate-backdrop-fade-in'
 
   const handleBackdropClick = (e) => {
-    if (closeOnBackdrop && e.target === backdropRef.current && !isClosing) {
-      e.preventDefault()
-      onClose()
+    // Cerrar solo si se hace click directamente en el backdrop o en el container
+    if (closeOnBackdrop && !isClosing) {
+      const isBackdrop = e.target === backdropRef.current
+      const isContainer = e.target.classList.contains('modal-container')
+      
+      if (isBackdrop || isContainer) {
+        e.preventDefault()
+        e.stopPropagation()
+        onClose()
+      }
     }
   }
 
   const handleCloseClick = (e) => {
     e.preventDefault()
+    e.stopPropagation()
     if (!isClosing) {
       onClose()
     }
@@ -114,7 +122,7 @@ export default function Modal({
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="modal-container">
+      <div className="modal-container" onClick={handleBackdropClick}>
         <div
           ref={modalRef}
           className={`

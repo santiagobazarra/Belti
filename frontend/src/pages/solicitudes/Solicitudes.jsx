@@ -743,6 +743,7 @@ export default function Solicitudes() {
                     }}
                     placeholder="Selecciona fecha"
                     required
+                    popperClassName="custom-popper-right"
                     popperPlacement="bottom-end"
                   />
                 </div>

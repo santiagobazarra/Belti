@@ -4,13 +4,17 @@ import './css-components/JornadaResumenModal.css'
 
 export default function JornadaResumenModal({ jornada, onClose }) {
   const [isClosing, setIsClosing] = useState(false)
+  const [shouldRender, setShouldRender] = useState(true)
 
   // Manejar cierre con animación
   const handleClose = () => {
+    if (isClosing) return // Prevenir múltiples llamadas
+    
     setIsClosing(true)
     setTimeout(() => {
+      setShouldRender(false)
       onClose()
-    }, 400) // Debe coincidir con la duración de la animación CSS (0.4s)
+    }, 350) // Duración de la animación CSS
   }
 
   // Cerrar con ESC
@@ -24,12 +28,23 @@ export default function JornadaResumenModal({ jornada, onClose }) {
     return () => window.removeEventListener('keydown', handleEsc)
   }, [isClosing])
 
+  // Bloquear scroll del body
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
+
   // Prevenir cierre durante animación
-  const handleOverlayClick = () => {
-    if (!isClosing) {
+  const handleOverlayClick = (e) => {
+    // Solo cerrar si se hace click en el overlay, no en sus hijos
+    if (e.target === e.currentTarget && !isClosing) {
       handleClose()
     }
   }
+
+  if (!shouldRender) return null
 
   // Formatear tiempo
   const formatTime = (minutes) => {
