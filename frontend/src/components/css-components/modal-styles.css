@@ -1,0 +1,1032 @@
+/* ============================================
+   SISTEMA UNIFICADO DE ESTILOS PARA MODALES
+   ============================================
+   Sistema centralizado y reutilizable para todos los modales
+   de la aplicación (Solicitudes, Incidencias, etc.)
+   
+   Excluye: Módulo de Jornadas (mantiene estilos propios)
+   
+   ESTRUCTURA:
+   1. Variantes de Modal (.modal-elegant)
+   2. Layout Base (Header, Body, Footer)
+   3. Componentes de Formulario
+   4. Modal de Detalles
+   5. Modal de Confirmación
+   6. Secciones Destacadas (bg-red, bg-green, bg-amber, bg-blue)
+   7. DatePicker Integration
+   8. Animaciones
+   9. Responsive Design
+   ============================================ */
+
+/* ============================================
+   1. VARIANTE ELEGANTE - BASE PARA TODOS LOS MODALES
+   ============================================ */
+
+/* Contenedor principal del modal - fondo blanco con transparencia */
+.modal-content.modal-elegant {
+  background: white;
+}
+
+.modal-elegant .modal-header {
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 2rem 2.5rem 1.5rem;
+}
+
+.modal-elegant .modal-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.modal-elegant .modal-body {
+  background: none !important;
+  padding: 2.25rem 2.5rem 1rem 2.5rem;
+  position: relative;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  scroll-behavior: smooth;
+  max-height: calc(90vh - 200px); /* Permitir scroll si el contenido es muy largo */
+}
+
+.modal-elegant .modal-footer {
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  background: none;
+  padding: 1.5rem 2.5rem;
+}
+
+/* ============================================
+   2. COMPONENTES DE FORMULARIO
+   ============================================ */
+
+/* Labels claros y directos */
+.modal-elegant .modal-body label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.modal-elegant .modal-body label .required {
+  color: #ef4444;
+  margin-left: 0.25rem;
+  font-weight: 700;
+}
+
+/* Textarea moderno y espacioso */
+.modal-elegant .modal-body textarea {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #0f172a;
+  background: white;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.modal-elegant .modal-body textarea::placeholder {
+  color: #94a3b8;
+}
+
+.modal-elegant .modal-body textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+.modal-elegant .modal-body textarea:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+}
+
+/* Grid para campos de formulario */
+.modal-form-grid {
+  display: grid;
+  gap: 1.25rem;
+  margin: 1.25rem 0;
+}
+
+.modal-form-grid.cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.modal-form-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Helper text para campos */
+.modal-field-help {
+  margin-top: 0.625rem;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+/* ============================================
+   3. MODAL DE DETALLES - INFORMACIÓN KEY-VALUE
+   ============================================ */
+
+/* Header del modal de detalles */
+.modal-elegant .space-y-5 > div:first-child {
+  position: relative;
+  padding-bottom: 1.75rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Información en formato fila (key-value) */
+.modal-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.75rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f5f9;
+  transition: none;
+}
+
+.modal-info-row:first-child {
+  padding-top: 10px;
+}
+
+.modal-info-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.modal-info-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 115px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.modal-info-label svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.modal-info-value {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #0f172a;
+  line-height: 1.6;
+  flex: 1;
+}
+
+/* Badges dentro de modales */
+.modal-elegant .badge,
+.modal-elegant .incidencia-badge,
+.modal-elegant .solicitud-badge {
+  font-size: 0.6875rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Footer del revisor - limpio y sutil */
+.modal-elegant .pt-4.border-t {
+  background: #f8fafc;
+  margin: 2rem -2.5rem -2.25rem;
+  padding: 1.75rem 2.5rem !important;
+  border-top: 1px solid #e2e8f0 !important;
+  border-radius: 0 0 12px 12px;
+}
+
+.modal-elegant .pt-4.border-t .flex {
+  align-items: center;
+}
+
+.modal-elegant .pt-4.border-t svg {
+  color: #94a3b8;
+  width: 1rem;
+  height: 1rem;
+}
+
+.modal-elegant .pt-4.border-t span {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* ============================================
+   4. MODAL DE DETALLES - DISEÑO MINIMALISTA
+   ============================================
+   Para modales que muestran información sin formulario
+   ============================================ */
+
+/* Header simple del detalle */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.detail-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+/* Contenedor de información del detalle */
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Filas de información del detalle */
+.detail-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-row.single {
+  grid-template-columns: 1fr;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.detail-item.full {
+  grid-column: 1 / -1;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-value {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.detail-text {
+  font-size: 0.9375rem;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Sección de resolución del detalle */
+.detail-resolution {
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid;
+  margin-top: 0.5rem;
+}
+
+.detail-resolution.aprobada {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.detail-resolution.rechazada {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.resolution-header {
+  margin-bottom: 0.75rem;
+}
+
+.resolution-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detail-resolution.aprobada .resolution-label {
+  color: #16a34a;
+}
+
+.detail-resolution.rechazada .resolution-label {
+  color: #dc2626;
+}
+
+.resolution-date {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.resolution-info {
+  margin-bottom: 0.75rem;
+}
+
+.resolution-by {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.detail-resolution.aprobada .resolution-by {
+  color: #15803d;
+}
+
+.detail-resolution.rechazada .resolution-by {
+  color: #b91c1c;
+}
+
+.resolution-comment {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.resolution-comment p {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.detail-resolution.aprobada .resolution-comment p {
+  color: #15803d;
+}
+
+.detail-resolution.rechazada .resolution-comment p {
+  color: #b91c1c;
+}
+
+/* ============================================
+   5. MODAL DE CONFIRMACIÓN - DISEÑO PREMIUM
+   ============================================
+   Para modales de aprobar/rechazar con iconos destacados
+   ============================================ */
+
+/* Contenedor principal con padding generoso */
+.modal-confirm-approve,
+.modal-confirm-reject {
+  padding: 0.5rem 0;
+}
+
+/* Layout principal de confirmación */
+.modal-confirm-approve .flex,
+.modal-confirm-reject .flex {
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+/* Iconos de confirmación - Diseño premium vibrante para APROBAR */
+.modal-confirm-approve .modal-confirm-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 
+    0 10px 30px rgba(16, 185, 129, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+}
+
+.modal-confirm-approve .modal-confirm-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.modal-confirm-approve .modal-confirm-icon svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  position: relative;
+  z-index: 1;
+}
+
+/* Iconos de confirmación - Diseño premium vibrante para RECHAZAR */
+.modal-confirm-reject .modal-confirm-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 
+    0 10px 30px rgba(239, 68, 68, 0.25),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+}
+
+.modal-confirm-reject .modal-confirm-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.modal-confirm-reject .modal-confirm-icon svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  position: relative;
+  z-index: 1;
+}
+
+/* Textos de confirmación - Más claros y legibles */
+.modal-confirm-approve h3,
+.modal-confirm-reject h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.25rem 0 1rem 0;
+  line-height: 1.4;
+  letter-spacing: -0.03em;
+}
+
+.modal-confirm-approve p,
+.modal-confirm-reject p {
+  font-size: 1rem;
+  color: #475569;
+  line-height: 1.75;
+  margin: 0;
+}
+
+.modal-confirm-approve p strong,
+.modal-confirm-reject p strong {
+  color: #1e293b;
+  font-weight: 650;
+}
+
+/* ============================================
+   6. SECCIONES DESTACADAS - BLOQUES DE COLOR
+   ============================================
+   Bloques para mostrar comentarios, motivos, información importante
+   ============================================ */
+
+/* Motivo de RECHAZO - diseño prominente en rojo */
+.modal-elegant .bg-red-50 {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid #fca5a5;
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-top: 1.75rem;
+  animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
+}
+
+.modal-elegant .bg-red-50 .flex {
+  margin-bottom: 1rem;
+}
+
+.modal-elegant .bg-red-50 svg {
+  color: #dc2626;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.modal-elegant .bg-red-50 span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #7f1d1d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal-elegant .bg-red-50 p {
+  font-size: 1rem;
+  color: #7f1d1d;
+  line-height: 1.75;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Comentario de APROBACIÓN - diseño en verde */
+.modal-elegant .bg-green-50 {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #86efac;
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-top: 1.75rem;
+  animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.12);
+}
+
+.modal-elegant .bg-green-50 .flex {
+  margin-bottom: 1rem;
+}
+
+.modal-elegant .bg-green-50 svg {
+  color: #16a34a;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.modal-elegant .bg-green-50 span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #14532d;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal-elegant .bg-green-50 p {
+  font-size: 1rem;
+  color: #14532d;
+  line-height: 1.75;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Comentario PENDIENTE - diseño en amarillo/ámbar */
+.modal-elegant .bg-amber-50 {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef9e7 100%);
+  border: 2px solid #fed7aa;
+  border-radius: 14px;
+  padding: 1.75rem;
+  margin-top: 1.75rem;
+  animation: slideInDown 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.08);
+}
+
+.modal-elegant .bg-amber-50 .flex {
+  margin-bottom: 1rem;
+}
+
+.modal-elegant .bg-amber-50 svg {
+  color: #f59e0b;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.modal-elegant .bg-amber-50 span {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #92400e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modal-elegant .bg-amber-50 p {
+  font-size: 1rem;
+  color: #78350f;
+  line-height: 1.75;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Información GENERAL - diseño en azul */
+.modal-elegant .bg-blue-50 {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.modal-elegant .bg-blue-50 p {
+  font-size: 0.8125rem;
+  color: #1e40af;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ============================================
+   7. INTEGRACIÓN CON DATEPICKER Y SELECT
+   ============================================
+   Estilos para que DatePicker y React-Select funcionen en modales
+   ============================================ */
+
+/* El modal-content mantiene overflow hidden para la estructura */
+.modal-elegant .modal-content {
+  overflow: hidden;
+}
+
+/* Wrapper del datepicker con z-index alto cuando está activo */
+.modal-elegant .datepicker-wrapper {
+  position: relative;
+  z-index: auto;
+}
+
+.modal-elegant .datepicker-wrapper:focus-within {
+  z-index: 100;
+}
+
+/* El popper del calendario debe estar por encima de todo */
+.modal-elegant .react-datepicker-popper,
+.modal-body .react-datepicker-popper {
+  position: absolute !important;
+  z-index: 100000 !important;
+  transition: none !important;
+  animation: none !important;
+  will-change: transform;
+}
+
+.modal-elegant .react-datepicker-popper[data-placement^='bottom'],
+.modal-body .react-datepicker-popper[data-placement^='bottom'] {
+  margin-top: 0 !important;
+  padding-top: 12px !important;
+}
+
+/* El calendario debe tener z-index muy alto */
+.modal-elegant .react-datepicker,
+.modal-body .react-datepicker {
+  z-index: 100000 !important;
+}
+
+/* Deshabilitar animaciones del calendario en modales */
+.modal-elegant .react-datepicker *,
+.modal-body .react-datepicker * {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* ============================================
+   8. ANIMACIONES
+   ============================================ */
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Animación de entrada para el contenido del modal */
+.modal-elegant .space-y-4,
+.modal-elegant .space-y-5 {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   9. ESTADOS Y MICROINTERACCIONES
+   ============================================ */
+
+/* Transiciones suaves en elementos interactivos - Solo focus */
+.modal-elegant .modal-body * {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus visible para accesibilidad */
+.modal-elegant .modal-body textarea:focus-visible,
+.modal-elegant .modal-body select:focus-visible,
+.modal-elegant .modal-body input:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Mejor espaciado en listas de información */
+.modal-elegant .space-y-0 {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  margin: 1rem 0;
+}
+
+/* Scrollbar personalizado minimalista */
+.modal-elegant .modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-elegant .modal-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-elegant .modal-body::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.modal-elegant .modal-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+/* Firefox scrollbar */
+.modal-elegant .modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+}
+
+/* ============================================
+   10. RESPONSIVE DESIGN
+   ============================================ */
+
+/* TABLET (max-width: 768px) */
+@media (max-width: 768px) {
+  .modal-elegant .modal-header {
+    padding: 1.75rem 2rem 1.25rem;
+  }
+
+  .modal-elegant .modal-title {
+    font-size: 1.375rem;
+  }
+
+  .modal-elegant .modal-body {
+    padding: 2rem;
+    max-height: calc(80vh - 180px);
+  }
+
+  .modal-elegant .modal-footer {
+    padding: 1.5rem 2rem;
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .modal-elegant .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+    padding: 0.875rem 1.5rem;
+  }
+
+  .modal-info-row {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem 0;
+  }
+
+  .modal-info-label {
+    min-width: 0;
+  }
+
+  .modal-confirm-approve .modal-confirm-icon,
+  .modal-confirm-reject .modal-confirm-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .modal-confirm-approve .modal-confirm-icon svg,
+  .modal-confirm-reject .modal-confirm-icon svg {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .modal-confirm-approve h3,
+  .modal-confirm-reject h3 {
+    font-size: 1.125rem;
+  }
+
+  .modal-confirm-approve p,
+  .modal-confirm-reject p {
+    font-size: 0.9375rem;
+  }
+
+  .modal-elegant .bg-red-50,
+  .modal-elegant .bg-green-50,
+  .modal-elegant .bg-amber-50 {
+    padding: 1.5rem;
+  }
+
+  .modal-elegant .pt-4.border-t {
+    margin: 1.75rem -2rem -2rem;
+    padding: 1.5rem 2rem !important;
+  }
+
+  /* Ajustar modales en mobile */
+  .modal-content {
+    max-width: 95vw;
+    margin: 1rem;
+  }
+
+  .modal-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
+    max-height: 70vh;
+  }
+
+  .modal-footer {
+    padding: 1rem;
+    gap: 0.75rem;
+    flex-direction: column-reverse;
+  }
+
+  .modal-footer .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Ajustar formularios en modales mobile */
+  .modal-body .grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Iconos de confirmación más pequeños */
+  .modal-confirm-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .modal-confirm-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  /* Detail Modal Responsive */
+  .detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .detail-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .detail-label {
+    font-size: 0.6875rem;
+  }
+
+  .detail-value,
+  .detail-text {
+    font-size: 0.875rem;
+  }
+}
+
+/* MOBILE (max-width: 640px) */
+@media (max-width: 640px) {
+  .modal-elegant .modal-header {
+    padding: 1.25rem 1rem 0.75rem 1rem; /* Padding reducido para máximo espacio */
+  }
+
+  .modal-elegant .modal-title {
+    font-size: 1.125rem; /* Título más compacto */
+  }
+
+  .modal-elegant .modal-body {
+    padding: 0.75rem 1rem; /* Padding mínimo en los laterales */
+    max-height: calc(95vh - 160px); /* Ajustado al nuevo max-height del modal */
+  }
+
+  .modal-elegant .modal-footer {
+    padding: 1rem; /* Padding consistente */
+  }
+
+  .modal-form-grid.cols-2,
+  .modal-form-grid.cols-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-elegant .modal-body textarea {
+    font-size: 0.9375rem;
+    min-height: 100px;
+    padding: 0.875rem 1rem;
+  }
+
+  .modal-field-help {
+    font-size: 0.8125rem;
+  }
+
+  .modal-confirm-approve .modal-confirm-icon,
+  .modal-confirm-reject .modal-confirm-icon {
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 16px;
+  }
+
+  .modal-confirm-approve .modal-confirm-icon svg,
+  .modal-confirm-reject .modal-confirm-icon svg {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .modal-confirm-approve h3,
+  .modal-confirm-reject h3 {
+    font-size: 1rem;
+  }
+
+  .modal-confirm-approve p,
+  .modal-confirm-reject p {
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .modal-info-row {
+    padding: 0.875rem 0;
+  }
+
+  .modal-elegant .pt-4.border-t {
+    margin: 1.5rem -1.5rem -1.75rem;
+    padding: 1.25rem 1.5rem !important;
+  }
+
+  .modal-elegant .bg-red-50,
+  .modal-elegant .bg-green-50,
+  .modal-elegant .bg-amber-50 {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .modal-elegant .bg-red-50 p,
+  .modal-elegant .bg-green-50 p,
+  .modal-elegant .bg-amber-50 p {
+    font-size: 0.9375rem;
+  }
+}
+
+/* MOBILE SMALL (max-width: 480px) */
+@media (max-width: 480px) {
+  /* Modales full-screen en pantallas muy pequeñas */
+  .modal-content {
+    max-height: 96vh; /* Casi toda la altura disponible */
+    width: 100vw; /* Ancho completo */
+    margin: 0; /* Sin márgenes */
+    border-radius: 1rem 1rem 0 0; /* Solo esquinas superiores */
+  }
+
+  .modal-body {
+    max-height: calc(96vh - 150px);
+    padding: 0.625rem 0.875rem; /* Padding mínimo */
+  }
+
+  .modal-footer {
+    padding: 0.875rem;
+  }
+
+  /* Estilos específicos para modal-elegant en mobile pequeño */
+  .modal-elegant .modal-header {
+    padding: 1rem 0.875rem 0.625rem 0.875rem;
+  }
+
+  .modal-elegant .modal-title {
+    font-size: 1.0625rem; /* Ligeramente más pequeño */
+  }
+
+  .modal-elegant .modal-body {
+    padding: 0.625rem 0.875rem;
+    max-height: calc(96vh - 150px);
+  }
+
+  .modal-elegant .modal-footer {
+    padding: 0.875rem;
+  }
+
+  /* Botones más compactos */
+  .modal-footer .btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ============================================
+   FIN DEL SISTEMA UNIFICADO DE MODALES
+   ============================================ */

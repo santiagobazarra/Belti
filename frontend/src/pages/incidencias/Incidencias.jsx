@@ -20,6 +20,7 @@ import TimePicker from '../../components/TimePicker'
 import Card from '../../components/Card'
 import Toast from '../../components/Toast'
 import './css/Incidencias.css'
+import '../../components/css-components/modal-styles.css'
 
 const TIPOS_INCIDENCIA = [
   { value: 'falta', label: 'Falta' },
@@ -115,7 +116,7 @@ const customSelectStyles = {
     border: '1px solid rgb(229, 231, 235)',
     overflow: 'hidden',
     marginTop: '8px',
-    zIndex: 9999
+    zIndex: 40 // Menor que modal (z-index: 50) pero mayor que card (z-index: 1)
   }),
   menuList: (base) => ({
     ...base,
@@ -143,7 +144,7 @@ const customSelectStyles = {
   }),
   menuPortal: (base) => ({
     ...base,
-    zIndex: 9999
+    zIndex: 40 // Menor que modal (z-index: 50) pero mayor que card (z-index: 1)
   }),
   noOptionsMessage: (base) => ({
     ...base,

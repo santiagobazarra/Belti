@@ -19,6 +19,7 @@ import Card from '../../components/Card'
 import DatePicker from '../../components/DatePicker'
 import Select from 'react-select'
 import './css/Solicitudes.css'
+import '../../components/css-components/modal-styles.css'
 
 const TIPOS_SOLICITUD = [
   { value: 'vacaciones', label: 'Vacaciones' },
@@ -115,7 +116,7 @@ const customSelectStyles = {
     border: '1px solid rgb(229, 231, 235)',
     overflow: 'hidden',
     marginTop: '8px',
-    zIndex: 9999
+    zIndex: 40 // Menor que modal (z-index: 50) pero mayor que card (z-index: 1)
   }),
   menuList: (base) => ({
     ...base,
@@ -143,7 +144,7 @@ const customSelectStyles = {
   }),
   menuPortal: (base) => ({
     ...base,
-    zIndex: 9999
+    zIndex: 40 // Menor que modal (z-index: 50) pero mayor que card (z-index: 1)
   }),
   noOptionsMessage: (base) => ({
     ...base,
@@ -597,10 +598,10 @@ export default function Solicitudes() {
       >
         {selectedSolicitud && selectedSolicitud.estado !== 'pendiente' ? (
           /* Vista de detalles para solicitudes procesadas */
-          <div className="modal-elegant-solicitud">
+          <div className="modal-elegant">
             {/* Header con Estado */}
-            <div className="solicitud-detail-header">
-              <h3 className="solicitud-detail-title">Detalles de la Solicitud</h3>
+            <div className="detail-header">
+              <h3 className="detail-title">Detalles de la Solicitud</h3>
               <span className={`solicitud-badge ${
                 selectedSolicitud.estado === 'aprobada' ? 'success' :
                 selectedSolicitud.estado === 'rechazada' ? 'danger' :
@@ -611,7 +612,7 @@ export default function Solicitudes() {
             </div>
 
             {/* Información Principal */}
-            <div className="solicitud-detail-info">
+            <div className="detail-info">
               {/* Tipo y Duración */}
               <div className="detail-row">
                 <div className="detail-item">
@@ -726,7 +727,7 @@ export default function Solicitudes() {
           </div>
         ) : (
           /* Formulario de creación/edición */
-          <form onSubmit={handleSubmit} className="modal-elegant-solicitud">
+          <form onSubmit={handleSubmit} className="modal-elegant">
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -860,8 +861,8 @@ export default function Solicitudes() {
         variant="elegant"
         animationType="fade-scale"
       >
-        <div className="modal-elegant-solicitud">
-          <div className="modal-confirm-solicitud-approve">
+        <div className="modal-elegant">
+          <div className="modal-confirm-approve">
             <div className="flex gap-4">
               <div className="modal-confirm-icon">
                 <CheckIcon />
@@ -952,8 +953,8 @@ export default function Solicitudes() {
         variant="elegant"
         animationType="fade-scale"
       >
-        <div className="modal-elegant-solicitud">
-          <div className="modal-confirm-solicitud-reject">
+        <div className="modal-elegant">
+          <div className="modal-confirm-reject">
             <div className="flex gap-4">
               <div className="modal-confirm-icon">
                 <XMarkIcon />

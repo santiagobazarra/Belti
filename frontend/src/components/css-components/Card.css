@@ -32,8 +32,8 @@
   /* Transiciones suaves */
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
-  /* Aislamiento de stacking context */
-  isolation: isolate;
+  /* NO usar isolation: isolate por defecto - causa problemas con modales
+     Solo aplicar isolation cuando sea estrictamente necesario */
   
   /* Z-index base bajo para cards normales */
   z-index: 0;
@@ -50,7 +50,13 @@
   
   /* CRÍTICO: Permitir que elementos como calendarios salgan del card */
   overflow: visible !important;
+  
+  /* IMPORTANTE: Remover isolation para evitar stacking context aislado */
+  isolation: auto;
+  
+  /* z-index bajo para que NO tape los modales (modales usan z-index: 50) */
   z-index: 1;
+  position: relative;
 }
 
 /* El contenido también debe permitir overflow visible */

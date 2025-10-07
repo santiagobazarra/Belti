@@ -13,7 +13,7 @@
 .card-interactive {
   overflow: visible !important;
   position: relative;
-  z-index: 100;
+  z-index: 0;
 }
 
 /* Asegurar que los DatePickers dentro tengan z-index alto cuando están activos */
