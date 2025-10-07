@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, useRef, useEffect, useState } from 'react'
 import ReactDatePicker from 'react-datepicker'
 import { registerLocale } from 'react-datepicker'
 import es from 'date-fns/locale/es'
@@ -45,6 +45,88 @@ const DatePicker = forwardRef(({
   // Convertir string a Date si es necesario
   const selectedDate = selected ? (typeof selected === 'string' ? new Date(selected) : selected) : null
 
+  // Ref interno para el DatePicker
+  const internalRef = useRef(null)
+  const datePickerRef = ref || internalRef
+  
+  // Estado para controlar si el calendario está abierto
+  const [isOpen, setIsOpen] = useState(false)
+  
+  // Estado para saber si el usuario abrió el calendario manualmente
+  const [wasOpenedByUser, setWasOpenedByUser] = useState(false)
+  
+  // Ref para el wrapper del input
+  const wrapperRef = useRef(null)
+
+  // Hook para cerrar el calendario cuando el input sale del viewport al hacer scroll
+  useEffect(() => {
+    if (!wasOpenedByUser) return
+
+    const checkVisibility = () => {
+      if (!wrapperRef.current) return
+
+      const rect = wrapperRef.current.getBoundingClientRect()
+      
+      // Obtener el contenedor del modal para calcular límites relativos
+      const modalBody = wrapperRef.current.closest('.modal-body')
+      
+      if (modalBody) {
+        const modalRect = modalBody.getBoundingClientRect()
+        
+        // Verificar si el input está parcialmente oculto
+        // Añadimos un margen de 20px para cerrarlo antes de que se oculte completamente
+        const threshold = 20
+        const isPartiallyHidden = (
+          rect.top < modalRect.top + threshold ||
+          rect.bottom > modalRect.bottom - threshold
+        )
+
+        if (isPartiallyHidden && isOpen) {
+          // Cerrar si está oculto y el calendario está abierto
+          setIsOpen(false)
+        } else if (!isPartiallyHidden && !isOpen) {
+          // Reabrir si vuelve a estar visible y el calendario estaba cerrado
+          setIsOpen(true)
+        }
+      } else {
+        // Fallback: usar viewport si no hay modal
+        const threshold = 20
+        const isPartiallyHidden = (
+          rect.top < threshold ||
+          rect.bottom > (window.innerHeight || document.documentElement.clientHeight) - threshold
+        )
+
+        if (isPartiallyHidden && isOpen) {
+          setIsOpen(false)
+        } else if (!isPartiallyHidden && !isOpen) {
+          setIsOpen(true)
+        }
+      }
+    }
+
+    // Buscar el contenedor con scroll (modal-body)
+    const findScrollContainer = (element) => {
+      if (!element) return null
+      
+      const style = window.getComputedStyle(element)
+      const isScrollable = style.overflow === 'auto' || style.overflow === 'scroll' || 
+                          style.overflowY === 'auto' || style.overflowY === 'scroll'
+      
+      if (isScrollable) return element
+      
+      return findScrollContainer(element.parentElement)
+    }
+
+    const scrollContainer = findScrollContainer(wrapperRef.current)
+    
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', checkVisibility, { passive: true })
+      return () => {
+        scrollContainer.removeEventListener('scroll', checkVisibility)
+      }
+    }
+  }, [isOpen, wasOpenedByUser])
+
   // Función para controlar las clases de cada día
   const getDayClassName = (date) => {
     if (!selectedDate) return ''
@@ -60,7 +142,7 @@ const DatePicker = forwardRef(({
   }
 
   return (
-    <div className={`datepicker-wrapper ${className}`}>
+    <div className={`datepicker-wrapper ${className}`} ref={wrapperRef}>
       {label && (
         <label className="datepicker-label">
           {label}
@@ -73,7 +155,7 @@ const DatePicker = forwardRef(({
         </div>
         
         <ReactDatePicker
-          ref={ref}
+          ref={datePickerRef}
           selected={selectedDate}
           onChange={onChange}
           dateFormat={dateFormat}
@@ -89,6 +171,16 @@ const DatePicker = forwardRef(({
           calendarClassName="datepicker-calendar"
           dayClassName={getDayClassName}
           popperPlacement="bottom-start"
+          portalId="datepicker-portal"
+          open={isOpen}
+          onCalendarOpen={() => {
+            setIsOpen(true)
+            setWasOpenedByUser(true)
+          }}
+          onCalendarClose={() => {
+            setIsOpen(false)
+            setWasOpenedByUser(false)
+          }}
           {...props}
         />
       </div>

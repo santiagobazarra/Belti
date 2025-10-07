@@ -221,7 +221,9 @@ export default function Solicitudes() {
 
     try {
       if (selectedSolicitud) {
-        await api.patch(`/solicitudes/${selectedSolicitud.id}`, formData)
+        // El backend usa id_solicitud, no id
+        const solicitudId = selectedSolicitud.id_solicitud || selectedSolicitud.id
+        await api.patch(`/solicitudes/${solicitudId}`, formData)
       } else {
         await api.post('/solicitudes', formData)
       }
@@ -242,10 +244,15 @@ export default function Solicitudes() {
   }
 
   const handleAprobar = async () => {
-    if (!selectedSolicitud) return
+    if (!selectedSolicitud) {
+      console.error('❌ No hay solicitud seleccionada')
+      return
+    }
 
     try {
-      await api.patch(`/solicitudes/${selectedSolicitud.id}`, {
+      // El backend usa id_solicitud, no id
+      const solicitudId = selectedSolicitud.id_solicitud || selectedSolicitud.id
+      await api.patch(`/solicitudes/${solicitudId}`, {
         estado: 'aprobada',
         comentario_resolucion: comentarioResolucion || ''
       })
@@ -260,10 +267,15 @@ export default function Solicitudes() {
   }
 
   const handleRechazar = async () => {
-    if (!selectedSolicitud) return
+    if (!selectedSolicitud) {
+      console.error('No hay solicitud seleccionada')
+      return
+    }
 
     try {
-      await api.patch(`/solicitudes/${selectedSolicitud.id}`, {
+      // El backend usa id_solicitud, no id
+      const solicitudId = selectedSolicitud.id_solicitud || selectedSolicitud.id
+      await api.patch(`/solicitudes/${solicitudId}`, {
         estado: 'rechazada',
         comentario_resolucion: comentarioResolucion || ''
       })
@@ -450,29 +462,20 @@ export default function Solicitudes() {
         ) : (
           <div className="list-scrollable">
             {solicitudes.map((solicitud) => (
-              <div key={solicitud.id} className="solicitud-item">
-                {/* Columna Izquierda: Icono + Días */}
+              <div key={solicitud.id_solicitud || solicitud.id} className="solicitud-item">
+                {/* Columna 1: Tipo + Icono + Estado (mobile) */}
                 <div className="solicitud-icon-col">
                   <div className="solicitud-icon-wrapper">
                     <EnvelopeIcon />
                   </div>
-                  <div className="solicitud-status-indicator" data-status={solicitud.estado}></div>
-                  <div className="solicitud-days">
-                    <div className="solicitud-days-number">
-                      {calculateDays(solicitud.fecha_inicio, solicitud.fecha_fin)}
-                    </div>
-                    <div className="solicitud-days-label">
-                      día{calculateDays(solicitud.fecha_inicio, solicitud.fecha_fin) !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Columna Central: Información */}
-                <div className="solicitud-info-col">
-                  <div className="solicitud-header-row">
+                  <div className="solicitud-tipo-info">
+                    <div className="solicitud-tipo-label">Tipo</div>
                     <div className="solicitud-tipo">
                       {TIPOS_SOLICITUD.find(t => t.value === solicitud.tipo)?.label}
                     </div>
+                  </div>
+                  {/* Estado visible en mobile (dentro de icon-col) */}
+                  <div className="solicitud-badge-col">
                     <span className={`solicitud-badge ${
                       solicitud.estado === 'aprobada' ? 'success' :
                       solicitud.estado === 'rechazada' ? 'danger' :
@@ -481,38 +484,56 @@ export default function Solicitudes() {
                       {ESTADOS.find(e => e.value === solicitud.estado)?.label}
                     </span>
                   </div>
+                </div>
 
-                  <div className="solicitud-meta-row">
-                    {isAdmin && solicitud.usuario && (
-                      <div className="solicitud-usuario">
-                        <UserIcon />
-                        <span>{solicitud.usuario.nombre} {solicitud.usuario.apellidos}</span>
-                      </div>
-                    )}
-                    <div className="solicitud-dates">
-                      <CalendarDaysIcon />
-                      <span>
-                        {new Date(solicitud.fecha_inicio).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })} - {new Date(solicitud.fecha_fin).toLocaleDateString('es-ES', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </span>
+                {/* Columna 2: Período + Usuario (si admin) */}
+                <div className="solicitud-info-col">
+                  <div className="solicitud-dates">
+                    <div className="solicitud-dates-label">Período</div>
+                    <div className="solicitud-dates-value">
+                      {new Date(solicitud.fecha_inicio).toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: 'short'
+                      })} - {new Date(solicitud.fecha_fin).toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
                     </div>
                   </div>
-
-                  {solicitud.motivo && (
-                    <div className="solicitud-motivo">
-                      {solicitud.motivo}
+                  
+                  {isAdmin && solicitud.usuario && (
+                    <div className="solicitud-usuario">
+                      <div className="solicitud-usuario-label">Solicitante</div>
+                      <div className="solicitud-usuario-value">
+                        {solicitud.usuario.nombre} {solicitud.usuario.apellidos}
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Columna Derecha: Acciones */}
+                {/* Columna 3: Estadísticas (Días) - Siempre visible en desktop */}
+                <div className="solicitud-stats-col">
+                  <div className="solicitud-stat">
+                    <div className="solicitud-stat-label">Duración</div>
+                    <div className="solicitud-stat-value">
+                      {calculateDays(solicitud.fecha_inicio, solicitud.fecha_fin)} días
+                    </div>
+                  </div>
+                </div>
+
+                {/* Columna 4: Estado (Badge) - Visible en desktop y mobile */}
+                <div className="solicitud-badge-col solicitud-badge-col-desktop">
+                  <span className={`solicitud-badge ${
+                    solicitud.estado === 'aprobada' ? 'success' :
+                    solicitud.estado === 'rechazada' ? 'danger' :
+                    solicitud.estado === 'cancelada' ? 'info' : 'warning'
+                  }`}>
+                    {ESTADOS.find(e => e.value === solicitud.estado)?.label}
+                  </span>
+                </div>
+
+                {/* Columna 5: Acciones */}
                 <div className="solicitud-actions-col">
                   {solicitud.estado === 'pendiente' && isAdmin && (
                     <>
@@ -547,7 +568,7 @@ export default function Solicitudes() {
                     title="Ver detalles"
                   >
                     <EyeIcon />
-                    <span>Detalles</span>
+                    <span>Ver</span>
                   </button>
                 </div>
               </div>
@@ -561,7 +582,9 @@ export default function Solicitudes() {
         isOpen={showModal}
         onClose={() => {
           setShowModal(false)
-          setSelectedSolicitud(null)
+          setTimeout(() => {
+            setSelectedSolicitud(null)
+          }, 100)
         }}
         title={
           selectedSolicitud 
@@ -575,96 +598,113 @@ export default function Solicitudes() {
         {selectedSolicitud && selectedSolicitud.estado !== 'pendiente' ? (
           /* Vista de detalles para solicitudes procesadas */
           <div className="modal-elegant-solicitud">
-            <div className="space-y-5">
-              <div className="space-y-0">
-                <div className="modal-info-row-solicitud">
-                  <div className="modal-info-label-solicitud">
-                    <DocumentTextIcon />
-                    <span>Tipo</span>
-                  </div>
-                  <div className="modal-info-value-solicitud">
-                    {TIPOS_SOLICITUD.find(t => t.value === selectedSolicitud.tipo)?.label}
-                  </div>
-                </div>
+            {/* Header con Estado */}
+            <div className="solicitud-detail-header">
+              <h3 className="solicitud-detail-title">Detalles de la Solicitud</h3>
+              <span className={`solicitud-badge ${
+                selectedSolicitud.estado === 'aprobada' ? 'success' :
+                selectedSolicitud.estado === 'rechazada' ? 'danger' :
+                selectedSolicitud.estado === 'cancelada' ? 'info' : 'warning'
+              }`}>
+                {ESTADOS.find(e => e.value === selectedSolicitud.estado)?.label}
+              </span>
+            </div>
 
-                <div className="modal-info-row-solicitud">
-                  <div className="modal-info-label-solicitud">
-                    <CalendarDaysIcon />
-                    <span>Período</span>
-                  </div>
-                  <div className="modal-info-value-solicitud">
+            {/* Información Principal */}
+            <div className="solicitud-detail-info">
+              {/* Tipo y Duración */}
+              <div className="detail-row">
+                <div className="detail-item">
+                  <span className="detail-label">Tipo</span>
+                  <span className="detail-value">
+                    {TIPOS_SOLICITUD.find(t => t.value === selectedSolicitud.tipo)?.label}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Duración</span>
+                  <span className="detail-value">
+                    {calculateDays(selectedSolicitud.fecha_inicio, selectedSolicitud.fecha_fin)} días
+                  </span>
+                </div>
+              </div>
+
+              {/* Fechas */}
+              <div className="detail-row">
+                <div className="detail-item">
+                  <span className="detail-label">Fecha Inicio</span>
+                  <span className="detail-value">
                     {new Date(selectedSolicitud.fecha_inicio).toLocaleDateString('es-ES', {
                       day: '2-digit',
                       month: 'long',
                       year: 'numeric'
-                    })} - {new Date(selectedSolicitud.fecha_fin).toLocaleDateString('es-ES', {
+                    })}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <span className="detail-label">Fecha Fin</span>
+                  <span className="detail-value">
+                    {new Date(selectedSolicitud.fecha_fin).toLocaleDateString('es-ES', {
                       day: '2-digit',
                       month: 'long',
                       year: 'numeric'
                     })}
-                  </div>
-                </div>
-
-                <div className="modal-info-row-solicitud">
-                  <div className="modal-info-label-solicitud">
-                    <ClockIcon />
-                    <span>Duración</span>
-                  </div>
-                  <div className="modal-info-value-solicitud">
-                    {calculateDays(selectedSolicitud.fecha_inicio, selectedSolicitud.fecha_fin)} días
-                  </div>
-                </div>
-
-                {isAdmin && selectedSolicitud.usuario && (
-                  <div className="modal-info-row-solicitud">
-                    <div className="modal-info-label-solicitud">
-                      <UserIcon />
-                      <span>Solicitante</span>
-                    </div>
-                    <div className="modal-info-value-solicitud">
-                      {selectedSolicitud.usuario.nombre} {selectedSolicitud.usuario.apellidos}
-                    </div>
-                  </div>
-                )}
-
-                <div className="modal-info-row-solicitud">
-                  <div className="modal-info-label-solicitud">
-                    <DocumentTextIcon />
-                    <span>Motivo</span>
-                  </div>
-                  <div className="modal-info-value-solicitud">
-                    {selectedSolicitud.motivo || 'Sin motivo especificado'}
-                  </div>
+                  </span>
                 </div>
               </div>
 
-              {/* Comentario de resolución para solicitudes aprobadas */}
-              {selectedSolicitud.comentario_resolucion && selectedSolicitud.estado === 'aprobada' && (
-                <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckIcon className="h-5 w-5 text-green-600" />
-                    <span className="text-xs font-bold text-green-900 uppercase tracking-wide">
-                      Comentario de Aprobación
+              {/* Solicitante (Admin) */}
+              {isAdmin && selectedSolicitud.usuario && (
+                <div className="detail-row single">
+                  <div className="detail-item">
+                    <span className="detail-label">Solicitante</span>
+                    <span className="detail-value">
+                      {selectedSolicitud.usuario.nombre} {selectedSolicitud.usuario.apellidos}
                     </span>
                   </div>
-                  <p className="text-sm text-green-900 leading-relaxed font-medium">
-                    {selectedSolicitud.comentario_resolucion}
-                  </p>
                 </div>
               )}
 
-              {/* Motivo de rechazo para solicitudes rechazadas */}
-              {selectedSolicitud.comentario_resolucion && selectedSolicitud.estado === 'rechazada' && (
-                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <XMarkIcon className="h-5 w-5 text-red-600" />
-                    <span className="text-xs font-bold text-red-900 uppercase tracking-wide">
-                      Motivo del Rechazo
+              {/* Motivo */}
+              <div className="detail-row single">
+                <div className="detail-item full">
+                  <span className="detail-label">Motivo</span>
+                  <p className="detail-text">
+                    {selectedSolicitud.motivo || 'Sin motivo especificado'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Resolución */}
+              {selectedSolicitud.estado !== 'pendiente' && selectedSolicitud.estado !== 'cancelada' && (
+                <div className={`detail-resolution ${selectedSolicitud.estado}`}>
+                  <div className="resolution-header">
+                    <span className="resolution-label">
+                      {selectedSolicitud.estado === 'aprobada' ? 'Aprobada' : 'Rechazada'}
+                      {selectedSolicitud.fecha_resolucion && (
+                        <span className="resolution-date">
+                          {' · '}{new Date(selectedSolicitud.fecha_resolucion).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </span>
+                      )}
                     </span>
                   </div>
-                  <p className="text-sm text-red-900 leading-relaxed font-medium">
-                    {selectedSolicitud.comentario_resolucion}
-                  </p>
+
+                  {selectedSolicitud.resuelto_por_usuario && (
+                    <div className="resolution-info">
+                      <span className="resolution-by">
+                        Por: {selectedSolicitud.resuelto_por_usuario.nombre} {selectedSolicitud.resuelto_por_usuario.apellidos}
+                      </span>
+                    </div>
+                  )}
+
+                  {selectedSolicitud.comentario_resolucion && (
+                    <div className="resolution-comment">
+                      <p>{selectedSolicitud.comentario_resolucion}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -674,7 +714,9 @@ export default function Solicitudes() {
                 type="button"
                 onClick={() => {
                   setShowModal(false)
-                  setSelectedSolicitud(null)
+                  setTimeout(() => {
+                    setSelectedSolicitud(null)
+                  }, 100)
                 }}
                 className="btn btn-secondary"
               >
@@ -807,8 +849,11 @@ export default function Solicitudes() {
         isOpen={showAprobarModal}
         onClose={() => {
           setShowAprobarModal(false)
-          setSelectedSolicitud(null)
-          setComentarioResolucion('')
+          // No limpiar selectedSolicitud inmediatamente para evitar race conditions
+          setTimeout(() => {
+            setSelectedSolicitud(null)
+            setComentarioResolucion('')
+          }, 100)
         }}
         title="Aprobar Solicitud"
         size="md"
@@ -870,8 +915,11 @@ export default function Solicitudes() {
               type="button"
               onClick={() => {
                 setShowAprobarModal(false)
-                setSelectedSolicitud(null)
-                setComentarioResolucion('')
+                // No limpiar selectedSolicitud inmediatamente para evitar race conditions
+                setTimeout(() => {
+                  setSelectedSolicitud(null)
+                  setComentarioResolucion('')
+                }, 100)
               }}
               className="btn btn-secondary"
             >
@@ -893,8 +941,11 @@ export default function Solicitudes() {
         isOpen={showRechazarModal}
         onClose={() => {
           setShowRechazarModal(false)
-          setSelectedSolicitud(null)
-          setComentarioResolucion('')
+          // No limpiar selectedSolicitud inmediatamente para evitar race conditions
+          setTimeout(() => {
+            setSelectedSolicitud(null)
+            setComentarioResolucion('')
+          }, 100)
         }}
         title="Rechazar Solicitud"
         size="md"
@@ -956,8 +1007,11 @@ export default function Solicitudes() {
               type="button"
               onClick={() => {
                 setShowRechazarModal(false)
-                setSelectedSolicitud(null)
-                setComentarioResolucion('')
+                // No limpiar selectedSolicitud inmediatamente para evitar race conditions
+                setTimeout(() => {
+                  setSelectedSolicitud(null)
+                  setComentarioResolucion('')
+                }, 100)
               }}
               className="btn btn-secondary"
             >

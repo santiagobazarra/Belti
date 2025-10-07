@@ -1365,10 +1365,13 @@ body {
     animation: modal-slide-down 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+/* DatePicker custom styles for right-aligned calendar */
+/* Comentado: Interfiere con el portal positioning
 .custom-popper-right {
     right: 0 !important;
     left: auto !important;
 }
+*/
 
 /* RESPONSIVE ESPECÍFICO PARA MODALES */
 @media (max-width: 640px) {
@@ -1720,4 +1723,25 @@ input[type="date"]::-webkit-datetime-edit-text {
 
 .animate-shrinkWidth {
     animation: shrinkWidth linear forwards;
+}
+
+/* ============================================
+   DATEPICKER PORTAL - ESTILOS PARA CALENDARIOS EN MODAL
+   ============================================ */
+
+/* Portal container para DatePicker - debe estar por encima de todo */
+#datepicker-portal {
+  position: relative;
+  z-index: 100000;
+}
+
+/* Calendarios dentro del portal con posicionamiento absoluto */
+#datepicker-portal .react-datepicker-popper {
+  position: absolute !important;
+  z-index: 100000 !important;
+}
+
+/* Asegurar que los calendarios del portal sean visibles */
+#datepicker-portal .react-datepicker {
+  z-index: 100000 !important;
 }
