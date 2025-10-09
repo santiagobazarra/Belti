@@ -1,0 +1,165 @@
+/* ============================================
+   ESTILOS ESPECÍFICOS PARA FESTIVOS
+   ============================================ */
+
+/* Badges específicos para festivos */
+.festivo-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.festivo-badge.nacional,
+.festivo-badge.danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.festivo-badge.regional,
+.festivo-badge.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.festivo-badge.local,
+.festivo-badge.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.festivo-badge.empresa,
+.festivo-badge.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+/* Estilos específicos para elementos de festivos */
+.list-item-festivo {
+  transition: all 0.2s ease;
+}
+
+.list-item-festivo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Indicadores de estado para festivos */
+.list-status-indicator.info {
+  background: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.list-status-indicator.success {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.list-status-indicator.warning {
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+/* Badges de estado para festivos */
+.list-badge-info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.list-badge-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.list-badge-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Responsive para festivos */
+@media (max-width: 768px) {
+  .festivo-badge {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.5rem;
+  }
+}
+
+/* Animaciones específicas para festivos */
+@keyframes festivo-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.list-item-festivo:hover .list-status-indicator {
+  animation: festivo-glow 2s ease-in-out infinite;
+}
+
+/* Estilos para el modal de festivos */
+.modal-elegant .festivo-badge {
+  font-size: 0.875rem;
+  padding: 0.375rem 1rem;
+}
+
+/* Estilos para el botón de detalles en festivos */
+.list-btn-resumen {
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.list-btn-resumen:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.list-btn-resumen svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Estilos para el header de festivos */
+.list-header .list-title {
+  color: #111827;
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.025em;
+}
+
+/* Estilos para el estado vacío de festivos */
+.list-empty .list-empty-icon {
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.list-empty .list-empty-title {
+  color: #374151;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.list-empty .list-empty-message {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}

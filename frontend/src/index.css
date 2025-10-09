@@ -856,7 +856,7 @@ body {
 .modal-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 50;
+    z-index: 1000; /* Alto para estar por encima del navbar móvil */
     background: rgba(0, 0, 0, 0.7);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -1345,4 +1345,322 @@ input[type="date"]::-webkit-datetime-edit-text {
 /* Asegurar que los calendarios del portal sean visibles */
 #datepicker-portal .react-datepicker {
   z-index: 100000 !important;
+}
+
+/* ============================================
+   SIDEBAR RESPONSIVE - NAVBAR MÓVIL Y MENÚ LATERAL
+   ============================================ */
+
+/* Navbar superior para móvil */
+.mobile-navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  display: none;
+  transition: all 0.3s ease;
+}
+
+/* Comportamiento igual que escritorio: bloqueo completo en móvil */
+@media (max-width: 768px) {
+  /* Bloquear scroll del body cuando hay modal abierto */
+  body.modal-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Asegurar que el modal esté por encima de todo */
+  body.modal-open .modal-backdrop {
+    z-index: 9999 !important;
+  }
+}
+
+.mobile-navbar-content {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+}
+
+.mobile-navbar-logo {
+  display: flex;
+  align-items: center;
+}
+
+.mobile-navbar-logo img {
+  height: 2.5rem; /* Aumentado de h-8 (2rem) a 2.5rem */
+  width: auto;
+}
+
+.mobile-menu-toggle {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: none; /* Eliminado el contorno */
+  color: rgb(var(--color-gray-600));
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-menu-toggle:hover {
+  background: rgb(var(--color-gray-100));
+  color: rgb(var(--color-primary));
+  transform: scale(1.05);
+}
+
+.mobile-menu-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Animación para el icono hamburguesa/cruz */
+.mobile-menu-toggle svg {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-menu-toggle:hover svg {
+  transform: scale(1.1);
+}
+
+.mobile-menu-toggle:active svg {
+  transform: scale(0.9);
+}
+
+/* Estado abierto - animación del icono cruz */
+.mobile-menu-toggle.open svg {
+  transform: scale(1.1);
+  color: rgb(var(--color-primary));
+}
+
+.mobile-menu-toggle.open:hover svg {
+  transform: scale(1.2);
+  color: rgb(var(--color-primary-dark));
+}
+
+.mobile-menu-toggle.open:active svg {
+  transform: scale(1.0);
+}
+
+/* Menú lateral deslizable - debajo del navbar */
+.mobile-sidebar {
+  position: fixed;
+  top: 4rem; /* Debajo del navbar que tiene height: 4rem */
+  left: 0;
+  height: calc(100vh - 4rem); /* Altura total menos el navbar */
+  width: 100vw;
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+  z-index: 1002;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(-100%);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-sidebar.open {
+  transform: translateX(0);
+}
+
+.mobile-sidebar-nav {
+  flex: 1;
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-sidebar-nav .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: rgb(var(--color-gray-700));
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-sidebar-nav .nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgb(var(--color-primary) / 0.08), transparent);
+  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-sidebar-nav .nav-item:hover::before {
+  left: 100%;
+}
+
+.mobile-sidebar-nav .nav-item:hover {
+  background: linear-gradient(135deg, rgb(var(--color-gray-100)) 0%, rgb(var(--color-gray-50)) 100%);
+  transform: translateX(3px);
+  border-color: rgb(var(--color-gray-200));
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+}
+
+.mobile-sidebar-nav .nav-item.navigating {
+  background: linear-gradient(135deg, rgb(var(--color-primary-light)) 0%, rgb(255 255 255) 100%);
+  color: rgb(var(--color-primary-dark));
+  border-left: 4px solid rgb(var(--color-primary));
+  border-color: rgb(var(--color-primary) / 0.2);
+  box-shadow: 0 4px 6px -1px rgb(var(--color-primary) / 0.1), 0 2px 4px -1px rgb(var(--color-primary) / 0.06);
+  transform: translateX(2px) scale(0.98);
+}
+
+.mobile-sidebar-nav .nav-item.navigating::before {
+  display: none;
+}
+
+.mobile-sidebar-nav .nav-item svg {
+  transition: all 0.2s ease-out;
+}
+
+.mobile-sidebar-nav .nav-item:hover svg {
+  transform: scale(1.1);
+}
+
+.mobile-sidebar-nav .nav-item.navigating svg {
+  transform: scale(1.05);
+}
+
+.mobile-sidebar-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  background: linear-gradient(135deg, rgb(var(--color-gray-50)) 0%, rgb(255 255 255) 100%);
+}
+
+.mobile-logout-btn {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgb(239, 68, 68) 0%, rgb(220, 38, 38) 100%);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+
+.mobile-logout-btn:hover {
+  background: linear-gradient(135deg, rgb(248, 113, 113) 0%, rgb(239, 68, 68) 100%);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+.mobile-logout-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
+}
+
+/* Ajustar contenido principal para navbar móvil */
+.main-content.mobile-layout {
+  margin-top: 4rem;
+  margin-left: 0;
+  width: 100vw;
+  height: calc(100vh - 4rem);
+}
+
+/* Animaciones para el menú móvil */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Animación de navegación para elementos del menú */
+@keyframes navItemPress {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.nav-item.navigating {
+  animation: navItemPress 0.3s ease-out;
+}
+
+/* Mostrar navbar móvil solo en pantallas pequeñas */
+@media (max-width: 768px) {
+  .mobile-navbar {
+    display: block;
+  }
+  
+  .main-content {
+    margin-top: 4rem;
+    margin-left: 0;
+    width: 100vw;
+    height: calc(100vh - 4rem);
+  }
+  
+  .sidebar {
+    display: none;
+  }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  .mobile-navbar-content {
+    padding: 0 0.75rem;
+  }
+  
+  .mobile-sidebar-nav {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .mobile-sidebar-nav .nav-item {
+    padding: 0.875rem;
+    font-size: 0.8125rem;
+  }
+  
+  .mobile-sidebar-footer {
+    padding: 1rem;
+  }
 }

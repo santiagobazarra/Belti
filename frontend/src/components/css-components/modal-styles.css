@@ -43,12 +43,12 @@
 
 .modal-elegant .modal-body {
   background: none !important;
-  padding: 2.25rem 2.5rem 1rem 2.5rem;
+  padding: 2.25rem 2.5rem 2.5rem 2.5rem;
   position: relative;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   scroll-behavior: smooth;
-  max-height: calc(90vh - 200px); /* Permitir scroll si el contenido es muy largo */
+  max-height: calc(100vh - 40px); /* Altura casi absoluta para evitar scroll */
 }
 
 .modal-elegant .modal-footer {
@@ -63,6 +63,178 @@
 /* ============================================
    2. COMPONENTES DE FORMULARIO
    ============================================ */
+
+/* ============================================
+   MODAL DE CONFIRMACIÓN ELEGANT
+   ============================================ */
+
+/* Modal de confirmación con diseño elegant */
+.modal-elegant.modal-confirm {
+  max-width: 28rem;
+  border-radius: 1.5rem;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.modal-elegant.modal-confirm .modal-body {
+  padding: 0.75rem 2rem 1.5rem;
+  text-align: center;
+}
+
+/* Reducir margen superior del contenido de confirmación */
+.modal-elegant.modal-confirm .modal-body > div:first-child,
+.modal-elegant.modal-confirm .modal-body .flex.items-start.gap-4:first-child {
+  margin-top: 0;
+}
+
+.modal-confirm-content {
+  text-align: center;
+}
+
+/* Aplicar estilos de confirmación cuando el modal contiene modal-confirm-content */
+.modal-elegant:has(.modal-confirm-content) {
+  max-width: 28rem;
+  border-radius: 1.5rem;
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.modal-elegant:has(.modal-confirm-content) .modal-body {
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Icono de confirmación elegant */
+.modal-elegant.modal-confirm .modal-confirm-icon,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-icon {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+  position: relative;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.modal-elegant.modal-confirm .modal-confirm-icon.warning,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-icon.warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.modal-elegant.modal-confirm .modal-confirm-icon.danger,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-icon.danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+.modal-elegant.modal-confirm .modal-confirm-icon.info,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-icon.info {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.modal-elegant.modal-confirm .modal-confirm-icon.success,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-icon.success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.modal-elegant.modal-confirm .modal-confirm-icon::after,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-icon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 1rem;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.modal-elegant.modal-confirm .modal-confirm-icon svg,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-icon svg {
+  width: 2rem;
+  height: 2rem;
+  color: white;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  position: relative;
+  z-index: 1;
+}
+
+/* Título de confirmación elegant */
+.modal-elegant.modal-confirm .modal-confirm-title,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+  letter-spacing: -0.025em;
+}
+
+/* Mensaje de confirmación elegant */
+.modal-elegant.modal-confirm .modal-confirm-message,
+.modal-elegant:has(.modal-confirm-content) .modal-confirm-message {
+  font-size: 1rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+}
+
+/* Botones de confirmación elegant */
+.modal-elegant.modal-confirm .flex,
+.modal-elegant:has(.modal-confirm-content) .flex {
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.modal-elegant.modal-confirm .btn,
+.modal-elegant:has(.modal-confirm-content) .btn {
+  min-width: 6rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.modal-elegant.modal-confirm .btn-secondary,
+.modal-elegant:has(.modal-confirm-content) .btn-secondary {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.modal-elegant.modal-confirm .btn-secondary:hover,
+.modal-elegant:has(.modal-confirm-content) .btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.modal-elegant.modal-confirm .btn-danger,
+.modal-elegant:has(.modal-confirm-content) .btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: 1px solid #dc2626;
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.modal-elegant.modal-confirm .btn-danger:hover,
+.modal-elegant:has(.modal-confirm-content) .btn-danger:hover {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+
+.modal-elegant.modal-confirm .btn-danger:active,
+.modal-elegant:has(.modal-confirm-content) .btn-danger:active {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+}
+
+
 
 /* Labels claros y directos */
 .modal-elegant .modal-body label {
@@ -391,17 +563,17 @@
    Para modales de aprobar/rechazar con iconos destacados
    ============================================ */
 
-/* Contenedor principal con padding generoso */
+/* Contenedor principal sin padding para evitar scroll */
 .modal-confirm-approve,
 .modal-confirm-reject {
-  padding: 0.5rem 0;
+  padding: 0;
 }
 
 /* Layout principal de confirmación */
 .modal-confirm-approve .flex,
 .modal-confirm-reject .flex {
   align-items: flex-start;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 /* Iconos de confirmación - Diseño premium vibrante para APROBAR */
@@ -480,8 +652,8 @@
   font-size: 1.25rem;
   font-weight: 700;
   color: #0f172a;
-  margin: 0.25rem 0 1rem 0;
-  line-height: 1.4;
+  margin: 0 0 0.5rem 0;
+  line-height: 1.3;
   letter-spacing: -0.03em;
 }
 
@@ -780,7 +952,7 @@
 
   .modal-elegant .modal-body {
     padding: 2rem;
-    max-height: calc(80vh - 180px);
+    max-height: calc(98vh - 40px);
   }
 
   .modal-elegant .modal-footer {
@@ -789,11 +961,13 @@
     gap: 0.75rem;
   }
 
+
   .modal-elegant .modal-footer .btn {
     width: 100%;
     justify-content: center;
     padding: 0.875rem 1.5rem;
   }
+
 
   .modal-info-row {
     flex-direction: column;
@@ -850,7 +1024,7 @@
 
   .modal-body {
     padding: 1rem;
-    max-height: 70vh;
+    max-height: 95vh;
   }
 
   .modal-footer {
@@ -921,15 +1095,52 @@
     padding: 1rem; /* Padding consistente */
   }
 
+
   .modal-form-grid.cols-2,
   .modal-form-grid.cols-3 {
     grid-template-columns: 1fr;
   }
 
+
   .modal-elegant .modal-body textarea {
     font-size: 0.9375rem;
     min-height: 100px;
     padding: 0.875rem 1rem;
+  }
+
+  /* Modal de confirmación elegant - Tablet */
+  .modal-elegant.modal-confirm,
+  .modal-elegant:has(.modal-confirm-content) {
+    max-width: 26rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-body,
+  .modal-elegant:has(.modal-confirm-content) .modal-body {
+    padding: 1.75rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-icon,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-icon {
+    width: 3.75rem;
+    height: 3.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-icon svg,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-icon svg {
+    width: 1.875rem;
+    height: 1.875rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-title,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-title {
+    font-size: 1.125rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-message,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-message {
+    font-size: 0.9375rem;
+    margin-bottom: 1.75rem;
   }
 
   .modal-field-help {
@@ -1020,10 +1231,80 @@
     padding: 0.875rem;
   }
 
+
   /* Botones más compactos */
   .modal-footer .btn {
     padding: 0.625rem 1rem;
     font-size: 0.875rem;
+  }
+
+  /* Modal de confirmación elegant - Mobile */
+  .modal-elegant.modal-confirm,
+  .modal-elegant:has(.modal-confirm-content) {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+    border-radius: 1.5rem 1.5rem 0 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    transform: translateY(100%);
+    animation: slideUpFromBottom 0.3s ease-out forwards;
+  }
+
+  .modal-elegant.modal-confirm .modal-body,
+  .modal-elegant:has(.modal-confirm-content) .modal-body {
+    padding: 1.5rem;
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-icon,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-icon svg,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-icon svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-title,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .modal-elegant.modal-confirm .modal-confirm-message,
+  .modal-elegant:has(.modal-confirm-content) .modal-confirm-message {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .modal-elegant.modal-confirm .btn,
+  .modal-elegant:has(.modal-confirm-content) .btn {
+    min-width: 5rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+
+}
+
+/* ============================================
+   ANIMACIONES ESPECÍFICAS PARA MODALES
+   ============================================ */
+
+/* Animación para modal de confirmación en móvil */
+@keyframes slideUpFromBottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
   }
 }
 

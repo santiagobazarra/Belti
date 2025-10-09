@@ -237,12 +237,12 @@ export default function Jornadas() {
         </div>
 
         {loading ? (
-          <div className="list-empty">
-            <div className="list-empty-icon">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="list-loading">
+            <div className="list-loading-icon">
+              <div className="animate-spin"></div>
             </div>
-            <div className="list-empty-title">Cargando jornadas...</div>
-            <div className="list-empty-message">Obteniendo datos del servidor</div>
+            <div className="list-loading-title">Cargando jornadas...</div>
+            <div className="list-loading-message">Obteniendo datos del servidor</div>
           </div>
         ) : jornadas.length === 0 ? (
           <div className="list-empty">

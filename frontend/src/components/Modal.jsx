@@ -15,45 +15,81 @@ export default function Modal({
 }) {
   const modalRef = useRef()
   const backdropRef = useRef()
+  const [isMobile, setIsMobile] = useState(false)
   const [isClosing, setIsClosing] = useState(false)
   const [shouldRender, setShouldRender] = useState(false)
 
-  // Manejar el montaje y desmontaje con animación
+  // Detectar si estamos en móvil
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Resetear estados al montar el componente
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true)
       setIsClosing(false)
+    } else {
+      setShouldRender(false)
+      setIsClosing(false)
+    }
+  }, []) // Solo al montar
+
+  // Manejar el estado del modal y animaciones (solo para móvil)
+  useEffect(() => {
+    if (isOpen) {
+      // Abrir modal
+      setShouldRender(true)
+      setIsClosing(false)
+      document.body.style.overflow = 'hidden'
+      document.body.classList.add('modal-open')
     } else if (shouldRender) {
-      // Iniciar animación de cierre
-      setIsClosing(true)
-      // Esperar a que termine la animación antes de desmontar
-      const timer = setTimeout(() => {
+      // Cerrar modal
+      if (isMobile) {
+        // En móvil: animación de salida
+        setIsClosing(true)
+        document.body.style.overflow = ''
+        document.body.classList.remove('modal-open')
+        
+        const timer = setTimeout(() => {
+          setShouldRender(false)
+          setIsClosing(false)
+        }, 350)
+        
+        return () => clearTimeout(timer)
+      } else {
+        // En desktop: cierre instantáneo
         setShouldRender(false)
         setIsClosing(false)
-      }, 350) // Duración de la animación de salida
-      return () => clearTimeout(timer)
-    }
-  }, [isOpen, shouldRender])
-
-  // Manejar el scroll del body
-  useEffect(() => {
-    if (shouldRender && !isClosing) {
-      document.body.style.overflow = 'hidden'
-      setTimeout(() => {
-        modalRef.current?.focus()
-      }, 50)
-    } else {
-      document.body.style.overflow = ''
+        document.body.style.overflow = ''
+        document.body.classList.remove('modal-open')
+      }
     }
 
     return () => {
       document.body.style.overflow = ''
+      document.body.classList.remove('modal-open')
     }
-  }, [shouldRender, isClosing])
+  }, [isOpen, isMobile])
 
-  // Manejar ESC key
+  // Resetear estados cuando cambia de móvil a desktop durante animación
   useEffect(() => {
-    if (!shouldRender || isClosing) return
+    if (!isMobile && isClosing) {
+      // Si cambiamos a desktop durante una animación de cierre, resetear inmediatamente
+      setShouldRender(false)
+      setIsClosing(false)
+    }
+  }, [isMobile, isClosing])
+
+  // Manejar ESC key - SIMPLIFICADO
+  useEffect(() => {
+    if (!isOpen) return
 
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -64,7 +100,7 @@ export default function Modal({
 
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [shouldRender, isClosing, onClose])
+  }, [isOpen, onClose])
 
   if (!shouldRender) return null
 
@@ -84,23 +120,43 @@ export default function Modal({
     minimal: 'modal-minimal'
   }
 
-  // Elegir animación según estado
-  const animationClass = isClosing
-    ? (animationType === 'fade-scale' ? 'animate-modal-fade-scale-out' : 'animate-modal-fade-out')
-    : (animationType === 'fade-scale' ? 'animate-modal-fade-scale' : 'animate-modal-fade-in')
+  // Animaciones solo para móvil
+  const getAnimationClasses = () => {
+    if (!isMobile) {
+      // Sin animaciones en desktop
+      return { modalAnimationClass: '', backdropAnimationClass: '' }
+    }
+    
+    if (isClosing) {
+      // Animaciones de salida para móvil
+      return { 
+        modalAnimationClass: 'animate-modal-fade-scale-out', 
+        backdropAnimationClass: 'animate-backdrop-fade-out' 
+      }
+    } else {
+      // Animaciones de entrada para móvil
+      return { 
+        modalAnimationClass: 'animate-modal-fade-scale', 
+        backdropAnimationClass: 'animate-backdrop-fade-in' 
+      }
+    }
+  }
 
-  const backdropAnimationClass = isClosing ? 'animate-backdrop-fade-out' : 'animate-backdrop-fade-in'
+  const { modalAnimationClass, backdropAnimationClass } = getAnimationClasses()
+
+  const handleClose = () => {
+    if (!isClosing) {
+      onClose()
+    }
+  }
 
   const handleBackdropClick = (e) => {
-    // Cerrar solo si se hace click directamente en el backdrop o en el container
     if (closeOnBackdrop && !isClosing) {
-      const isBackdrop = e.target === backdropRef.current
-      const isContainer = e.target.classList.contains('modal-container')
-      
-      if (isBackdrop || isContainer) {
+      // Cerrar si se hace click en el backdrop o en el container
+      if (e.target === backdropRef.current || e.target.classList.contains('modal-container')) {
         e.preventDefault()
         e.stopPropagation()
-        onClose()
+        handleClose()
       }
     }
   }
@@ -108,9 +164,7 @@ export default function Modal({
   const handleCloseClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!isClosing) {
-      onClose()
-    }
+    handleClose()
   }
 
   return (
@@ -122,12 +176,12 @@ export default function Modal({
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      <div className="modal-container" onClick={handleBackdropClick}>
+      <div className="modal-container">
         <div
           ref={modalRef}
           className={`
             modal-content ${sizeClasses[size]} ${variantClasses[variant]}
-            ${animationClass}
+            ${modalAnimationClass}
           `}
           tabIndex={-1}
           onClick={(e) => e.stopPropagation()}
@@ -146,7 +200,6 @@ export default function Modal({
                   onClick={handleCloseClick}
                   className="modal-close-btn"
                   aria-label="Cerrar modal"
-                  disabled={isClosing}
                 >
                   <XMarkIcon className="w-5 h-5" />
                 </button>

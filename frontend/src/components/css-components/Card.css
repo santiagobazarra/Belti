@@ -172,18 +172,6 @@
   }
 }
 
-/* Dark mode support (opcional para futuro) */
-@media (prefers-color-scheme: dark) {
-  .card {
-    background: rgba(17, 24, 39, 0.7);
-    border-color: rgba(55, 65, 81, 0.5);
-  }
-  
-  .card-interactive {
-    background: rgba(17, 24, 39, 0.95);
-  }
-}
-
 /* Estados especiales */
 .card-loading {
   pointer-events: none;

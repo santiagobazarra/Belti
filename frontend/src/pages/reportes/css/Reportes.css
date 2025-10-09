@@ -1,0 +1,728 @@
+/* ============================================
+   REPORTES STYLES
+   ============================================
+   Diseño consistente con el resto del sistema
+   Basado en los patrones de Solicitudes e Incidencias
+   ============================================ */
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+.reportes-page {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 0;
+}
+
+/* ============================================
+   HEADER Y TÍTULO
+   ============================================ */
+.reportes-header {
+  margin-bottom: 1.5rem;
+}
+
+.reportes-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.reportes-subtitle {
+  color: #6b7280;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/* ============================================
+   FILTROS - ESTILO CARD INTERACTIVE
+   ============================================ */
+.reportes-filters-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.reportes-filters-card:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.reportes-filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  padding: 1.5rem;
+}
+
+/* ============================================
+   CAMPOS DE FILTRO - CONSISTENTES CON SOLICITUDES
+   ============================================ */
+.reporte-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.reporte-field label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.025em;
+}
+
+.reporte-field input,
+.reporte-field select {
+  width: 100%;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  background: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.reporte-field input:focus,
+.reporte-field select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.reporte-field input:hover,
+.reporte-field select:hover {
+  border-color: #9ca3af;
+}
+
+/* ============================================
+   UNIFORMIDAD DE ALTURA - TODOS LOS COMPONENTES
+   ============================================ */
+/* Asegurar que todos los componentes tengan exactamente 44px de altura */
+.reportes-filters-card .datepicker-input,
+.reportes-filters-card .datepicker-input-wrapper,
+.reportes-filters-card .datepicker-input-wrapper input,
+.reportes-filters-card .react-select__control,
+.reportes-filters-card .react-select__value-container {
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  box-sizing: border-box !important;
+}
+
+/* DatePicker específico en reportes */
+.reportes-filters-card .datepicker-wrapper {
+  height: 44px !important;
+}
+
+.reportes-filters-card .datepicker-input-wrapper {
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* React Select específico en reportes */
+.reportes-filters-card .react-select__control {
+  min-height: 44px !important;
+  height: 44px !important;
+}
+
+.reportes-filters-card .react-select__value-container {
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 2px 12px !important;
+}
+
+.reportes-filters-card .react-select__input-container {
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.reportes-filters-card .react-select__placeholder {
+  height: auto !important;
+  line-height: normal !important;
+}
+
+.reportes-filters-card .react-select__single-value {
+  height: auto !important;
+  line-height: normal !important;
+}
+
+
+/* SOLUCIÓN PRECISA - Eliminar el cuadro azul interno del input de React Select */
+.reportes-filters-card .react-select__input {
+  color: #374151 !important;
+  font-size: 0.875rem !important;
+  background: transparent !important;
+  /* Eliminar el estilo de focus nativo del navegador */
+  outline: none !important;
+  outline-offset: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.reportes-filters-card .react-select__input:focus {
+  color: #374151 !important;
+  background: transparent !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Eliminar el resplandor azul del navegador específicamente para React Select */
+.reportes-filters-card .react-select__input::-webkit-focus-ring-color {
+  outline: none !important;
+}
+
+.reportes-filters-card .react-select__input::-moz-focus-inner {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Estilos para el botón clear personalizado */
+.reportes-filters-card .react-select__clear-indicator {
+  color: #9ca3af !important;
+}
+
+.reportes-filters-card .react-select__clear-indicator:hover {
+  color: #6b7280 !important;
+}
+
+/* Mantener el borde azul del control cuando está enfocado, pero eliminar el cuadro interno del texto */
+.reportes-filters-card .react-select__control--is-focused {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.reportes-filters-card .react-select__control--is-focused:hover {
+  border-color: #3b82f6 !important;
+}
+
+/* ============================================
+   BOTONES DE DESCARGA
+   ============================================ */
+.btn-download-csv {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 140px;
+}
+
+.btn-download-csv:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-download-csv:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-download-pdf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  min-width: 140px;
+}
+
+.btn-download-pdf:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.btn-download-pdf:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================
+   BOTÓN GENERAR REPORTE
+   ============================================ */
+.reportes-generate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px 0 rgba(59, 130, 246, 0.2);
+  margin: 1.5rem;
+  width: calc(100% - 3rem);
+}
+
+.reportes-generate-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px 0 rgba(59, 130, 246, 0.3);
+}
+
+.reportes-generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.reportes-generate-btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* ============================================
+   ÁREA DE RESULTADOS - LIST STYLE
+   ============================================ */
+.reportes-results {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  overflow: hidden;
+  animation: slideInUp 0.5s ease-out;
+}
+
+.reportes-results-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.reportes-results-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.reportes-results-title svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #3b82f6;
+}
+
+.reportes-results-content {
+  padding: 2rem;
+}
+
+/* ============================================
+   ESTADÍSTICAS - GRID SIMPLE
+   ============================================ */
+.reportes-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.reporte-stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.reporte-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.reporte-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--stat-color, #3b82f6);
+}
+
+.reporte-stat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.reporte-stat-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 10px;
+  background: var(--stat-bg, #eff6ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--stat-color, #3b82f6);
+}
+
+.reporte-stat-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.reporte-stat-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: var(--trend-bg, #dcfce7);
+  color: var(--trend-color, #16a34a);
+}
+
+.reporte-stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.reporte-stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Variantes de colores para estadísticas */
+.reporte-stat-card.primary {
+  --stat-color: #3b82f6;
+  --stat-bg: #eff6ff;
+}
+
+.reporte-stat-card.success {
+  --stat-color: #10b981;
+  --stat-bg: #ecfdf5;
+}
+
+.reporte-stat-card.warning {
+  --stat-color: #f59e0b;
+  --stat-bg: #fffbeb;
+}
+
+.reporte-stat-card.danger {
+  --stat-color: #ef4444;
+  --stat-bg: #fef2f2;
+}
+
+.reporte-stat-card.purple {
+  --stat-color: #8b5cf6;
+  --stat-bg: #f3e8ff;
+}
+
+/* ============================================
+   GRÁFICAS - CONTENEDOR SIMPLE
+   ============================================ */
+.reporte-chart-container {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(229, 231, 235, 0.8);
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.reporte-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.reporte-chart-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reporte-chart-title svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #3b82f6;
+}
+
+.reporte-chart-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.reporte-chart-btn {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reporte-chart-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background: #f0f9ff;
+}
+
+.reporte-chart-wrapper {
+  position: relative;
+  height: 400px;
+  width: 100%;
+}
+
+/* ============================================
+   FILTROS DENTRO DE GRÁFICAS
+   ============================================ */
+.reporte-chart-filters {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.reporte-chart-filter {
+  display: flex;
+  flex-direction: column;
+  min-width: 150px;
+}
+
+.reporte-chart-filter label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.reporte-chart-filter select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  background: white;
+  color: #374151;
+}
+
+/* ============================================
+   ESTADOS DE CARGA Y VACÍO
+   ============================================ */
+.reporte-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.reporte-loading-icon {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.reporte-loading-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.reporte-loading-message {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.reporte-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.reporte-empty-icon {
+  width: 4rem;
+  height: 4rem;
+  color: #d1d5db;
+  margin-bottom: 1.5rem;
+}
+
+.reporte-empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.reporte-empty-message {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1024px) {
+  .reportes-filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .reportes-stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .reportes-filters-card {
+    margin: 0 -1rem 1.5rem;
+    border-radius: 0;
+  }
+
+  .reportes-filters-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .reportes-generate-btn {
+    margin: 1rem;
+    width: calc(100% - 2rem);
+  }
+
+  .reportes-results {
+    margin: 0 -1rem;
+    border-radius: 0;
+  }
+
+  .reportes-results-header,
+  .reportes-results-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .reportes-stats-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .reporte-chart-wrapper {
+    height: 300px;
+  }
+
+  .reporte-chart-filters {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .reporte-chart-filter {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .reportes-filters-grid {
+    padding: 0.75rem;
+  }
+
+  .reportes-results-header,
+  .reportes-results-content {
+    padding: 1rem;
+  }
+
+  .reporte-chart-wrapper {
+    height: 250px;
+  }
+
+  .reporte-stat-value {
+    font-size: 1.75rem;
+  }
+}
+
+/* ============================================
+   ANIMACIONES
+   ============================================ */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

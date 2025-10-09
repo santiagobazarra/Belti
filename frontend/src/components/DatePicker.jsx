@@ -43,7 +43,16 @@ const DatePicker = forwardRef(({
   ...props
 }, ref) => {
   // Convertir string a Date si es necesario
-  const selectedDate = selected ? (typeof selected === 'string' ? new Date(selected) : selected) : null
+  const selectedDate = (() => {
+    if (selected && selected !== '') {
+      if (typeof selected === 'string') {
+        const date = new Date(selected);
+        return !isNaN(date.getTime()) ? date : null;
+      }
+      return selected;
+    }
+    return null;
+  })()
 
   // Ref interno para el DatePicker
   const internalRef = useRef(null)

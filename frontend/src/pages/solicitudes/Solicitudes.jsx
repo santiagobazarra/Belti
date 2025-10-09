@@ -18,8 +18,11 @@ import Modal from '../../components/Modal'
 import Card from '../../components/Card'
 import DatePicker from '../../components/DatePicker'
 import Select from 'react-select'
+import List from '../../components/List'
+import { SolicitudItem } from '../../components/ListItems'
 import './css/Solicitudes.css'
 import '../../components/css-components/modal-styles.css'
+import '../../components/css-components/List.css'
 
 const TIPOS_SOLICITUD = [
   { value: 'vacaciones', label: 'Vacaciones' },
@@ -162,6 +165,7 @@ export default function Solicitudes() {
   const [showAprobarModal, setShowAprobarModal] = useState(false)
   const [showRechazarModal, setShowRechazarModal] = useState(false)
   const [selectedSolicitud, setSelectedSolicitud] = useState(null)
+  const [isResumenMode, setIsResumenMode] = useState(false)
   const [comentarioResolucion, setComentarioResolucion] = useState('')
   const [formData, setFormData] = useState({
     fecha_inicio: '',
@@ -177,6 +181,26 @@ export default function Solicitudes() {
   })
 
   const isAdmin = user?.role?.slug === 'administrador' || user?.role?.nombre?.toLowerCase() === 'administrador'
+
+
+  // Funciones de cierre simples
+  const handleModalClose = () => {
+    setShowModal(false)
+    setIsResumenMode(false)
+    setSelectedSolicitud(null)
+  }
+
+  const handleAprobarModalClose = () => {
+    setShowAprobarModal(false)
+    setSelectedSolicitud(null)
+    setComentarioResolucion('')
+  }
+
+  const handleRechazarModalClose = () => {
+    setShowRechazarModal(false)
+    setSelectedSolicitud(null)
+    setComentarioResolucion('')
+  }
 
   useEffect(() => {
     loadSolicitudes()
@@ -303,17 +327,16 @@ export default function Solicitudes() {
   }
 
   const openModal = (solicitud = null) => {
+    setIsResumenMode(false) // Modo edición
     if (solicitud) {
       setSelectedSolicitud(solicitud)
-      // Si es pendiente, cargar datos para editar; si no, es solo vista
-      if (solicitud.estado === 'pendiente') {
-        setFormData({
-          fecha_inicio: solicitud.fecha_inicio,
-          fecha_fin: solicitud.fecha_fin,
-          tipo: solicitud.tipo,
-          motivo: solicitud.motivo || ''
-        })
-      }
+      // Inicializar formData siempre para evitar errores en DatePicker
+      setFormData({
+        fecha_inicio: solicitud.fecha_inicio || '',
+        fecha_fin: solicitud.fecha_fin || '',
+        tipo: solicitud.tipo || '',
+        motivo: solicitud.motivo || ''
+      });
     } else {
       setSelectedSolicitud(null)
       setFormData({
@@ -326,12 +349,71 @@ export default function Solicitudes() {
     setShowModal(true)
   }
 
+  const openDetalleModal = (solicitud) => {
+    setIsResumenMode(true) // Modo resumen
+    setSelectedSolicitud(solicitud)
+    // Para el modal de detalles, inicializar formData para evitar errores en DatePicker
+    setFormData({
+      fecha_inicio: solicitud.fecha_inicio || '',
+      fecha_fin: solicitud.fecha_fin || '',
+      tipo: solicitud.tipo || '',
+      motivo: solicitud.motivo || ''
+    })
+    setShowModal(true)
+  }
+
   const calculateDays = (fechaInicio, fechaFin) => {
     const inicio = new Date(fechaInicio)
     const fin = new Date(fechaFin)
     const diffTime = Math.abs(fin - inicio)
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
     return diffDays
+  }
+
+  const formatDateSafe = (dateString) => {
+    if (!dateString || dateString === '') return '-'
+    
+    try {
+      // Intentar crear la fecha directamente
+      let date = new Date(dateString)
+      
+      // Si la fecha es inválida, intentar con formato YYYY-MM-DD
+      if (isNaN(date.getTime())) {
+        date = new Date(dateString + 'T00:00:00')
+      }
+      
+      // Si sigue siendo inválida, devolver string original
+      if (isNaN(date.getTime())) {
+        return dateString
+      }
+      
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      })
+    } catch (error) {
+      return dateString || '-'
+    }
+  }
+
+  const createDateFromString = (dateString) => {
+    if (!dateString || dateString === '') return null
+    
+    try {
+      // Si ya es formato ISO completo, usarlo directamente
+      let dateStr = dateString;
+      
+      // Si es solo YYYY-MM-DD, agregar T00:00:00
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        dateStr = dateString + 'T00:00:00';
+      }
+      
+      const date = new Date(dateStr);
+      return !isNaN(date.getTime()) ? date : null;
+    } catch (error) {
+      return null;
+    }
   }
 
   return (
@@ -397,7 +479,7 @@ export default function Solicitudes() {
               Desde
             </label>
             <DatePicker
-              selected={filters.desde ? new Date(filters.desde + 'T00:00:00') : null}
+              selected={createDateFromString(filters.desde)}
               onChange={(date) => {
                 if (date) {
                   const year = date.getFullYear()
@@ -416,7 +498,7 @@ export default function Solicitudes() {
               Hasta
             </label>
             <DatePicker
-              selected={filters.hasta ? new Date(filters.hasta + 'T00:00:00') : null}
+              selected={createDateFromString(filters.hasta)}
               onChange={(date) => {
                 if (date) {
                   const year = date.getFullYear()
@@ -436,16 +518,25 @@ export default function Solicitudes() {
       {/* Lista de solicitudes con nuevo diseño premium */}
       <div className="list">
         <div className="list-header">
-          {isAdmin ? 'Todas las Solicitudes' : 'Mis Solicitudes'}
+          <h3 className="list-title">{isAdmin ? 'Todas las Solicitudes' : 'Mis Solicitudes'}</h3>
+          <span className="list-count">
+            {loading ? (
+              <div className="list-count-spinner">
+                <div className="animate-spin"></div>
+              </div>
+            ) : (
+              solicitudes.length
+            )}
+          </span>
         </div>
 
         {loading ? (
-          <div className="list-empty">
-            <div className="list-empty-icon">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="list-loading">
+            <div className="list-loading-icon">
+              <div className="animate-spin"></div>
             </div>
-            <div className="list-empty-title">Cargando solicitudes...</div>
-            <div className="list-empty-message">Obteniendo datos del servidor</div>
+            <div className="list-loading-title">Cargando solicitudes...</div>
+            <div className="list-loading-message">Obteniendo datos del servidor</div>
           </div>
         ) : solicitudes.length === 0 ? (
           <div className="list-empty">
@@ -463,115 +554,18 @@ export default function Solicitudes() {
         ) : (
           <div className="list-scrollable">
             {solicitudes.map((solicitud) => (
-              <div key={solicitud.id_solicitud || solicitud.id} className="solicitud-item">
-                {/* Columna 1: Tipo + Icono + Estado (mobile) */}
-                <div className="solicitud-icon-col">
-                  <div className="solicitud-icon-wrapper">
-                    <EnvelopeIcon />
-                  </div>
-                  <div className="solicitud-tipo-info">
-                    <div className="solicitud-tipo-label">Tipo</div>
-                    <div className="solicitud-tipo">
-                      {TIPOS_SOLICITUD.find(t => t.value === solicitud.tipo)?.label}
-                    </div>
-                  </div>
-                  {/* Estado visible en mobile (dentro de icon-col) */}
-                  <div className="solicitud-badge-col">
-                    <span className={`solicitud-badge ${
-                      solicitud.estado === 'aprobada' ? 'success' :
-                      solicitud.estado === 'rechazada' ? 'danger' :
-                      solicitud.estado === 'cancelada' ? 'info' : 'warning'
-                    }`}>
-                      {ESTADOS.find(e => e.value === solicitud.estado)?.label}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Columna 2: Período + Usuario (si admin) */}
-                <div className="solicitud-info-col">
-                  <div className="solicitud-dates">
-                    <div className="solicitud-dates-label">Período</div>
-                    <div className="solicitud-dates-value">
-                      {new Date(solicitud.fecha_inicio).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'short'
-                      })} - {new Date(solicitud.fecha_fin).toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </div>
-                  </div>
-                  
-                  {isAdmin && solicitud.usuario && (
-                    <div className="solicitud-usuario">
-                      <div className="solicitud-usuario-label">Solicitante</div>
-                      <div className="solicitud-usuario-value">
-                        {solicitud.usuario.nombre} {solicitud.usuario.apellidos}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Columna 3: Estadísticas (Días) - Siempre visible en desktop */}
-                <div className="solicitud-stats-col">
-                  <div className="solicitud-stat">
-                    <div className="solicitud-stat-label">Duración</div>
-                    <div className="solicitud-stat-value">
-                      {calculateDays(solicitud.fecha_inicio, solicitud.fecha_fin)} días
-                    </div>
-                  </div>
-                </div>
-
-                {/* Columna 4: Estado (Badge) - Visible en desktop y mobile */}
-                <div className="solicitud-badge-col solicitud-badge-col-desktop">
-                  <span className={`solicitud-badge ${
-                    solicitud.estado === 'aprobada' ? 'success' :
-                    solicitud.estado === 'rechazada' ? 'danger' :
-                    solicitud.estado === 'cancelada' ? 'info' : 'warning'
-                  }`}>
-                    {ESTADOS.find(e => e.value === solicitud.estado)?.label}
-                  </span>
-                </div>
-
-                {/* Columna 5: Acciones */}
-                <div className="solicitud-actions-col">
-                  {solicitud.estado === 'pendiente' && isAdmin && (
-                    <>
-                      <button
-                        onClick={() => openAprobarModal(solicitud)}
-                        className="btn-icon-solicitud success"
-                        title="Aprobar solicitud"
-                      >
-                        <CheckIcon />
-                      </button>
-                      <button
-                        onClick={() => openRechazarModal(solicitud)}
-                        className="btn-icon-solicitud danger"
-                        title="Rechazar solicitud"
-                      >
-                        <XMarkIcon />
-                      </button>
-                    </>
-                  )}
-                  {solicitud.estado === 'pendiente' && !isAdmin && (
-                    <button
-                      onClick={() => openModal(solicitud)}
-                      className="btn-icon-solicitud primary"
-                      title="Editar solicitud"
-                    >
-                      <DocumentTextIcon />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => openModal(solicitud)}
-                    className="btn-solicitud-detalle"
-                    title="Ver detalles"
-                  >
-                    <EyeIcon />
-                    <span>Ver</span>
-                  </button>
-                </div>
+              <div key={solicitud.id_solicitud} className="list-item list-item-solicitud">
+                <SolicitudItem
+                  solicitud={solicitud}
+                  isAdmin={isAdmin}
+                  onAprobar={openAprobarModal}
+                  onRechazar={openRechazarModal}
+                  onEditar={openModal}
+                  onVerDetalles={openDetalleModal}
+                  TIPOS_SOLICITUD={TIPOS_SOLICITUD}
+                  ESTADOS={ESTADOS}
+                  calculateDays={calculateDays}
+                />
               </div>
             ))}
           </div>
@@ -581,22 +575,195 @@ export default function Solicitudes() {
       {/* Modal premium para crear/editar solicitud */}
       <Modal
         isOpen={showModal}
-        onClose={() => {
-          setShowModal(false)
-          setTimeout(() => {
-            setSelectedSolicitud(null)
-          }, 100)
-        }}
+        onClose={handleModalClose}
         title={
           selectedSolicitud 
-            ? (selectedSolicitud.estado !== 'pendiente' ? 'Detalles de Solicitud' : 'Editar Solicitud')
+            ? (isResumenMode ? 'Resumen de Solicitud' : 'Editar Solicitud')
             : 'Nueva Solicitud'
         }
         size="md"
         variant="elegant"
         animationType="fade-scale"
       >
-        {selectedSolicitud && selectedSolicitud.estado !== 'pendiente' ? (
+        {selectedSolicitud && isResumenMode ? (
+          /* Vista de resumen - estilo Incidencias */
+          <div className="space-y-5">
+            {/* Header con tipo y badge */}
+            <div className="flex items-start justify-between pb-4 border-b border-gray-200">
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">
+                  {TIPOS_SOLICITUD.find(t => t.value === selectedSolicitud.tipo)?.label}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  {formatDateSafe(selectedSolicitud.fecha_inicio)} - {formatDateSafe(selectedSolicitud.fecha_fin)}
+                </p>
+              </div>
+              <span className={`solicitud-badge ${
+                selectedSolicitud.estado === 'aprobada' ? 'success' :
+                selectedSolicitud.estado === 'rechazada' ? 'danger' :
+                selectedSolicitud.estado === 'cancelada' ? 'info' : 'warning'
+              }`}>
+                {ESTADOS.find(e => e.value === selectedSolicitud.estado)?.label}
+              </span>
+            </div>
+
+            {/* Información estructurada */}
+            <div className="space-y-0">
+              {/* Usuario (solo si es admin) */}
+              {isAdmin && selectedSolicitud.usuario && (
+                <div className="modal-info-row">
+                  <div className="modal-info-label">
+                    <UserIcon />
+                    Empleado
+                  </div>
+                  <div className="modal-info-value">
+                    {selectedSolicitud.usuario.nombre} {selectedSolicitud.usuario.apellidos}
+                  </div>
+                </div>
+              )}
+
+              {/* Período */}
+              <div className="modal-info-row">
+                <div className="modal-info-label">
+                  <CalendarDaysIcon />
+                  Período
+                </div>
+                <div className="modal-info-value">
+                  {formatDateSafe(selectedSolicitud.fecha_inicio)} - {formatDateSafe(selectedSolicitud.fecha_fin)}
+                  {selectedSolicitud.fecha_inicio && selectedSolicitud.fecha_fin && (
+                    <span className="text-blue-600 font-semibold ml-2">
+                      ({calculateDays(selectedSolicitud.fecha_inicio, selectedSolicitud.fecha_fin)} días)
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Motivo */}
+              {selectedSolicitud.motivo && (
+                <div className="modal-info-row">
+                  <div className="modal-info-label">
+                    <DocumentTextIcon />
+                    Motivo
+                  </div>
+                  <div className="modal-info-value">
+                    {selectedSolicitud.motivo}
+                  </div>
+                </div>
+              )}
+
+              {/* Fecha de creación */}
+              <div className="modal-info-row">
+                <div className="modal-info-label">
+                  <ClockIcon />
+                  Creada
+                </div>
+                <div className="modal-info-value">
+                  {selectedSolicitud.created_at ? 
+                    formatDateSafe(selectedSolicitud.created_at) :
+                    'Fecha no disponible'
+                  }
+                </div>
+              </div>
+            </div>
+
+            {/* Comentario de resolución (destacado) */}
+            {selectedSolicitud.comentario_resolucion && selectedSolicitud.estado === 'rechazada' && (
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <XMarkIcon className="h-5 w-5 text-red-600" />
+                  <span className="text-xs font-bold text-red-900 uppercase tracking-wide">
+                    Motivo del Rechazo
+                  </span>
+                </div>
+                <p className="text-sm text-red-900 leading-relaxed font-medium">
+                  {selectedSolicitud.comentario_resolucion}
+                </p>
+              </div>
+            )}
+
+            {selectedSolicitud.comentario_resolucion && selectedSolicitud.estado === 'aprobada' && (
+              <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckIcon className="h-5 w-5 text-green-600" />
+                  <span className="text-xs font-bold text-green-900 uppercase tracking-wide">
+                    Comentario de Aprobación
+                  </span>
+                </div>
+                <p className="text-sm text-green-900 leading-relaxed font-medium">
+                  {selectedSolicitud.comentario_resolucion}
+                </p>
+              </div>
+            )}
+
+            {selectedSolicitud.estado === 'pendiente' && (
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <ClockIcon className="h-5 w-5 text-amber-600" />
+                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                    Estado de la Solicitud
+                  </span>
+                </div>
+                <p className="text-sm text-amber-900 leading-relaxed font-medium">
+                  Esta solicitud está pendiente de revisión y aprobación por parte del administrador.
+                </p>
+              </div>
+            )}
+
+            {/* Resolutor y fecha */}
+            {selectedSolicitud.aprobador && selectedSolicitud.fecha_resolucion && (
+              <div className="pt-4 pb-6">
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <UserIcon className="h-4 w-4" />
+                    <span>{selectedSolicitud.estado === 'aprobada' ? 'Aprobada por:' : 'Rechazada por:'}</span>
+                    <span className="font-semibold text-gray-900">
+                      {selectedSolicitud.aprobador.nombre} {selectedSolicitud.aprobador.apellidos}
+                    </span>
+                  </div>
+                  <span className="text-gray-500">
+                    {formatDateSafe(selectedSolicitud.fecha_resolucion)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Botones de acción - Solo para solicitudes pendientes */}
+            {selectedSolicitud.estado === 'pendiente' && (
+              <div className="modal-footer">
+                {!isAdmin && (
+                  <button
+                    type="button"
+                    onClick={() => openModal(selectedSolicitud)}
+                    className="btn btn-primary"
+                  >
+                    <DocumentTextIcon className="h-5 w-5 mr-2" />
+                    Editar
+                  </button>
+                )}
+                {isAdmin && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => openAprobarModal(selectedSolicitud)}
+                      className="btn btn-success"
+                    >
+                      <CheckIcon className="h-5 w-5 mr-2" />
+                      Aprobar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openRechazarModal(selectedSolicitud)}
+                      className="btn btn-danger"
+                    >
+                      <XMarkIcon className="h-5 w-5 mr-2" />
+                      Rechazar
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ) : selectedSolicitud && selectedSolicitud.estado !== 'pendiente' ? (
           /* Vista de detalles para solicitudes procesadas */
           <div className="modal-elegant">
             {/* Header con Estado */}
@@ -693,14 +860,6 @@ export default function Solicitudes() {
                     </span>
                   </div>
 
-                  {selectedSolicitud.resuelto_por_usuario && (
-                    <div className="resolution-info">
-                      <span className="resolution-by">
-                        Por: {selectedSolicitud.resuelto_por_usuario.nombre} {selectedSolicitud.resuelto_por_usuario.apellidos}
-                      </span>
-                    </div>
-                  )}
-
                   {selectedSolicitud.comentario_resolucion && (
                     <div className="resolution-comment">
                       <p>{selectedSolicitud.comentario_resolucion}</p>
@@ -708,21 +867,34 @@ export default function Solicitudes() {
                   )}
                 </div>
               )}
-            </div>
 
-            <div className="modal-footer">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowModal(false)
-                  setTimeout(() => {
-                    setSelectedSolicitud(null)
-                  }, 100)
-                }}
-                className="btn btn-secondary"
-              >
-                Cerrar
-              </button>
+              {/* Resolutor y fecha - Similar a incidencias */}
+              {selectedSolicitud.estado !== 'pendiente' && selectedSolicitud.estado !== 'cancelada' && (
+                <div className="pt-4 pb-6">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <UserIcon className="h-4 w-4" />
+                      <span>{selectedSolicitud.estado === 'aprobada' ? 'Aprobada por:' : 'Rechazada por:'}</span>
+                      <span className="font-semibold text-gray-900">
+                        {selectedSolicitud.aprobador ? 
+                          `${selectedSolicitud.aprobador.nombre} ${selectedSolicitud.aprobador.apellidos}` :
+                          'Usuario no disponible'
+                        }
+                      </span>
+                    </div>
+                    <span className="text-gray-500">
+                      {selectedSolicitud.fecha_resolucion ? 
+                        new Date(selectedSolicitud.fecha_resolucion).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        }) :
+                        'Fecha no disponible'
+                      }
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ) : (
@@ -752,7 +924,7 @@ export default function Solicitudes() {
                     Fecha Inicio <span className="required">*</span>
                   </label>
                   <DatePicker
-                    selected={formData.fecha_inicio ? new Date(formData.fecha_inicio + 'T00:00:00') : null}
+                    selected={createDateFromString(formData.fecha_inicio)}
                     onChange={(date) => {
                       if (date) {
                         const year = date.getFullYear()
@@ -773,7 +945,7 @@ export default function Solicitudes() {
                     Fecha Fin <span className="required">*</span>
                   </label>
                   <DatePicker
-                    selected={formData.fecha_fin ? new Date(formData.fecha_fin + 'T00:00:00') : null}
+                    selected={createDateFromString(formData.fecha_fin)}
                     onChange={(date) => {
                       if (date) {
                         const year = date.getFullYear()
@@ -820,7 +992,7 @@ export default function Solicitudes() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
                   placeholder="Describe el motivo detallado de tu solicitud..."
                 />
-                <div className="modal-field-help">
+                <div className="modal-field-help" style={{ marginBottom: '1.5rem' }}>
                   Explica claramente el motivo de tu solicitud para facilitar la aprobación
                 </div>
               </div>
@@ -829,10 +1001,7 @@ export default function Solicitudes() {
             <div className="modal-footer">
               <button
                 type="button"
-                onClick={() => {
-                  setShowModal(false)
-                  setSelectedSolicitud(null)
-                }}
+                onClick={handleModalClose}
                 className="btn btn-secondary"
               >
                 Cancelar
@@ -848,14 +1017,7 @@ export default function Solicitudes() {
       {/* Modal de confirmación para APROBAR */}
       <Modal
         isOpen={showAprobarModal}
-        onClose={() => {
-          setShowAprobarModal(false)
-          // No limpiar selectedSolicitud inmediatamente para evitar race conditions
-          setTimeout(() => {
-            setSelectedSolicitud(null)
-            setComentarioResolucion('')
-          }, 100)
-        }}
+        onClose={handleAprobarModalClose}
         title="Aprobar Solicitud"
         size="md"
         variant="elegant"
@@ -914,14 +1076,7 @@ export default function Solicitudes() {
           <div className="modal-footer">
             <button
               type="button"
-              onClick={() => {
-                setShowAprobarModal(false)
-                // No limpiar selectedSolicitud inmediatamente para evitar race conditions
-                setTimeout(() => {
-                  setSelectedSolicitud(null)
-                  setComentarioResolucion('')
-                }, 100)
-              }}
+              onClick={handleAprobarModalClose}
               className="btn btn-secondary"
             >
               Cancelar
@@ -940,14 +1095,7 @@ export default function Solicitudes() {
       {/* Modal de confirmación para RECHAZAR */}
       <Modal
         isOpen={showRechazarModal}
-        onClose={() => {
-          setShowRechazarModal(false)
-          // No limpiar selectedSolicitud inmediatamente para evitar race conditions
-          setTimeout(() => {
-            setSelectedSolicitud(null)
-            setComentarioResolucion('')
-          }, 100)
-        }}
+        onClose={handleRechazarModalClose}
         title="Rechazar Solicitud"
         size="md"
         variant="elegant"
@@ -1006,14 +1154,7 @@ export default function Solicitudes() {
           <div className="modal-footer">
             <button
               type="button"
-              onClick={() => {
-                setShowRechazarModal(false)
-                // No limpiar selectedSolicitud inmediatamente para evitar race conditions
-                setTimeout(() => {
-                  setSelectedSolicitud(null)
-                  setComentarioResolucion('')
-                }, 100)
-              }}
+              onClick={handleRechazarModalClose}
               className="btn btn-secondary"
             >
               Cancelar

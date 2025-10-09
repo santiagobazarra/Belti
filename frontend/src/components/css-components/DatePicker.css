@@ -47,6 +47,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Asegurar que el icono esté centrado en el input */
+.datepicker-input-wrapper .datepicker-icon {
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 /* Input principal */
@@ -57,7 +65,6 @@
   width: 100%;
   padding: 0.625rem 0.75rem 0.625rem 3rem !important;
   font-size: 0.875rem;
-  line-height: 1.25rem;
   color: #111827;
   background-color: white;
   border: 1px solid #d1d5db;
@@ -68,6 +75,101 @@
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
+  height: 44px !important;
+  box-sizing: border-box;
+  display: flex !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+}
+
+/* Asegurar centrado del icono en todos los contextos */
+.modal-body .datepicker-icon,
+.modal-elegant .datepicker-icon {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  left: 0.75rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Asegurar que el wrapper del input en modales tenga la altura correcta */
+.modal-body .datepicker-input-wrapper,
+.modal-elegant .datepicker-input-wrapper {
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Asegurar que el SVG del icono esté centrado dentro del contenedor */
+.modal-body .datepicker-icon svg,
+.modal-elegant .datepicker-icon svg {
+  display: block !important;
+  margin: auto !important;
+  vertical-align: middle !important;
+}
+
+/* Forzar el centrado vertical del icono en modales */
+.modal-body .datepicker-wrapper .datepicker-icon,
+.modal-elegant .datepicker-wrapper .datepicker-icon {
+  position: absolute !important;
+  top: 50% !important;
+  left: 0.75rem !important;
+  transform: translateY(-50%) !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+}
+
+/* Estilos específicos para el input del DatePicker en modales - Mayor especificidad */
+.modal-body .datepicker-input,
+.modal-elegant .datepicker-input,
+.modal-body .datepicker-wrapper .datepicker-input,
+.modal-elegant .datepicker-wrapper .datepicker-input {
+  height: 44px !important;
+  padding: 0 0.75rem 0 3rem !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+}
+
+/* Asegurar que el icono esté centrado respecto al input */
+.modal-body .datepicker-input-wrapper,
+.modal-elegant .datepicker-input-wrapper {
+  position: relative !important;
+  height: 44px !important;
+}
+
+/* Sobrescribir estilos globales específicamente para DatePicker en modales */
+.modal-body .datepicker-wrapper input.datepicker-input,
+.modal-elegant .datepicker-wrapper input.datepicker-input,
+.modal-body .datepicker-input-wrapper input,
+.modal-elegant .datepicker-input-wrapper input {
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  padding: 0 0.75rem 0 3rem !important;
+  border-radius: 12px !important;
+  font-size: 0.875rem !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.modal-body .datepicker-input-wrapper .datepicker-icon,
+.modal-elegant .datepicker-input-wrapper .datepicker-icon {
+  position: absolute !important;
+  top: 50% !important;
+  left: 0.75rem !important;
+  transform: translateY(-50%) !important;
+  z-index: 2 !important;
+  pointer-events: none !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 .datepicker-input:hover {
@@ -454,7 +556,11 @@
   }
   
   .datepicker-icon {
-    left: 0.625rem;
+    left: 0.625rem !important;
+    width: 1.125rem;
+    height: 1.125rem;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
   }
   
   .datepicker-label {
@@ -570,3 +676,4 @@
     line-height: 2rem;
   }
 }
+

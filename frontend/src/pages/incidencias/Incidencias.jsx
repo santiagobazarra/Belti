@@ -19,8 +19,11 @@ import DatePicker from '../../components/DatePicker'
 import TimePicker from '../../components/TimePicker'
 import Card from '../../components/Card'
 import Toast from '../../components/Toast'
+import List from '../../components/List'
+import { IncidenciaItem } from '../../components/ListItems'
 import './css/Incidencias.css'
 import '../../components/css-components/modal-styles.css'
+import '../../components/css-components/List.css'
 
 const TIPOS_INCIDENCIA = [
   { value: 'falta', label: 'Falta' },
@@ -163,6 +166,7 @@ export default function Incidencias() {
   const [showRechazarModal, setShowRechazarModal] = useState(false)
   const [showDetalleModal, setShowDetalleModal] = useState(false)
   const [selectedIncidencia, setSelectedIncidencia] = useState(null)
+  const [isResumenMode, setIsResumenMode] = useState(false)
   const [comentarioRechazo, setComentarioRechazo] = useState('')
   const [toast, setToast] = useState({ show: false, type: 'success', message: '' })
   const [formData, setFormData] = useState({
@@ -180,6 +184,31 @@ export default function Incidencias() {
   })
 
   const isAdmin = user?.role?.slug === 'administrador' || user?.role?.nombre?.toLowerCase() === 'administrador'
+
+
+  // Funciones de cierre simples
+  const handleModalClose = () => {
+    setShowModal(false)
+    setSelectedIncidencia(null)
+  }
+
+  const handleDetalleModalClose = () => {
+    setShowDetalleModal(false)
+    setIsResumenMode(false)
+    setSelectedIncidencia(null)
+  }
+
+  const handleAprobarModalClose = () => {
+    setShowAprobarModal(false)
+    setSelectedIncidencia(null)
+    setComentarioRechazo('')
+  }
+
+  const handleRechazarModalClose = () => {
+    setShowRechazarModal(false)
+    setSelectedIncidencia(null)
+    setComentarioRechazo('')
+  }
 
   useEffect(() => {
     loadIncidencias()
@@ -340,19 +369,30 @@ export default function Incidencias() {
   }
 
   const openDetalleModal = (incidencia) => {
+    setIsResumenMode(true) // Modo resumen
     setSelectedIncidencia(incidencia)
     setShowDetalleModal(true)
   }
 
   const openModal = (incidencia = null) => {
+    setIsResumenMode(false) // Modo edición
     if (incidencia) {
       setSelectedIncidencia(incidencia)
       setFormData({
-        fecha: incidencia.fecha,
-        tipo: incidencia.tipo,
+        fecha: incidencia.fecha || '',
+        tipo: incidencia.tipo || 'falta',
         descripcion: incidencia.descripcion || '',
         hora_inicio: incidencia.hora_inicio?.slice(11, 16) || '',
         hora_fin: incidencia.hora_fin?.slice(11, 16) || ''
+      })
+    } else {
+      setSelectedIncidencia(null)
+      setFormData({
+        fecha: new Date().toISOString().split('T')[0],
+        tipo: 'falta',
+        descripcion: '',
+        hora_inicio: '',
+        hora_fin: ''
       })
     }
     setShowModal(true)
@@ -361,6 +401,25 @@ export default function Incidencias() {
   // Todos los tipos de incidencia requieren rango horario para poder ser aprobadas
   // ya que al aprobar se registran como horas trabajadas en la jornada
   const requiresHours = true // Siempre true para cumplir normativa
+
+  const createDateFromString = (dateString) => {
+    if (!dateString || dateString === '') return null
+    
+    try {
+      // Si ya es formato ISO completo, usarlo directamente
+      let dateStr = dateString;
+      
+      // Si es solo YYYY-MM-DD, agregar T00:00:00
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        dateStr = dateString + 'T00:00:00';
+      }
+      
+      const date = new Date(dateStr);
+      return !isNaN(date.getTime()) ? date : null;
+    } catch (error) {
+      return null;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -428,7 +487,7 @@ export default function Incidencias() {
               Desde
             </label>
             <DatePicker
-              selected={filters.desde ? new Date(filters.desde + 'T00:00:00') : null}
+              selected={createDateFromString(filters.desde)}
               onChange={(date) => {
                 if (date) {
                   const year = date.getFullYear()
@@ -451,7 +510,7 @@ export default function Incidencias() {
               Hasta
             </label>
             <DatePicker
-              selected={filters.hasta ? new Date(filters.hasta + 'T00:00:00') : null}
+              selected={createDateFromString(filters.hasta)}
               onChange={(date) => {
                 if (date) {
                   const year = date.getFullYear()
@@ -474,17 +533,25 @@ export default function Incidencias() {
       {/* Lista de incidencias - Diseño limpio y profesional */}
       <div className="list">
         <div className="list-header">
-          <span>{isAdmin ? 'Todas las Incidencias' : 'Mis Incidencias'}</span>
-          <span className="list-count">{incidencias.length}</span>
+          <h3 className="list-title">{isAdmin ? 'Todas las Incidencias' : 'Mis Incidencias'}</h3>
+          <span className="list-count">
+            {loading ? (
+              <div className="list-count-spinner">
+                <div className="animate-spin"></div>
+              </div>
+            ) : (
+              incidencias.length
+            )}
+          </span>
         </div>
 
         {loading ? (
-          <div className="list-empty">
-            <div className="list-empty-icon">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="list-loading">
+            <div className="list-loading-icon">
+              <div className="animate-spin"></div>
             </div>
-            <div className="list-empty-title">Cargando incidencias...</div>
-            <div className="list-empty-message">Obteniendo datos del servidor</div>
+            <div className="list-loading-title">Cargando incidencias...</div>
+            <div className="list-loading-message">Obteniendo datos del servidor</div>
           </div>
         ) : incidencias.length === 0 ? (
           <div className="list-empty">
@@ -502,107 +569,17 @@ export default function Incidencias() {
         ) : (
           <div className="list-scrollable">
             {incidencias.map((incidencia) => (
-              <div key={incidencia.id_incidencia} className="incidencia-item">
-                
-                {/* COLUMNA IZQUIERDA: Fecha minimalista con indicador */}
-                <div className="incidencia-date-col">
-                  <div className="incidencia-date">
-                    <div className="incidencia-day">
-                      {new Date(incidencia.fecha).toLocaleDateString('es-ES', { weekday: 'short' })}
-                    </div>
-                    <div className="incidencia-date-number">
-                      {new Date(incidencia.fecha).getDate()}
-                    </div>
-                    <div className="incidencia-month">
-                      {new Date(incidencia.fecha).toLocaleDateString('es-ES', { month: 'short' })}
-                    </div>
-                  </div>
-                  <div className={`incidencia-status-indicator ${incidencia.estado}`}></div>
-                </div>
-
-                {/* COLUMNA CENTRAL: Contenido principal */}
-                <div className="incidencia-info-col">
-                  {/* Fila superior: Tipo + Badge */}
-                  <div className="incidencia-header-row">
-                    <div className="incidencia-tipo">
-                      {TIPOS_INCIDENCIA.find(t => t.value === incidencia.tipo)?.label}
-                    </div>
-                    <span className={`incidencia-badge ${
-                      incidencia.estado === 'aprobada' ? 'success' :
-                      incidencia.estado === 'rechazada' ? 'danger' : 'warning'
-                    }`}>
-                      {ESTADOS.find(e => e.value === incidencia.estado)?.label}
-                    </span>
-                  </div>
-
-                  {/* Fila de metadata */}
-                  <div className="incidencia-meta-row">
-                    {isAdmin && incidencia.usuario && (
-                      <div className="incidencia-usuario">
-                        <UserIcon />
-                        {incidencia.usuario.nombre} {incidencia.usuario.apellidos}
-                      </div>
-                    )}
-                    
-                    {(incidencia.hora_inicio || incidencia.hora_fin) && (
-                      <div className="incidencia-time-info">
-                        <ClockIcon />
-                        {incidencia.hora_inicio?.slice(11, 16)} - {incidencia.hora_fin?.slice(11, 16)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Descripción */}
-                  {incidencia.descripcion && (
-                    <div className="incidencia-descripcion">
-                      {incidencia.descripcion}
-                    </div>
-                  )}
-                </div>
-
-                {/* COLUMNA DERECHA: Acciones */}
-                <div className="incidencia-actions-col">
-                  {/* Botones de acción (Aprobar/Rechazar/Editar) a la izquierda */}
-                  {incidencia.estado === 'pendiente' && isAdmin && (
-                    <>
-                      <button
-                        onClick={() => openAprobarModal(incidencia)}
-                        className="btn-icon btn-icon-success"
-                        title="Aprobar"
-                      >
-                        <CheckIcon />
-                      </button>
-                      <button
-                        onClick={() => openRechazarModal(incidencia)}
-                        className="btn-icon btn-icon-danger"
-                        title="Rechazar"
-                      >
-                        <XMarkIcon />
-                      </button>
-                    </>
-                  )}
-
-                  {incidencia.estado === 'pendiente' && !isAdmin && (
-                    <button
-                      onClick={() => openModal(incidencia)}
-                      className="btn-icon btn-icon-primary"
-                      title="Editar"
-                    >
-                      <DocumentTextIcon />
-                    </button>
-                  )}
-
-                  {/* Botón de ver detalles siempre a la derecha */}
-                  <button
-                    onClick={() => openDetalleModal(incidencia)}
-                    className="btn-resumen"
-                    title="Ver detalles"
-                  >
-                    <EyeIcon />
-                    <span>Detalles</span>
-                  </button>
-                </div>
-
+              <div key={incidencia.id_incidencia} className="list-item list-item-incidencia">
+                <IncidenciaItem
+                  incidencia={incidencia}
+                  isAdmin={isAdmin}
+                  onAprobar={openAprobarModal}
+                  onRechazar={openRechazarModal}
+                  onEditar={openModal}
+                  onVerDetalles={openDetalleModal}
+                  TIPOS_INCIDENCIA={TIPOS_INCIDENCIA}
+                  ESTADOS={ESTADOS}
+                />
               </div>
             ))}
           </div>
@@ -612,10 +589,7 @@ export default function Incidencias() {
       {/* Modal premium para crear/editar incidencia */}
       <Modal
         isOpen={showModal}
-        onClose={() => {
-          setShowModal(false)
-          setSelectedIncidencia(null)
-        }}
+        onClose={handleModalClose}
         title={selectedIncidencia ? 'Editar Incidencia' : 'Nueva Incidencia'}
         size="md"
         variant="elegant"
@@ -627,7 +601,7 @@ export default function Incidencias() {
               Fecha <span className="required">*</span>
             </label>
             <DatePicker
-              selected={formData.fecha ? new Date(formData.fecha + 'T00:00:00') : null}
+              selected={createDateFromString(formData.fecha)}
               onChange={(date) => {
                 if (date) {
                   const year = date.getFullYear()
@@ -703,10 +677,7 @@ export default function Incidencias() {
           <div className="modal-footer">
             <button
               type="button"
-              onClick={() => {
-                setShowModal(false)
-                setSelectedIncidencia(null)
-              }}
+              onClick={handleModalClose}
               className="btn btn-secondary"
             >
               Cancelar
@@ -721,10 +692,7 @@ export default function Incidencias() {
       {/* Modal de confirmación para aprobar */}
       <Modal
         isOpen={showAprobarModal}
-        onClose={() => {
-          setShowAprobarModal(false)
-          setSelectedIncidencia(null)
-        }}
+        onClose={handleAprobarModalClose}
         title="Aprobar Incidencia"
         size="sm"
         variant="elegant"
@@ -779,10 +747,7 @@ export default function Incidencias() {
           <div className="modal-footer">
             <button
               type="button"
-              onClick={() => {
-                setShowAprobarModal(false)
-                setSelectedIncidencia(null)
-              }}
+              onClick={handleAprobarModalClose}
               className="btn btn-secondary"
             >
               Cancelar
@@ -802,11 +767,7 @@ export default function Incidencias() {
       {/* Modal de confirmación para rechazar */}
       <Modal
         isOpen={showRechazarModal}
-        onClose={() => {
-          setShowRechazarModal(false)
-          setSelectedIncidencia(null)
-          setComentarioRechazo('')
-        }}
+        onClose={handleRechazarModalClose}
         title="Rechazar Incidencia"
         size="md"
         variant="elegant"
@@ -860,11 +821,7 @@ export default function Incidencias() {
           <div className="modal-footer">
             <button
               type="button"
-              onClick={() => {
-                setShowRechazarModal(false)
-                setSelectedIncidencia(null)
-                setComentarioRechazo('')
-              }}
+              onClick={handleRechazarModalClose}
               className="btn btn-secondary"
             >
               Cancelar
@@ -884,11 +841,8 @@ export default function Incidencias() {
       {/* Modal de detalles de incidencia */}
       <Modal
         isOpen={showDetalleModal}
-        onClose={() => {
-          setShowDetalleModal(false)
-          setSelectedIncidencia(null)
-        }}
-        title="Detalles de la Incidencia"
+        onClose={handleDetalleModalClose}
+        title={isResumenMode ? 'Resumen de la Incidencia' : 'Detalles de la Incidencia'}
         size="md"
         variant="elegant"
         animationType="fade-scale"
@@ -1003,9 +957,39 @@ export default function Incidencias() {
               </div>
             )}
 
+            {/* Estado pendiente sin comentario */}
+            {!selectedIncidencia.comentario_revision && selectedIncidencia.estado === 'pendiente' && (
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <ClockIcon className="h-5 w-5 text-amber-600" />
+                  <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                    Estado de la Incidencia
+                  </span>
+                </div>
+                <p className="text-sm text-amber-900 leading-relaxed font-medium">
+                  Esta incidencia está pendiente de revisión y aprobación por parte del administrador.
+                </p>
+              </div>
+            )}
+
+            {/* Estado aprobado sin comentario */}
+            {!selectedIncidencia.comentario_revision && selectedIncidencia.estado === 'aprobada' && (
+              <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <CheckIcon className="h-5 w-5 text-green-600" />
+                  <span className="text-xs font-bold text-green-900 uppercase tracking-wide">
+                    Incidencia Aprobada
+                  </span>
+                </div>
+                <p className="text-sm text-green-900 leading-relaxed font-medium">
+                  Esta incidencia ha sido aprobada por el administrador.
+                </p>
+              </div>
+            )}
+
             {/* Revisor y fecha */}
             {selectedIncidencia.revisor && selectedIncidencia.fecha_revision && (
-              <div className="pt-4">
+              <div className="pt-4 pb-6">
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2 text-gray-600">
                     <UserIcon className="h-4 w-4" />
@@ -1025,58 +1009,41 @@ export default function Incidencias() {
               </div>
             )}
 
-            {/* Botones de acción */}
-            <div className="modal-footer">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowDetalleModal(false)
-                  setSelectedIncidencia(null)
-                }}
-                className="btn btn-secondary"
-              >
-                Cerrar
-              </button>
-              {selectedIncidencia.estado === 'pendiente' && !isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowDetalleModal(false)
-                    openModal(selectedIncidencia)
-                  }}
-                  className="btn btn-primary"
-                >
-                  <DocumentTextIcon className="h-5 w-5 mr-2" />
-                  Editar
-                </button>
-              )}
-              {selectedIncidencia.estado === 'pendiente' && isAdmin && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowDetalleModal(false)
-                      openAprobarModal(selectedIncidencia)
-                    }}
-                    className="btn btn-success"
-                  >
-                    <CheckIcon className="h-5 w-5 mr-2" />
-                    Aprobar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowDetalleModal(false)
-                      openRechazarModal(selectedIncidencia)
-                    }}
-                    className="btn btn-danger"
-                  >
-                    <XMarkIcon className="h-5 w-5 mr-2" />
-                    Rechazar
-                  </button>
-                </>
-              )}
-            </div>
+            {/* Botones de acción - Solo para incidencias pendientes */}
+            {selectedIncidencia.estado === 'pendiente' && (
+              <div className="modal-footer">
+                {!isAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => openModal(selectedIncidencia)}
+                      className="btn btn-primary"
+                    >
+                      <DocumentTextIcon className="h-5 w-5 mr-2" />
+                      Editar
+                    </button>
+                )}
+                {isAdmin && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => openAprobarModal(selectedIncidencia)}
+                      className="btn btn-success"
+                    >
+                      <CheckIcon className="h-5 w-5 mr-2" />
+                      Aprobar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openRechazarModal(selectedIncidencia)}
+                      className="btn btn-danger"
+                    >
+                      <XMarkIcon className="h-5 w-5 mr-2" />
+                      Rechazar
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
       </Modal>

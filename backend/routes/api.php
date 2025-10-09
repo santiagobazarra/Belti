@@ -85,12 +85,22 @@ Route::middleware([$authMiddleware])->group(function () {
         ]);
     });
 
+
     Route::get('/jornadas', [JornadaController::class, 'listarJornadas']);
     Route::get('/jornadas/resumen', [JornadaController::class, 'resumen']);
     Route::get('/jornadas/resumen-diario', [JornadaController::class, 'resumenDiario']);
     Route::get('/reportes/resumen', [ReporteController::class, 'resumen']);
     Route::get('/reportes/resumen.csv', [ReporteController::class, 'resumenCsv']);
     Route::get('/reportes/resumen.pdf', [ReporteController::class, 'resumenPdf']);
+    Route::get('/reportes/jornadas', [ReporteController::class, 'reporteJornadas']);
+    Route::get('/reportes/jornadas.csv', [ReporteController::class, 'reporteJornadasCsv']);
+    Route::get('/reportes/jornadas.pdf', [ReporteController::class, 'reporteJornadasPdf']);
+    Route::get('/reportes/solicitudes', [ReporteController::class, 'reporteSolicitudes']);
+    Route::get('/reportes/solicitudes.csv', [ReporteController::class, 'reporteSolicitudesCsv']);
+    Route::get('/reportes/solicitudes.pdf', [ReporteController::class, 'reporteSolicitudesPdf']);
+    Route::get('/reportes/incidencias', [ReporteController::class, 'reporteIncidencias']);
+    Route::get('/reportes/incidencias.csv', [ReporteController::class, 'reporteIncidenciasCsv']);
+    Route::get('/reportes/incidencias.pdf', [ReporteController::class, 'reporteIncidenciasPdf']);
 
     // Tipos de pausa - usuarios pueden ver disponibles
     Route::get('/tipos-pausa/disponibles', [TipoPausaController::class, 'disponibles']);
