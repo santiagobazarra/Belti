@@ -13,24 +13,65 @@ class ReporteService
         $desde = $params['desde'];
         $hasta = $params['hasta'];
 
-        $query = Jornada::query()
+        // Query for jornadas
+        $queryJornadas = Jornada::query()
             ->with(['usuario.departamento','pausas'])
-            ->whereBetween('fecha', [$desde, $hasta])
-            ->whereNotNull('hora_salida');
+            ->whereBetween('fecha', [$desde, $hasta]);
 
         if (!empty($params['id_usuario'])) {
-            $query->where('id_usuario', $params['id_usuario']);
+            $queryJornadas->where('id_usuario', $params['id_usuario']);
         }
         if (!empty($params['id_departamento'])) {
-            $query->whereHas('usuario', fn($q)=>$q->where('id_departamento',$params['id_departamento']));
+            $queryJornadas->whereHas('usuario', fn($q)=>$q->where('id_departamento',$params['id_departamento']));
         }
         if(!$authUser->role || $authUser->role->slug !== 'administrador') {
-            $query->where('id_usuario',$authUser->id_usuario);
+            $queryJornadas->where('id_usuario',$authUser->id_usuario);
         }
 
-        $jornadas = $query->get();
-        if ($jornadas->isEmpty()) {
+        $jornadas = $queryJornadas->get();
+        
+        // Query for solicitudes
+        $querySolicitudes = Solicitud::query()
+            ->with(['usuario.departamento', 'aprobador'])
+            ->whereBetween('fecha_inicio', [$desde, $hasta]);
+
+        if (!empty($params['id_usuario'])) {
+            $querySolicitudes->where('id_usuario', $params['id_usuario']);
+        }
+        if (!empty($params['id_departamento'])) {
+            $querySolicitudes->whereHas('usuario', fn($q)=>$q->where('id_departamento',$params['id_departamento']));
+        }
+        if(!$authUser->role || $authUser->role->slug !== 'administrador') {
+            $querySolicitudes->where('id_usuario',$authUser->id_usuario);
+        }
+
+        $solicitudes = $querySolicitudes->get();
+
+        // Query for incidencias
+        $queryIncidencias = Incidencia::query()
+            ->with(['usuario.departamento'])
+            ->whereBetween('fecha', [$desde, $hasta]);
+
+        if (!empty($params['id_usuario'])) {
+            $queryIncidencias->where('id_usuario', $params['id_usuario']);
+        }
+        if (!empty($params['id_departamento'])) {
+            $queryIncidencias->whereHas('usuario', fn($q)=>$q->where('id_departamento',$params['id_departamento']));
+        }
+        if(!$authUser->role || $authUser->role->slug !== 'administrador') {
+            $queryIncidencias->where('id_usuario',$authUser->id_usuario);
+        }
+
+        $incidencias = $queryIncidencias->get();
+
+        // Filter jornadas for calculations (only completed ones)
+        $jornadasCompletas = $jornadas->where('hora_salida', '!=', null);
+        
+        if ($jornadasCompletas->isEmpty()) {
             return [
+                'jornadas' => $jornadas,
+                'solicitudes' => $solicitudes,
+                'incidencias' => $incidencias,
                 'totales' => [
                     'horas_netas' => 0,
                     'horas_extra' => 0,
@@ -44,7 +85,7 @@ class ReporteService
 
         $detalle = [];
         $totNeto = 0; $totExtra=0; $totPausaNo=0; $totPausaSi=0; $dias = [];
-        foreach($jornadas as $j){
+        foreach($jornadasCompletas as $j){
             $pausaNo = 0; $pausaSi = 0;
             foreach($j->pausas as $p){
                 if($p->hora_inicio && $p->hora_fin){
@@ -73,17 +114,140 @@ class ReporteService
             return \App\Models\ConfigEmpresa::where('clave','horas_jornada_estandar')->value('valor') ?? 8;
         }));
         $horasDeficit = ($horasStd * $diasTrab) - $totNeto;
+        // Estadísticas generales para el resumen
+        $totalJornadas = $jornadas->count();
+        $jornadasCompletas = $jornadas->where('estado', 'completa')->count();
+        $totalSolicitudes = $solicitudes->count();
+        $totalIncidencias = $incidencias->count();
+        
+        // Tasa de completitud de jornadas
+        $tasaCompletitud = $totalJornadas > 0 ? round(($jornadasCompletas / $totalJornadas) * 100, 1) : 0;
+        
+        // Tasa de aprobación de solicitudes
+        $solicitudesAprobadas = $solicitudes->where('estado', 'aprobada')->count();
+        $tasaAprobacionSolicitudes = $totalSolicitudes > 0 ? round(($solicitudesAprobadas / $totalSolicitudes) * 100, 1) : 0;
+        
+        // Tasa de resolución de incidencias
+        $incidenciasResueltas = $incidencias->whereIn('estado', ['aprobada', 'rechazada'])->count();
+        $tasaResolucionIncidencias = $totalIncidencias > 0 ? round(($incidenciasResueltas / $totalIncidencias) * 100, 1) : 0;
+        
+        // Gráfica de actividad por día (combinando jornadas, solicitudes e incidencias)
+        $actividadPorDia = [];
+        $labels = [];
+        
+        // Procesar jornadas por día
+        foreach ($jornadas as $jornada) {
+            $fecha = $jornada->fecha->format('Y-m-d');
+            if (!isset($actividadPorDia[$fecha])) {
+                $actividadPorDia[$fecha] = ['jornadas' => 0, 'solicitudes' => 0, 'incidencias' => 0];
+                $labels[] = $fecha;
+            }
+            $actividadPorDia[$fecha]['jornadas']++;
+        }
+        
+        // Procesar solicitudes por día
+        foreach ($solicitudes as $solicitud) {
+            $fecha = $solicitud->fecha_inicio->format('Y-m-d');
+            if (!isset($actividadPorDia[$fecha])) {
+                $actividadPorDia[$fecha] = ['jornadas' => 0, 'solicitudes' => 0, 'incidencias' => 0];
+                $labels[] = $fecha;
+            }
+            $actividadPorDia[$fecha]['solicitudes']++;
+        }
+        
+        // Procesar incidencias por día
+        foreach ($incidencias as $incidencia) {
+            $fecha = $incidencia->fecha->format('Y-m-d');
+            if (!isset($actividadPorDia[$fecha])) {
+                $actividadPorDia[$fecha] = ['jornadas' => 0, 'solicitudes' => 0, 'incidencias' => 0];
+                $labels[] = $fecha;
+            }
+            $actividadPorDia[$fecha]['incidencias']++;
+        }
+        
+        // Ordenar fechas
+        sort($labels);
+        $labels = array_values(array_unique($labels));
+        
         return [
+            'jornadas' => $jornadas,
+            'solicitudes' => $solicitudes,
+            'incidencias' => $incidencias,
             'totales' => [
-                'horas_netas' => round($totNeto,2),
-                'horas_extra' => round($totExtra,2),
-                'pausas_no_computables_horas' => round($totPausaNo,2),
-                'pausas_computables_horas' => round($totPausaSi,2),
+                'horas_netas' => round($totNeto, 2),
+                'horas_extra' => round($totExtra, 2),
                 'dias_trabajados' => $diasTrab,
-                'horas_jornada_estandar' => $horasStd,
-                'horas_deficit' => round($horasDeficit,2),
+                'horas_deficit' => round($horasDeficit, 2),
+                'total_jornadas' => $totalJornadas,
+                'total_solicitudes' => $totalSolicitudes,
+                'total_incidencias' => $totalIncidencias,
+                'tasa_completitud' => $tasaCompletitud,
+                'tasa_aprobacion_solicitudes' => $tasaAprobacionSolicitudes,
+                'tasa_resolucion_incidencias' => $tasaResolucionIncidencias
             ],
             'detalle' => $detalle,
+            'graficas' => [
+                [
+                    'titulo' => 'Actividad General por Día',
+                    'tipo' => 'bar',
+                    'datos' => [
+                        'labels' => $labels,
+                        'datasets' => [
+                            [
+                                'label' => 'Jornadas',
+                                'data' => array_map(function($fecha) use ($actividadPorDia) {
+                                    return $actividadPorDia[$fecha]['jornadas'] ?? 0;
+                                }, $labels),
+                                'backgroundColor' => 'rgba(59, 130, 246, 0.8)',
+                                'borderColor' => 'rgba(59, 130, 246, 1)',
+                                'borderWidth' => 2,
+                            ],
+                            [
+                                'label' => 'Solicitudes',
+                                'data' => array_map(function($fecha) use ($actividadPorDia) {
+                                    return $actividadPorDia[$fecha]['solicitudes'] ?? 0;
+                                }, $labels),
+                                'backgroundColor' => 'rgba(16, 185, 129, 0.8)',
+                                'borderColor' => 'rgba(16, 185, 129, 1)',
+                                'borderWidth' => 2,
+                            ],
+                            [
+                                'label' => 'Incidencias',
+                                'data' => array_map(function($fecha) use ($actividadPorDia) {
+                                    return $actividadPorDia[$fecha]['incidencias'] ?? 0;
+                                }, $labels),
+                                'backgroundColor' => 'rgba(239, 68, 68, 0.8)',
+                                'borderColor' => 'rgba(239, 68, 68, 1)',
+                                'borderWidth' => 2,
+                            ]
+                        ]
+                    ]
+                ],
+                [
+                    'titulo' => 'Distribución General',
+                    'tipo' => 'doughnut',
+                    'datos' => [
+                        'labels' => ['Jornadas', 'Solicitudes', 'Incidencias'],
+                        'datasets' => [
+                            [
+                                'label' => 'Registros por Tipo',
+                                'data' => [$totalJornadas, $totalSolicitudes, $totalIncidencias],
+                                'backgroundColor' => [
+                                    'rgba(59, 130, 246, 0.8)',
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)'
+                                ],
+                                'borderColor' => [
+                                    'rgba(59, 130, 246, 1)',
+                                    'rgba(16, 185, 129, 1)',
+                                    'rgba(239, 68, 68, 1)'
+                                ],
+                                'borderWidth' => 2,
+                            ]
+                        ]
+                    ]
+                ]
+            ]
         ];
     }
 
@@ -93,7 +257,7 @@ class ReporteService
         $hasta = $params['hasta'];
 
         $query = Jornada::query()
-            ->with(['usuario.departamento', 'pausas'])
+            ->with(['usuario.departamento', 'pausas.tipoPausa'])
             ->whereBetween('fecha', [$desde, $hasta]);
 
         // Aplicar filtros
@@ -112,6 +276,7 @@ class ReporteService
         // Generar datos para gráficas
         $datosPorDia = [];
         $horasExtraPorDia = [];
+        $pausasPorDia = [];
         $labels = [];
 
         foreach ($jornadas as $jornada) {
@@ -122,6 +287,17 @@ class ReporteService
             
             $datosPorDia[$fecha] = (float) $jornada->total_horas ?? 0;
             $horasExtraPorDia[$fecha] = (float) $jornada->horas_extra ?? 0;
+            
+            // Calcular tiempo total de pausas para este día
+            $tiempoPausas = 0;
+            foreach ($jornada->pausas as $pausa) {
+                if ($pausa->hora_inicio && $pausa->hora_fin) {
+                    $inicio = \Carbon\Carbon::parse($pausa->hora_inicio);
+                    $fin = \Carbon\Carbon::parse($pausa->hora_fin);
+                    $tiempoPausas += $inicio->diffInMinutes($fin);
+                }
+            }
+            $pausasPorDia[$fecha] = round($tiempoPausas / 60, 2); // Convertir a horas
         }
 
         // Asegurar que labels sea un array indexado y ordenado
@@ -133,6 +309,29 @@ class ReporteService
         $totalHorasExtra = $jornadas->sum('horas_extra');
         $jornadasCompletas = $jornadas->where('estado', 'completa')->count();
         $diasTrabajados = $jornadas->count();
+        
+        // Estadísticas de pausas
+        $totalPausas = 0;
+        $totalPausasComputables = 0;
+        $totalPausasNoComputables = 0;
+        
+        foreach ($jornadas as $jornada) {
+            foreach ($jornada->pausas as $pausa) {
+                if ($pausa->hora_inicio && $pausa->hora_fin) {
+                    $inicio = \Carbon\Carbon::parse($pausa->hora_inicio);
+                    $fin = \Carbon\Carbon::parse($pausa->hora_fin);
+                    $duracion = $inicio->diffInMinutes($fin) / 60; // en horas
+                    
+                    $totalPausas += $duracion;
+                    
+                    if ($pausa->tipoPausa && $pausa->tipoPausa->computable) {
+                        $totalPausasComputables += $duracion;
+                    } else {
+                        $totalPausasNoComputables += $duracion;
+                    }
+                }
+            }
+        }
 
         return [
             'estadisticas' => [
@@ -140,6 +339,9 @@ class ReporteService
                 'horas_extra' => round($totalHorasExtra, 2),
                 'jornadas_completas' => $jornadasCompletas,
                 'dias_trabajados' => $diasTrabajados,
+                'total_pausas' => round($totalPausas, 2),
+                'pausas_computables' => round($totalPausasComputables, 2),
+                'pausas_no_computables' => round($totalPausasNoComputables, 2),
                 'puntualidad' => $diasTrabajados > 0 ? round(($jornadasCompletas / $diasTrabajados) * 100, 1) : 0
             ],
             'graficas' => [
@@ -165,6 +367,37 @@ class ReporteService
                                 }, $labels),
                                 'backgroundColor' => 'rgba(245, 158, 11, 0.8)',
                                 'borderColor' => 'rgba(245, 158, 11, 1)',
+                                'borderWidth' => 2,
+                            ],
+                            [
+                                'label' => 'Horas de Pausas',
+                                'data' => array_map(function($fecha) use ($pausasPorDia) {
+                                    return $pausasPorDia[$fecha] ?? 0;
+                                }, $labels),
+                                'backgroundColor' => 'rgba(156, 163, 175, 0.8)',
+                                'borderColor' => 'rgba(156, 163, 175, 1)',
+                                'borderWidth' => 2,
+                            ]
+                        ]
+                    ]
+                ],
+                [
+                    'titulo' => 'Distribución de Pausas',
+                    'tipo' => 'doughnut',
+                    'datos' => [
+                        'labels' => ['Pausas Computables', 'Pausas No Computables'],
+                        'datasets' => [
+                            [
+                                'label' => 'Tiempo de Pausas',
+                                'data' => [round($totalPausasComputables, 2), round($totalPausasNoComputables, 2)],
+                                'backgroundColor' => [
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(239, 68, 68, 0.8)'
+                                ],
+                                'borderColor' => [
+                                    'rgba(16, 185, 129, 1)',
+                                    'rgba(239, 68, 68, 1)'
+                                ],
                                 'borderWidth' => 2,
                             ]
                         ]
@@ -470,7 +703,7 @@ class ReporteService
         $hasta = $params['hasta'];
 
         $query = Solicitud::query()
-            ->with(['usuario.departamento', 'revisor'])
+            ->with(['usuario.departamento', 'aprobador'])
             ->whereBetween('fecha_inicio', [$desde, $hasta]);
 
         // Aplicar filtros
@@ -532,7 +765,7 @@ class ReporteService
         $hasta = $params['hasta'];
 
         $query = Solicitud::query()
-            ->with(['usuario.departamento', 'revisor'])
+            ->with(['usuario.departamento', 'aprobador'])
             ->whereBetween('fecha_inicio', [$desde, $hasta]);
 
         // Aplicar filtros

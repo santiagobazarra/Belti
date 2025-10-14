@@ -5,8 +5,12 @@ import {
   CheckIcon,
   XMarkIcon,
   EyeIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  PencilIcon,
+  TrashIcon,
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
+import { getIconComponent } from '../lib/departmentIcons';
 
 // Hook para detectar si el botón tiene suficiente ancho para mostrar texto
 const useButtonWidth = () => {
@@ -327,3 +331,215 @@ export const IncidenciaItem = ({
     </>
   );
 };
+
+/**
+ * Componente para renderizar elementos de Usuario
+ */
+export const UsuarioItem = ({ 
+  usuario, 
+  isAdmin, 
+  onEditar, 
+  onEliminar, 
+  onVerDetalles 
+}) => {
+  const { showText, buttonRef } = useButtonWidth();
+  
+  // Obtener el departamento y su icono
+  const departamento = usuario.departamento || usuario.department;
+  const DepartmentIconComponent = departamento?.icono 
+    ? getIconComponent(departamento.icono) 
+    : BuildingOfficeIcon;
+  const departamentoColor = departamento?.color || '#8b5cf6';
+
+  return (
+    <>
+      {/* COLUMNA IZQUIERDA: Avatar con iniciales */}
+      <div className="list-date-col">
+        <div className="list-item-avatar">
+          {`${usuario.nombre?.[0] || ''}${usuario.apellidos?.[0] || ''}`.toUpperCase()}
+        </div>
+        <div className={`list-status-indicator ${
+          usuario.activo || usuario.email_verified_at ? 'aprobada' : 'pendiente'
+        }`}></div>
+      </div>
+
+      {/* COLUMNA CENTRAL: Contenido principal */}
+      <div className="list-info-col">
+        {/* Fila superior: Nombre + Badge de estado */}
+        <div className="list-header-row">
+          <div className="list-tipo">
+            {usuario.nombre} {usuario.apellidos}
+          </div>
+          <span className={`list-badge ${
+            usuario.activo || usuario.email_verified_at ? 'success' : 'warning'
+          }`}>
+            {usuario.activo || usuario.email_verified_at ? 'Activo' : 'Pendiente'}
+          </span>
+        </div>
+
+        {/* Fila de metadata */}
+        <div className="list-meta-row">
+          <div className="list-meta-item">
+            <UserIcon />
+            {usuario.email}
+          </div>
+          
+          {usuario.role?.nombre || usuario.rol?.nombre ? (
+            <div className="list-meta-item">
+              <span className={`list-meta-badge ${
+                (usuario.role?.slug === 'administrador' || usuario.rol?.slug === 'administrador' ||
+                 usuario.role?.nombre?.toLowerCase() === 'administrador' || usuario.rol?.nombre?.toLowerCase() === 'administrador')
+                  ? 'danger' 
+                  : 'info'
+              }`}>
+                {usuario.role?.nombre || usuario.rol?.nombre}
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Departamento como descripción con icono dinámico */}
+        {departamento?.nombre && (
+          <div className="list-descripcion">
+            <DepartmentIconComponent 
+              style={{ 
+                width: '1rem', 
+                height: '1rem', 
+                display: 'inline-block', 
+                marginRight: '0.25rem',
+                color: departamentoColor
+              }} 
+            />
+            {departamento.nombre}
+          </div>
+        )}
+      </div>
+
+      {/* COLUMNA DERECHA: Acciones */}
+      <div className="list-actions-col">
+        {isAdmin && (
+          <>
+            <button
+              onClick={() => onEditar(usuario)}
+              className="list-btn-icon list-btn-icon-primary"
+              title="Editar"
+            >
+              <PencilIcon />
+            </button>
+            <button
+              onClick={() => onEliminar(usuario)}
+              className="list-btn-icon list-btn-icon-danger"
+              title="Eliminar"
+            >
+              <TrashIcon />
+            </button>
+          </>
+        )}
+
+        {/* Botón de ver detalles */}
+        <button
+          ref={buttonRef}
+          onClick={() => onVerDetalles(usuario)}
+          className="list-btn-resumen"
+          title="Ver detalles"
+        >
+          <EyeIcon />
+          {showText && <span>Detalles</span>}
+        </button>
+      </div>
+    </>
+  );
+};
+
+/**
+ * Componente para renderizar elementos de Departamento
+ */
+export const DepartamentoItem = ({ 
+  departamento, 
+  isAdmin, 
+  onEditar, 
+  onEliminar, 
+  onVerDetalles 
+}) => {
+  const { showText, buttonRef } = useButtonWidth();
+  
+  const usuariosCount = departamento.usuarios_count || departamento.usuarios?.length || 0;
+  const departamentoColor = departamento.color || '#8b5cf6';
+  const DepartamentoIconComponent = getIconComponent(departamento.icono);
+
+  return (
+    <>
+      {/* COLUMNA IZQUIERDA: Icono del departamento */}
+      <div className="list-date-col">
+        <div className="list-item-icon list-item-icon-department" style={{ 
+          background: `linear-gradient(135deg, ${departamentoColor} 0%, ${departamentoColor}dd 100%)`
+        }}>
+          <DepartamentoIconComponent />
+        </div>
+        <div className="list-status-indicator aprobada"></div>
+      </div>
+
+      {/* COLUMNA CENTRAL: Contenido principal */}
+      <div className="list-info-col">
+        {/* Fila superior: Nombre + Badge */}
+        <div className="list-header-row">
+          <div className="list-tipo">
+            {departamento.nombre}
+          </div>
+          <span className="list-badge info">
+            {usuariosCount} {usuariosCount === 1 ? 'usuario' : 'usuarios'}
+          </span>
+        </div>
+
+        {/* Fila de metadata */}
+        <div className="list-meta-row">
+          <div className="list-meta-item">
+            <UserIcon />
+            {usuariosCount} {usuariosCount === 1 ? 'miembro' : 'miembros'} asignados
+          </div>
+        </div>
+
+        {/* Descripción */}
+        {departamento.descripcion && (
+          <div className="list-descripcion">
+            {departamento.descripcion}
+          </div>
+        )}
+      </div>
+
+      {/* COLUMNA DERECHA: Acciones */}
+      <div className="list-actions-col">
+        {isAdmin && (
+          <>
+            <button
+              onClick={() => onEditar(departamento)}
+              className="list-btn-icon list-btn-icon-primary"
+              title="Editar"
+            >
+              <PencilIcon />
+            </button>
+            <button
+              onClick={() => onEliminar(departamento)}
+              className="list-btn-icon list-btn-icon-danger"
+              title="Eliminar"
+            >
+              <TrashIcon />
+            </button>
+          </>
+        )}
+
+        {/* Botón de ver detalles */}
+        <button
+          ref={buttonRef}
+          onClick={() => onVerDetalles(departamento)}
+          className="list-btn-resumen"
+          title="Ver detalles"
+        >
+          <EyeIcon />
+          {showText && <span>Detalles</span>}
+        </button>
+      </div>
+    </>
+  );
+};
+

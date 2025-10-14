@@ -99,13 +99,14 @@ export default function Sidebar({ collapsed, onToggle }) {
       {navItems.map((item, index) => {
         const Icon = item.icon
         return (
-          <button
+          <NavLink
             key={item.to}
-            onClick={() => {
-              handleNavigation(item.to)
-              onItemClick?.()
-            }}
-            className={`nav-item ${collapsed && !isMobile ? 'collapsed' : ''} ${isNavigating ? 'navigating' : ''}`}
+            to={item.to}
+            end={item.end}
+            onClick={onItemClick}
+            className={({ isActive }) => 
+              `nav-item ${collapsed && !isMobile ? 'collapsed' : ''} ${isActive ? 'active' : ''}`
+            }
             style={{
               animationDelay: `${index * 30}ms`,
               animationFillMode: 'both'
@@ -117,7 +118,7 @@ export default function Sidebar({ collapsed, onToggle }) {
                 {item.label}
               </span>
             )}
-          </button>
+          </NavLink>
         )
       })}
     </nav>

@@ -19,7 +19,7 @@ import Perfil from './pages/perfil/Perfil'
 
 // Privadas - Solo administradores
 import Reportes from './pages/reportes/Reportes'
-import Usuarios from './pages/admin/Usuarios'
+import GestionUsuarios from './pages/admin/GestionUsuarios'
 import Auditoria from './pages/auditoria/Auditoria'
 import Configuracion from './pages/configuracion/Configuracion'
 
@@ -41,7 +41,7 @@ function App() {
               <Route path="solicitudes" element={<Solicitudes />} />
               <Route path="festivos" element={<Festivos />} />
               <Route path="reportes" element={<Reportes />} />
-              <Route path="usuarios" element={<Usuarios />} />
+              <Route path="usuarios" element={<GestionUsuarios />} />
               <Route path="auditoria" element={<Auditoria />} />
               <Route path="configuracion" element={<Configuracion />} />
               <Route path="perfil" element={<Perfil />} />

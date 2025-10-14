@@ -719,3 +719,97 @@
   position: relative;
   z-index: 1;
 }
+
+/* ============================================
+   ESTILOS ESPECÍFICOS PARA USUARIOS Y DEPARTAMENTOS
+   ============================================ */
+
+/* Avatar de usuario */
+.list-item-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+  transition: all 0.2s ease;
+}
+
+.list-item:hover .list-item-avatar {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+}
+
+/* Icono de departamento */
+.list-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  transition: all 0.2s ease;
+}
+
+.list-item-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.list-item:hover .list-item-icon {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.35);
+}
+
+/* Variante específica para departamentos */
+.list-item-icon-department {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+.list-item:hover .list-item-icon-department {
+  box-shadow: 0 6px 16px rgba(139, 92, 246, 0.35);
+}
+
+/* Badge de metadata inline */
+.list-meta-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.list-meta-badge.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.list-meta-badge.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.list-meta-badge.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.list-meta-badge.danger {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%);
+  color: #dc2626;
+}
+

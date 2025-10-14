@@ -1,0 +1,910 @@
+/* ============================================
+   GESTIÓN DE USUARIOS Y DEPARTAMENTOS
+   ============================================
+   Estilos para la página de administración de usuarios
+   y departamentos con diseño moderno y consistente
+   ============================================ */
+
+/* ============================================
+   CONTENEDOR PRINCIPAL
+   ============================================ */
+.gestion-usuarios-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.gestion-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.gestion-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.gestion-subtitle {
+  font-size: 0.95rem;
+  color: #6b7280;
+  margin: 0.5rem 0 0 0;
+  line-height: 1.5;
+}
+
+/* ============================================
+   TABS NAVIGATION
+   ============================================ */
+.tabs-container {
+  display: flex;
+  gap: 0.5rem;
+  background: white;
+  padding: 0.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  isolation: isolate;
+}
+
+/* Sliding background indicator */
+.tabs-slider {
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  width: calc(50% - 0.75rem);
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 0;
+}
+
+.tabs-slider.departamentos {
+  transform: translateX(calc(100% + 0.5rem));
+}
+
+.tab-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex: 1;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.tab-button:hover {
+  color: #374151;
+}
+
+.tab-button.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.tab-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.tab-button.active .tab-icon {
+  transform: scale(1.1);
+}
+
+.tab-text {
+  white-space: nowrap;
+}
+
+/* Indicador inferior (línea azul) */
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  border-radius: 3px 3px 0 0;
+  z-index: 2;
+}
+
+/* ============================================
+   FILTROS
+   ============================================ */
+.filters-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.filter-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #6b7280;
+}
+
+/* ============================================
+   MODAL FORMS
+   ============================================ */
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #111827;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-input::placeholder {
+  color: #9ca3af;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Textarea específico para descripciones con altura mejorada */
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #111827;
+  line-height: 1.6;
+  transition: all 0.2s ease;
+  background: white;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea::placeholder {
+  color: #9ca3af;
+  line-height: 1.6;
+}
+
+/* Color Picker */
+.department-customization {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.customization-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.customization-item.flex-1 {
+  flex: 1;
+}
+
+.customization-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.color-input-compact {
+  width: 70px;
+  height: 55px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 4px;
+  background: white;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.color-input-compact:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
+}
+
+.color-input-compact:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.icon-selector-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.icon-selector-button:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.icon-selector-button:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.icon-selector-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.icon-selector-preview svg {
+  width: 18px;
+  height: 18px;
+  color: white;
+}
+
+.icon-selector-label {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+  color: #111827;
+}
+
+.icon-selector-arrow {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #9ca3af;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.icon-selector-button:hover .icon-selector-arrow {
+  color: #6b7280;
+}
+
+.icon-picker-modal-content {
+  padding: 0.5rem 0;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* ============================================
+   DETALLES DEL DEPARTAMENTO
+   ============================================ */
+.departamento-detalles-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
+.info-value {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.departamento-usuarios-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.usuarios-list-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* ============================================
+   MODAL INFO ROW (Estilo Elegant)
+   ============================================ */
+.modal-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.2s ease;
+}
+
+.modal-info-row:hover {
+  background: #f9fafb;
+}
+
+.modal-info-row:last-child {
+  border-bottom: none;
+}
+
+.modal-info-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  min-width: 140px;
+}
+
+.modal-info-label svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: #9ca3af;
+}
+
+.modal-info-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  text-align: right;
+  flex: 1;
+}
+
+/* ============================================
+   LIST ITEM OVERRIDES PARA MODALES
+   ============================================ */
+.departamento-usuarios-list .list-item {
+  padding: 0.875rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 0.5rem;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.departamento-usuarios-list .list-item:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  background: #fafafa;
+}
+
+.departamento-usuarios-list .list-item-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 0.8125rem;
+}
+
+.departamento-usuarios-list .list-item-content {
+  flex: 1;
+}
+
+.departamento-usuarios-list .list-item-badge {
+  font-size: 0.6875rem;
+  padding: 0.25rem 0.625rem;
+}
+
+/* ============================================
+   LIST OVERRIDES ESPECÍFICOS
+   ============================================ */
+.gestion-usuarios-container .list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.gestion-usuarios-container .list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  background: linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%);
+}
+
+.gestion-usuarios-container .list-header-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.025em;
+}
+
+.gestion-usuarios-container .list-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.gestion-usuarios-container .list-scrollable {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.gestion-usuarios-container .list-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.gestion-usuarios-container .list-item:hover {
+  background: #f9fafb;
+}
+
+.gestion-usuarios-container .list-item:last-child {
+  border-bottom: none;
+}
+
+.gestion-usuarios-container .list-item-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.gestion-usuarios-container .list-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.gestion-usuarios-container .list-item-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.gestion-usuarios-container .list-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.gestion-usuarios-container .list-item-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gestion-usuarios-container .list-item-subtitle {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gestion-usuarios-container .list-item-meta {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gestion-usuarios-container .list-item-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.025em;
+}
+
+.gestion-usuarios-container .list-item-badge.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.gestion-usuarios-container .list-item-badge.warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+}
+
+.gestion-usuarios-container .list-item-badge.info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.gestion-usuarios-container .list-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.gestion-usuarios-container .list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.gestion-usuarios-container .list-empty-icon {
+  width: 3rem;
+  height: 3rem;
+  color: #d1d5db;
+  margin-bottom: 1rem;
+}
+
+.gestion-usuarios-container .list-empty-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.5rem 0;
+}
+
+.gestion-usuarios-container .list-empty-message {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .gestion-usuarios-container .list-item {
+    flex-wrap: wrap;
+  }
+
+  .gestion-usuarios-container .list-item-actions {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .gestion-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gestion-title {
+    font-size: 1.5rem;
+  }
+
+  .gestion-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .tabs-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-button {
+    flex: 1 0 auto;
+    min-width: 140px;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .gestion-usuarios-container .list-item {
+    padding: 1rem;
+  }
+
+  .gestion-usuarios-container .list-item-avatar,
+  .gestion-usuarios-container .list-item-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .gestion-usuarios-container .list-item-title {
+    font-size: 0.875rem;
+  }
+
+  .gestion-usuarios-container .list-item-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .gestion-usuarios-container .list-item-actions {
+    gap: 0.375rem;
+  }
+
+  .gestion-usuarios-container .list-item-actions .btn {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.625rem;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+  }
+
+  .department-customization {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .customization-item {
+    width: 100%;
+  }
+
+  .color-input-compact {
+    width: 100%;
+    height: 52px;
+  }
+
+  .icon-selector-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .icon-selector-preview {
+    width: 36px;
+    height: 36px;
+  }
+
+  .icon-selector-preview svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gestion-usuarios-container {
+    gap: 1rem;
+  }
+
+  .tab-text {
+    display: none;
+  }
+
+  .tab-button {
+    min-width: auto;
+    padding: 0.75rem;
+  }
+
+  .gestion-usuarios-container .list-scrollable {
+    max-height: 500px;
+  }
+
+  .gestion-usuarios-container .list-item-badge {
+    font-size: 0.6875rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .customization-label {
+    font-size: 0.6875rem;
+  }
+
+  .icon-selector-button {
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  .icon-selector-label {
+    font-size: 0.875rem;
+  }
+
+  .icon-selector-preview {
+    width: 32px;
+    height: 32px;
+  }
+
+  .icon-selector-preview svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .color-input-compact {
+    height: 48px;
+  }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+.gestion-usuarios-container .list-scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.gestion-usuarios-container .list-scrollable::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.gestion-usuarios-container .list-scrollable::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.gestion-usuarios-container .list-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gestion-usuarios-container .list-item {
+  animation: fadeIn 0.3s ease;
+}
+
+/* Escalonar la animación de los items */
+.gestion-usuarios-container .list-item:nth-child(1) { animation-delay: 0s; }
+.gestion-usuarios-container .list-item:nth-child(2) { animation-delay: 0.05s; }
+.gestion-usuarios-container .list-item:nth-child(3) { animation-delay: 0.1s; }
+.gestion-usuarios-container .list-item:nth-child(4) { animation-delay: 0.15s; }
+.gestion-usuarios-container .list-item:nth-child(5) { animation-delay: 0.2s; }

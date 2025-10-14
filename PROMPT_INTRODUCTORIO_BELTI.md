@@ -1,4 +1,4 @@
-# 🏢 PROMPT INTRODUCTORIO - BELTI: Sistema de Control Horario Laboral
+   # 🏢 PROMPT INTRODUCTORIO - BELTI: Sistema de Control Horario Laboral
 
 ## 📋 DESCRIPCIÓN GENERAL
 
@@ -189,8 +189,10 @@ Belti/
 - **Incluir/excluir pausas** en cálculos
 
 ### **6. Administración**
-- **Gestión de usuarios**: CRUD completo
-- **Departamentos**: Organización jerárquica
+- **Gestión de usuarios**: CRUD completo con filtros avanzados
+- **Gestión de departamentos**: CRUD completo con vista de usuarios asignados
+- **Interfaz con pestañas**: Navegación fluida entre usuarios y departamentos
+- **Departamentos**: Organización jerárquica con detalles y estadísticas
 - **Roles**: Sistema flexible de permisos
 - **Configuración**: Parámetros globales del sistema
 - **Auditoría**: Logs de todas las acciones críticas
@@ -213,7 +215,7 @@ Belti/
 - **Solicitudes**: Lista con creación, edición y aprobación
 - **Reportes**: Análisis con gráficas y exportación
 - **Configuración**: Preferencias del usuario
-- **Admin**: Gestión de usuarios, departamentos, roles
+- **Admin**: Gestión unificada de usuarios y departamentos con sistema de pestañas
 
 ### **Componentes Reutilizables**
 - **List**: Lista genérica con paginación y filtros
@@ -329,11 +331,13 @@ frontend/src/
 │   ├── solicitudes/Solicitudes.jsx    # Gestión solicitudes
 │   ├── incidencias/Incidencias.jsx    # Gestión incidencias
 │   ├── fichaje/Fichaje.jsx            # Página principal
+│   ├── admin/GestionUsuarios.jsx      # Gestión usuarios y departamentos
 │   └── reportes/ReportesResumen.jsx   # Reportes
 ├── components/
 │   ├── List.jsx                       # Lista reutilizable
 │   ├── Modal.jsx                      # Sistema modales
 │   ├── DatePicker.jsx                 # Selector fechas
+│   ├── Card.jsx                       # Tarjetas de contenido
 │   └── ListItems.jsx                  # Items de listas
 ├── services/
 │   ├── api.js                         # Cliente HTTP
@@ -415,6 +419,10 @@ frontend/src/
 
 ---
 
-*Este prompt introductorio se actualiza periódicamente para reflejar el estado actual del sistema. Última actualización: Octubre 2024*
+*Este prompt introductorio se actualiza periódicamente para reflejar el estado actual del sistema. Última actualización: Octubre 2025*
+
+
+
+
 
 

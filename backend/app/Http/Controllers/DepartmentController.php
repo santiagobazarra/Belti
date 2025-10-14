@@ -17,7 +17,9 @@ class DepartmentController extends Controller
     $this->authorizeAdmin();
         $data = $request->validate([
             'nombre' => 'required|string|max:150|unique:departamentos,nombre',
-            'descripcion' => 'nullable|string'
+            'descripcion' => 'nullable|string',
+            'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'icono' => 'nullable|string|max:50'
         ]);
         $department = Department::create($data);
         return response()->json($department, 201);
@@ -33,7 +35,9 @@ class DepartmentController extends Controller
         $this->authorizeAdmin();
         $data = $request->validate([
             'nombre' => 'sometimes|required|string|max:150|unique:departamentos,nombre,' . $departamento->id_departamento . ',id_departamento',
-            'descripcion' => 'nullable|string'
+            'descripcion' => 'nullable|string',
+            'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'icono' => 'nullable|string|max:50'
         ]);
         $departamento->update($data);
         return response()->json($departamento);

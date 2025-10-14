@@ -9,9 +9,21 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(User::with(['role','departamento'])->paginate(20));
+        $query = User::with(['role','departamento']);
+        
+        // Filtrar por departamento si se proporciona
+        if ($request->has('id_departamento') && $request->id_departamento !== '') {
+            $query->where('id_departamento', $request->id_departamento);
+        }
+        
+        // Filtrar por rol si se proporciona
+        if ($request->has('id_rol') && $request->id_rol !== '') {
+            $query->where('id_rol', $request->id_rol);
+        }
+        
+        return response()->json($query->paginate(20));
     }
 
     public function store(Request $request)

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import {
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  MinusIcon
+  MinusIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline'
+import Tooltip from './Tooltip'
 
 const StatCard = ({
   title,
@@ -15,7 +17,8 @@ const StatCard = ({
   format = 'number',
   suffix = '',
   prefix = '',
-  className = ''
+  className = '',
+  tooltip = null
 }) => {
   const [isVisible, setIsVisible] = useState(false)
 
@@ -111,18 +114,27 @@ const StatCard = ({
         >
           {IconComponent && <IconComponent />}
         </div>
-        {trend !== null && trendValue !== null && (
-          <div 
-            className="reporte-stat-trend"
-            style={{
-              backgroundColor: getTrendBg(),
-              color: getTrendColor()
-            }}
-          >
-            {getTrendIcon()}
-            {trendValue > 0 ? '+' : ''}{trendValue.toFixed(1)}%
-          </div>
-        )}
+        <div className="reporte-stat-header-right">
+          {tooltip && (
+            <Tooltip content={tooltip} delay={1000} position="top">
+              <InformationCircleIcon 
+                className="w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors cursor-help" 
+              />
+            </Tooltip>
+          )}
+          {trend !== null && trendValue !== null && (
+            <div 
+              className="reporte-stat-trend"
+              style={{
+                backgroundColor: getTrendBg(),
+                color: getTrendColor()
+              }}
+            >
+              {getTrendIcon()}
+              {trendValue > 0 ? '+' : ''}{trendValue.toFixed(1)}%
+            </div>
+          )}
+        </div>
       </div>
       
       <div className="reporte-stat-value">

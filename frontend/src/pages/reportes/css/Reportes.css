@@ -9,7 +9,7 @@
    CONTENEDOR PRINCIPAL
    ============================================ */
 .reportes-page {
-  background: #f8fafc;
+  background: none;
   min-height: 100vh;
   padding: 0;
 }
@@ -388,6 +388,12 @@
   margin-bottom: 1rem;
 }
 
+.reporte-stat-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .reporte-stat-icon {
   width: 2.5rem;
   height: 2.5rem;
@@ -657,8 +663,8 @@
   }
 
   .reportes-results {
-    margin: 0 -1rem;
-    border-radius: 0;
+    margin: 1.5rem 0;
+    border-radius: 16px;
   }
 
   .reportes-results-header,
@@ -690,6 +696,11 @@
     padding: 0.75rem;
   }
 
+  .reportes-results {
+    margin: 1.5rem 0;
+    border-radius: 16px;
+  }
+
   .reportes-results-header,
   .reportes-results-content {
     padding: 1rem;
@@ -701,6 +712,26 @@
 
   .reporte-stat-value {
     font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .reportes-results {
+    margin: 1.5rem 0;
+    border-radius: 16px;
+  }
+
+  .reportes-results-header,
+  .reportes-results-content {
+    padding: 0.75rem;
+  }
+
+  .reportes-results-title {
+    font-size: 1.125rem;
+  }
+
+  .reporte-stat-value {
+    font-size: 1.5rem;
   }
 }
 

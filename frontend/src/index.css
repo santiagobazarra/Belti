@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
 
+/* Importar estilos de componentes */
+@import "./components/css-components/Tooltip.css";
+
 /* Variables CSS customizadas para tema */
 :root {
     --sidebar-width: 16rem;
@@ -1548,6 +1551,24 @@ input[type="date"]::-webkit-datetime-edit-text {
 }
 
 .mobile-sidebar-nav .nav-item.navigating svg {
+  transform: scale(1.05);
+}
+
+/* Estilo para navegación activa en móvil */
+.mobile-sidebar-nav .nav-item.active {
+  background: linear-gradient(135deg, rgb(var(--color-primary-light)) 0%, rgb(255 255 255) 100%);
+  color: rgb(var(--color-primary-dark));
+  border-left: 4px solid rgb(var(--color-primary));
+  border-color: rgb(var(--color-primary) / 0.2);
+  box-shadow: 0 4px 6px -1px rgb(var(--color-primary) / 0.1), 0 2px 4px -1px rgb(var(--color-primary) / 0.06);
+  transform: translateX(2px);
+}
+
+.mobile-sidebar-nav .nav-item.active::before {
+  display: none;
+}
+
+.mobile-sidebar-nav .nav-item.active svg {
   transform: scale(1.05);
 }
 

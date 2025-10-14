@@ -27,8 +27,8 @@ class ReporteController extends Controller
             'id_departamento' => 'nullable|integer'
         ]);
         $res = $service->resumen($data, Auth::user());
-        $lines = [];
-        $lines[] = 'fecha,usuario,departamento,horas_netas,horas_extra,pausas_no_computables_horas,pausas_computables_horas';
+    $lines = [];
+    $lines[] = 'fecha,usuario,departamento,horas_netas,horas_extra,pausas_no_computables_horas,pausas_computables_horas';
         
         foreach($res['detalle'] as $row){
             $lines[] = collect($row)->only(['fecha','usuario','departamento','horas_netas','horas_extra','pausas_no_computables_horas','pausas_computables_horas'])

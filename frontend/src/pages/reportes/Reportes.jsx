@@ -6,6 +6,8 @@ import StatCard from '../../components/StatCard'
 import DatePicker from '../../components/DatePicker'
 import Select from 'react-select'
 import Card from '../../components/Card'
+import ToastContainer from '../../components/ToastContainer'
+import useToast from '../../hooks/useToast'
 import {
   DocumentChartBarIcon,
   ClockIcon,
@@ -210,6 +212,7 @@ const TIPOS_INCIDENCIA = [
 
 export default function Reportes() {
   const { user } = useAuth()
+  const toast = useToast()
   const [filtros, setFiltros] = useState({
     tipo_reporte: 'resumen',
     fecha_inicio: '',
@@ -229,8 +232,6 @@ export default function Reportes() {
 
   const isAdmin = user?.role?.slug === 'administrador' || user?.role?.nombre?.toLowerCase() === 'administrador'
   
-  // Debug para verificar el estado del usuario (solo una vez)
-  console.log('🔍 Debug isAdmin:', isAdmin, 'Role:', user?.role?.slug)
 
   // Función para crear Date desde string sin problemas de timezone
   const createDateFromString = (dateString) => {
@@ -284,7 +285,6 @@ export default function Reportes() {
       
       // Filtrar usuarios que tengan id_usuario válido
       const usuariosValidos = usuariosData.filter(u => u && u.id_usuario !== undefined && u.id_usuario !== null)
-      console.log('✅ Usuarios cargados:', usuariosValidos.length, 'usuarios')
       setUsuarios(usuariosValidos)
     } catch (error) {
       console.error('❌ Error al cargar usuarios:', error)
@@ -305,7 +305,6 @@ export default function Reportes() {
       
       // Filtrar departamentos que tengan id_departamento válido
       const departamentosValidos = departamentosData.filter(d => d && d.id_departamento !== undefined && d.id_departamento !== null)
-      console.log('✅ Departamentos cargados:', departamentosValidos.length, 'departamentos')
       setDepartamentos(departamentosValidos)
     } catch (error) {
       console.error('❌ Error al cargar departamentos:', error)
@@ -320,7 +319,14 @@ export default function Reportes() {
     try {
       // Validar que las fechas estén seleccionadas
       if (!filtros.fecha_inicio || !filtros.fecha_fin) {
-        alert('Por favor selecciona las fechas de inicio y fin para el reporte')
+        toast.error('Por favor selecciona las fechas de inicio y fin para generar el reporte')
+        setLoading(false)
+        return
+      }
+
+      // Validar que la fecha de inicio no sea posterior a la fecha de fin
+      if (new Date(filtros.fecha_inicio) > new Date(filtros.fecha_fin)) {
+        toast.error('La fecha de inicio no puede ser posterior a la fecha de fin')
         setLoading(false)
         return
       }
@@ -377,11 +383,12 @@ export default function Reportes() {
         // Pequeño delay para asegurar que el DOM esté listo
         setTimeout(() => {
           setChartKey(prev => prev + 1) // Forzar recreación de gráficos
+          toast.success('Reporte generado correctamente')
         }, 100)
       
     } catch (error) {
       console.error('Error al generar reporte:', error)
-      alert('Error al generar el reporte. Inténtalo de nuevo.')
+      toast.error('Error al generar el reporte. Inténtalo de nuevo.')
       setDatos(null) // Limpiar datos en caso de error
     } finally {
       setLoading(false)
@@ -390,7 +397,7 @@ export default function Reportes() {
 
   const descargarCSV = async () => {
     if (!filtros.fecha_inicio || !filtros.fecha_fin) {
-      alert('Por favor selecciona las fechas de inicio y fin para el reporte')
+      toast.error('Por favor selecciona las fechas de inicio y fin para descargar el CSV')
       return
     }
 
@@ -438,9 +445,11 @@ export default function Reportes() {
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
+      
+      toast.success('Archivo CSV descargado correctamente')
     } catch (error) {
       console.error('Error al descargar CSV:', error)
-      alert('Error al descargar el archivo CSV. Inténtalo de nuevo.')
+      toast.error('Error al descargar el archivo CSV. Inténtalo de nuevo.')
     } finally {
       setLoadingCSV(false)
     }
@@ -448,7 +457,7 @@ export default function Reportes() {
 
   const descargarPDF = async () => {
     if (!filtros.fecha_inicio || !filtros.fecha_fin) {
-      alert('Por favor selecciona las fechas de inicio y fin para el reporte')
+      toast.error('Por favor selecciona las fechas de inicio y fin para descargar el PDF')
       return
     }
 
@@ -496,9 +505,11 @@ export default function Reportes() {
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
+      
+      toast.success('Archivo PDF descargado correctamente')
     } catch (error) {
       console.error('Error al descargar PDF:', error)
-      alert('Error al descargar el archivo PDF. Inténtalo de nuevo.')
+      toast.error('Error al descargar el archivo PDF. Inténtalo de nuevo.')
     } finally {
       setLoadingPDF(false)
     }
@@ -508,69 +519,214 @@ export default function Reportes() {
   const transformarDatosAPI = (dataAPI, tipoReporte) => {
     switch (tipoReporte) {
       case 'jornadas':
+        // Calcular porcentajes reales basados en los datos
+        const jornadasCompletas = dataAPI.estadisticas.jornadas_completas || 0
+        const diasTrabajadosJornadas = dataAPI.estadisticas.dias_trabajados || 1
+        const totalHorasJornadas = dataAPI.estadisticas.total_horas || 0
+        const horasExtraJornadas = dataAPI.estadisticas.horas_extra || 0
+        const totalPausas = dataAPI.estadisticas.total_pausas || 0
+        
+        const porcentajeCompletitud = diasTrabajadosJornadas > 0 ? (jornadasCompletas / diasTrabajadosJornadas) * 100 : 0
+        const porcentajeHorasExtraJornadas = totalHorasJornadas > 0 ? (horasExtraJornadas / totalHorasJornadas) * 100 : 0
+        const porcentajePausas = totalHorasJornadas > 0 ? (totalPausas / (totalHorasJornadas + totalPausas)) * 100 : 0
+        
         return {
           estadisticas: [
-            { titulo: 'Horas Totales', valor: dataAPI.estadisticas.total_horas, formato: 'duration', color: 'primary', trend: 'up', trendValue: 4.2 },
-            { titulo: 'Horas Extra', valor: dataAPI.estadisticas.horas_extra, formato: 'duration', color: 'warning', trend: 'up', trendValue: 8.1 },
-            { titulo: 'Jornadas Completas', valor: dataAPI.estadisticas.jornadas_completas, formato: 'number', color: 'success', trend: 'down', trendValue: -2.1 },
-            { titulo: 'Puntualidad', valor: dataAPI.estadisticas.puntualidad, formato: 'percentage', color: 'primary', trend: 'up', trendValue: 1.2 }
+            { 
+              titulo: 'Horas Totales', 
+              valor: totalHorasJornadas, 
+              formato: 'duration', 
+              color: 'primary', 
+              trend: 'up', 
+              trendValue: 4.2,
+              tooltip: 'Total de horas trabajadas en el período seleccionado, incluyendo horas regulares y extra.'
+            },
+            { 
+              titulo: 'Horas Extra', 
+              valor: horasExtraJornadas, 
+              formato: 'duration', 
+              color: 'warning', 
+              trend: 'up', 
+              trendValue: porcentajeHorasExtraJornadas,
+              tooltip: 'Horas trabajadas por encima de la jornada estándar. Incluye horas adicionales fuera del horario normal.'
+            },
+            { 
+              titulo: 'Jornadas Completas', 
+              valor: jornadasCompletas, 
+              formato: 'number', 
+              color: 'success', 
+              trend: 'up', 
+              trendValue: porcentajeCompletitud,
+              tooltip: 'Número de jornadas que fueron completadas correctamente (con entrada y salida registradas).'
+            },
+            { 
+              titulo: 'Total Pausas', 
+              valor: totalPausas, 
+              formato: 'duration', 
+              color: 'secondary', 
+              trend: 'up', 
+              trendValue: porcentajePausas,
+              tooltip: 'Tiempo total dedicado a pausas durante las jornadas laborales.'
+            }
           ],
-          graficas: dataAPI.graficas
+          graficas: dataAPI.graficas || []
         }
 
       case 'solicitudes':
+        const totalSolicitudesSolicitudes = dataAPI.estadisticas.total_solicitudes || 0
+        const aprobadas = dataAPI.estadisticas.aprobadas || 0
+        const pendientes = dataAPI.estadisticas.pendientes || 0
+        const diasPromedio = dataAPI.estadisticas.dias_promedio || 0
+        
+        const porcentajeAprobacion = totalSolicitudesSolicitudes > 0 ? (aprobadas / totalSolicitudesSolicitudes) * 100 : 0
+        const porcentajePendientes = totalSolicitudesSolicitudes > 0 ? (pendientes / totalSolicitudesSolicitudes) * 100 : 0
+        
         return {
           estadisticas: [
-            { titulo: 'Total Solicitudes', valor: dataAPI.estadisticas.total_solicitudes, formato: 'number', color: 'primary', trend: 'up', trendValue: 12.5 },
-            { titulo: 'Tasa de Aprobación', valor: dataAPI.estadisticas.tasa_aprobacion, formato: 'percentage', color: 'success', trend: 'up', trendValue: 3.2 },
-            { titulo: 'Días Promedio', valor: dataAPI.estadisticas.dias_promedio, formato: 'duration', color: 'warning', trend: 'down', trendValue: -1.8 },
-            { titulo: 'Pendientes', valor: dataAPI.estadisticas.pendientes, formato: 'number', color: 'danger', trend: 'down', trendValue: -5.3 }
+            { 
+              titulo: 'Total Solicitudes', 
+              valor: totalSolicitudesSolicitudes, 
+              formato: 'number', 
+              color: 'primary', 
+              trend: 'up', 
+              trendValue: 12.5,
+              tooltip: 'Número total de solicitudes presentadas en el período seleccionado.'
+            },
+            { 
+              titulo: 'Tasa de Aprobación', 
+              valor: dataAPI.estadisticas.tasa_aprobacion, 
+              formato: 'percentage', 
+              color: 'success', 
+              trend: 'up', 
+              trendValue: porcentajeAprobacion,
+              tooltip: 'Porcentaje de solicitudes que han sido aprobadas respecto al total de solicitudes.'
+            },
+            { 
+              titulo: 'Días Promedio', 
+              valor: diasPromedio, 
+              formato: 'number', 
+              color: 'warning', 
+              trend: 'down', 
+              trendValue: -1.8,
+              tooltip: 'Número promedio de días de duración de las solicitudes presentadas.'
+            },
+            { 
+              titulo: 'Pendientes', 
+              valor: pendientes, 
+              formato: 'number', 
+              color: 'danger', 
+              trend: 'down', 
+              trendValue: porcentajePendientes,
+              tooltip: 'Número de solicitudes que están pendientes de aprobación o resolución.'
+            }
           ],
-          graficas: dataAPI.graficas
+          graficas: dataAPI.graficas || []
         }
 
       case 'incidencias':
+        const totalIncidenciasIncidencias = dataAPI.estadisticas.total_incidencias || 0
+        const incidenciasPendientes = dataAPI.estadisticas.pendientes || 0
+        const incidenciasAprobadas = dataAPI.estadisticas.aprobadas || 0
+        
+        const porcentajeResolucion = totalIncidenciasIncidencias > 0 ? (dataAPI.estadisticas.tasa_resolucion || 0) : 0
+        const porcentajeIncidenciasPendientes = totalIncidenciasIncidencias > 0 ? (incidenciasPendientes / totalIncidenciasIncidencias) * 100 : 0
+        const porcentajeIncidenciasAprobadas = totalIncidenciasIncidencias > 0 ? (incidenciasAprobadas / totalIncidenciasIncidencias) * 100 : 0
+        
         return {
           estadisticas: [
-            { titulo: 'Total Incidencias', valor: dataAPI.estadisticas.total_incidencias, formato: 'number', color: 'danger', trend: 'down', trendValue: -8.3 },
-            { titulo: 'Tasa de Resolución', valor: dataAPI.estadisticas.tasa_resolucion, formato: 'percentage', color: 'success', trend: 'up', trendValue: 5.7 },
-            { titulo: 'Pendientes', valor: dataAPI.estadisticas.pendientes, formato: 'number', color: 'primary', trend: 'down', trendValue: -15.2 },
-            { titulo: 'Aprobadas', valor: dataAPI.estadisticas.aprobadas, formato: 'number', color: 'success', trend: 'up', trendValue: 12.1 }
+            { 
+              titulo: 'Total Incidencias', 
+              valor: totalIncidenciasIncidencias, 
+              formato: 'number', 
+              color: 'danger', 
+              trend: 'down', 
+              trendValue: -8.3,
+              tooltip: 'Número total de incidencias reportadas en el período seleccionado.'
+            },
+            { 
+              titulo: 'Tasa de Resolución', 
+              valor: dataAPI.estadisticas.tasa_resolucion, 
+              formato: 'percentage', 
+              color: 'success', 
+              trend: 'up', 
+              trendValue: porcentajeResolucion,
+              tooltip: 'Porcentaje de incidencias que han sido resueltas (aprobadas o rechazadas) respecto al total.'
+            },
+            { 
+              titulo: 'Pendientes', 
+              valor: incidenciasPendientes, 
+              formato: 'number', 
+              color: 'primary', 
+              trend: 'down', 
+              trendValue: porcentajeIncidenciasPendientes,
+              tooltip: 'Número de incidencias que están pendientes de resolución.'
+            },
+            { 
+              titulo: 'Aprobadas', 
+              valor: incidenciasAprobadas, 
+              formato: 'number', 
+              color: 'success', 
+              trend: 'up', 
+              trendValue: porcentajeIncidenciasAprobadas,
+              tooltip: 'Número de incidencias que han sido aprobadas y resueltas.'
+            }
           ],
-          graficas: dataAPI.graficas
+          graficas: dataAPI.graficas || []
         }
 
       default: // resumen
+        const horasNetasResumen = dataAPI.totales?.horas_netas || 0
+        const horasExtraResumen = dataAPI.totales?.horas_extra || 0
+        const diasTrabajadosResumen = dataAPI.totales?.dias_trabajados || 1
+        const horasDeficit = dataAPI.totales?.horas_deficit || 0
+        const totalJornadas = dataAPI.totales?.total_jornadas || 0
+        const totalSolicitudesResumen = dataAPI.totales?.total_solicitudes || 0
+        const totalIncidenciasResumen = dataAPI.totales?.total_incidencias || 0
+        const tasaCompletitud = dataAPI.totales?.tasa_completitud || 0
+        
+        const porcentajeHorasExtraResumen = horasNetasResumen > 0 ? (horasExtraResumen / horasNetasResumen) * 100 : 0
+        const porcentajeProductividad = diasTrabajadosResumen > 0 ? ((horasNetasResumen / (diasTrabajadosResumen * 8)) * 100) : 0
+        
         return {
           estadisticas: [
-            { titulo: 'Total Horas', valor: dataAPI.totales.horas_netas, formato: 'duration', color: 'primary', trend: 'up', trendValue: 4.2 },
-            { titulo: 'Horas Extra', valor: dataAPI.totales.horas_extra, formato: 'duration', color: 'warning', trend: 'up', trendValue: 8.3 },
-            { titulo: 'Días Trabajados', valor: dataAPI.totales.dias_trabajados, formato: 'number', color: 'success', trend: 'up', trendValue: 2.1 },
-            { titulo: 'Déficit/Superávit', valor: dataAPI.totales.horas_deficit, formato: 'duration', color: dataAPI.totales.horas_deficit >= 0 ? 'danger' : 'success', trend: dataAPI.totales.horas_deficit >= 0 ? 'down' : 'up', trendValue: 1.2 }
-          ],
-          graficas: [{
-            titulo: `Resumen de Actividad (${filtros.fecha_inicio} - ${filtros.fecha_fin})`,
-            tipo: 'bar',
-            datos: {
-              labels: dataAPI.detalle.map(item => item.fecha),
-              datasets: [
-                {
-                  label: 'Horas Trabajadas',
-                  data: dataAPI.detalle.map(item => item.horas_netas),
-                  backgroundColor: 'rgba(59, 130, 246, 0.8)',
-                  borderColor: 'rgba(59, 130, 246, 1)',
-                  borderWidth: 2,
-                },
-                {
-                  label: 'Horas Extra',
-                  data: dataAPI.detalle.map(item => item.horas_extra),
-                  backgroundColor: 'rgba(245, 158, 11, 0.8)',
-                  borderColor: 'rgba(245, 158, 11, 1)',
-                  borderWidth: 2,
-                }
-              ]
+            { 
+              titulo: 'Total Horas', 
+              valor: horasNetasResumen, 
+              formato: 'duration', 
+              color: 'primary', 
+              trend: 'up', 
+              trendValue: porcentajeProductividad,
+              tooltip: 'Total de horas trabajadas en el período, incluyendo horas regulares y extra.'
+            },
+            { 
+              titulo: 'Horas Extra', 
+              valor: horasExtraResumen, 
+              formato: 'duration', 
+              color: 'warning', 
+              trend: 'up', 
+              trendValue: porcentajeHorasExtraResumen,
+              tooltip: 'Horas trabajadas por encima de la jornada estándar de 8 horas diarias.'
+            },
+            { 
+              titulo: 'Días Trabajados', 
+              valor: diasTrabajadosResumen, 
+              formato: 'number', 
+              color: 'success', 
+              trend: 'up', 
+              trendValue: 2.1,
+              tooltip: 'Número de días en los que se registró actividad laboral.'
+            },
+            { 
+              titulo: 'Déficit/Superávit', 
+              valor: horasDeficit, 
+              formato: 'duration', 
+              color: horasDeficit >= 0 ? 'danger' : 'success', 
+              trend: horasDeficit >= 0 ? 'down' : 'up', 
+              trendValue: Math.abs(horasDeficit),
+              tooltip: 'Diferencia entre las horas esperadas y las horas realmente trabajadas. Positivo indica déficit, negativo indica superávit.'
             }
-          }]
+          ],
+          graficas: dataAPI.graficas || []
         }
     }
   }
@@ -663,16 +819,16 @@ export default function Reportes() {
                 }}
                 placeholder="Seleccionar fecha"
             />
-          </div>
-          </div>
+      </div>
+    </div>
 
           {/* SEGUNDA FILA: Elementos condicionales - siempre en grupos de 2 o 3 */}
           {isAdmin && (
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
                   Usuario
-                </label>
+            </label>
                 <Select
                   components={{ DropdownIndicator, ClearIndicator }}
                   styles={customSelectStyles}
@@ -687,13 +843,13 @@ export default function Reportes() {
                   menuPortalTarget={document.body}
                   menuPosition="fixed"
                   noOptionsMessage={() => 'No hay usuarios disponibles'}
-                />
-    </div>
+            />
+          </div>
 
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
                   Departamento
-                </label>
+            </label>
                 <Select
                   components={{ DropdownIndicator, ClearIndicator }}
                   styles={customSelectStyles}
@@ -708,14 +864,14 @@ export default function Reportes() {
                   menuPortalTarget={document.body}
                   menuPosition="fixed"
                   noOptionsMessage={() => 'No hay departamentos disponibles'}
-                />
-              </div>
+            />
+          </div>
 
               {/* TERCER ELEMENTO DE LA SEGUNDA FILA - Condicional por tipo de reporte */}
               {filtros.tipo_reporte === 'solicitudes' && (
                 <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Estado
+              Estado
             </label>
                   <Select
                     components={{ DropdownIndicator, ClearIndicator }}
@@ -749,9 +905,9 @@ export default function Reportes() {
                     menuPosition="fixed"
                     isSearchable={false}
             />
-          </div>
+        </div>
               )}
-            </div>
+      </div>
           )}
 
           {/* Para usuarios NO admin - Elementos condicionales por tipo */}
@@ -773,15 +929,15 @@ export default function Reportes() {
                     menuPortalTarget={document.body}
                     menuPosition="fixed"
                     isSearchable={false}
-                  />
-                </div>
+            />
+          </div>
               )}
 
               {filtros.tipo_reporte === 'incidencias' && (
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
                     Tipo de Incidencia
-                  </label>
+            </label>
                   <Select
                     components={{ DropdownIndicator, ClearIndicator }}
                     styles={customSelectStyles}
@@ -793,8 +949,8 @@ export default function Reportes() {
                     menuPortalTarget={document.body}
                     menuPosition="fixed"
                     isSearchable={false}
-                  />
-                </div>
+            />
+          </div>
               )}
             </div>
           )}
@@ -874,6 +1030,7 @@ export default function Reportes() {
                   color={stat.color}
                   trend={stat.trend}
                   trendValue={stat.trendValue}
+                  tooltip={stat.tooltip}
                 />
               ))}
           </div>
@@ -900,9 +1057,15 @@ export default function Reportes() {
               <div className="reporte-loading-title">Generando reporte...</div>
               <div className="reporte-loading-message">Procesando datos del servidor</div>
             </div>
-          </div>
+      </div>
       </div>
       )}
+
+      {/* Toast Container */}
+      <ToastContainer 
+        toasts={toast.toasts} 
+        onRemove={toast.removeToast} 
+      />
     </div>
   )
 }

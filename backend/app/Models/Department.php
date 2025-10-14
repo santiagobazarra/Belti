@@ -10,7 +10,7 @@ class Department extends Model
 
     protected $table = 'departamentos';
     protected $primaryKey = 'id_departamento';
-    protected $fillable = ['nombre','descripcion'];
+    protected $fillable = ['nombre','descripcion','color','icono'];
 
     public function usuarios()
     {
