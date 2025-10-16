@@ -1,14 +1,123 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
+import Select from 'react-select'
+import DatePicker from '../../components/DatePicker'
 import Modal from '../../components/Modal'
-import {
-  ShieldCheckIcon,
-  EyeIcon,
-  ClockIcon,
-  UserIcon
-} from '@heroicons/react/24/outline'
+import Card from '../../components/Card'
+import List from '../../components/List'
+import { AuditoriaItem } from '../../components/ListItems'
+import './css/Auditoria.css'
+import '../../components/css-components/List.css'
+import './css/AuditoriaModal.css'
+import { ShieldCheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import AuditModalBody from './components/AuditModalBody'
 
+// Componente personalizado para el indicador (flecha) del Select
+const DropdownIndicator = (props) => {
+  return (
+    <div style={{
+      padding: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.2s ease',
+      transform: props.selectProps.menuIsOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+      color: props.isFocused ? 'rgb(59, 130, 246)' : 'rgb(156, 163, 175)'
+    }}>
+      <ChevronDownIcon style={{ width: '1.25rem', height: '1.25rem' }} />
+    </div>
+  )
+}
+
+// Estilos personalizados para React Select
+const customSelectStyles = {
+  control: (base, state) => ({
+    ...base,
+    minHeight: '44px',
+    borderRadius: '12px',
+    borderColor: state.isFocused ? 'rgb(59, 130, 246)' : 'rgb(209, 213, 219)',
+    borderWidth: '1px',
+    boxShadow: state.isFocused ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : 'none',
+    backgroundColor: 'white',
+    '&:hover': {
+      borderColor: state.isFocused ? 'rgb(59, 130, 246)' : 'rgb(156, 163, 175)'
+    },
+    transition: 'all 0.2s',
+    cursor: 'pointer',
+    padding: '0 4px'
+  }),
+  valueContainer: (base) => ({
+    ...base,
+    padding: '2px 12px'
+  }),
+  input: (base) => ({
+    ...base,
+    margin: 0,
+    padding: 0,
+    color: 'transparent',
+    caretColor: 'transparent'
+  }),
+  placeholder: (base) => ({
+    ...base,
+    color: 'rgb(156, 163, 175)',
+    fontSize: '0.875rem'
+  }),
+  singleValue: (base) => ({
+    ...base,
+    color: 'rgb(17, 24, 39)',
+    fontSize: '0.875rem',
+    fontWeight: '500'
+  }),
+  indicatorSeparator: () => ({
+    display: 'none'
+  }),
+  dropdownIndicator: () => ({
+    padding: 0,
+    display: 'flex'
+  }),
+  clearIndicator: (base) => ({
+    ...base,
+    color: 'rgb(156, 163, 175)',
+    padding: '8px',
+    cursor: 'pointer',
+    '&:hover': {
+      color: 'rgb(239, 68, 68)'
+    }
+  }),
+  menu: (base) => ({
+    ...base,
+    borderRadius: '12px',
+    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+    border: '1px solid rgb(229, 231, 235)',
+    overflow: 'hidden',
+    marginTop: '8px',
+    zIndex: 9999
+  }),
+  menuList: (base) => ({
+    ...base,
+    padding: '8px',
+    maxHeight: '300px'
+  }),
+  option: (base, state) => ({
+    ...base,
+    borderRadius: '88px',
+    padding: '10px 12px',
+    margin: '2px 0',
+    backgroundColor: state.isSelected
+      ? 'rgb(59, 130, 246)'
+      : state.isFocused
+        ? 'rgb(239, 246, 255)'
+        : 'transparent',
+    color: state.isSelected ? 'white' : 'rgb(17, 24, 39)',
+    fontSize: '0.875rem',
+    fontWeight: state.isSelected ? '600' : '500',
+    cursor: 'pointer',
+    transition: 'all 0.15s'
+  })
+}
+
+// Opciones para los selects
 const ACCIONES = [
   { value: '', label: 'Todas las acciones' },
   { value: 'created', label: 'Creación' },
@@ -21,382 +130,387 @@ const MODELOS = [
   { value: 'Incidencia', label: 'Incidencias' },
   { value: 'Solicitud', label: 'Solicitudes' },
   { value: 'Jornada', label: 'Jornadas' },
+  { value: 'Pausa', label: 'Pausas' },
   { value: 'User', label: 'Usuarios' },
-  { value: 'Festivo', label: 'Festivos' }
+  { value: 'Festivo', label: 'Festivos' },
+  { value: 'Department', label: 'Departamentos' },
+  { value: 'Role', label: 'Roles' }
 ]
 
-export default function Auditoria() {
+export default function Auditoria () {
   const { user } = useAuth()
   const [logs, setLogs] = useState([])
   const [usuarios, setUsuarios] = useState([])
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({
-    model: '',
-    usuario_id: '',
-    accion: '',
+    model: null,
+    usuario_id: null,
+    accion: null,
     desde: '',
     hasta: ''
   })
   const [selectedLog, setSelectedLog] = useState(null)
   const [showModal, setShowModal] = useState(false)
 
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    perPage: 20
+  })
+
   const isAdmin = user?.role?.slug === 'administrador' || user?.role?.nombre?.toLowerCase() === 'administrador'
 
-  useEffect(() => {
-    if (isAdmin) {
-      loadLogs()
-      loadUsuarios()
-    }
-  }, [filters, isAdmin])
-
-  // Verificar permisos - solo administradores pueden acceder
-  if (!isAdmin) {
-    return (
-      <div className="text-center py-8">
-        <ShieldCheckIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-600">No tienes permisos para acceder a esta sección</p>
-      </div>
-    )
-  }
-
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value)
-      })
+
+      if (filters.model?.value) params.append('model', filters.model.value)
+      if (filters.usuario_id?.value) params.append('usuario_id', filters.usuario_id.value)
+      if (filters.accion?.value) params.append('accion', filters.accion.value)
+      if (filters.desde) params.append('desde', filters.desde)
+      if (filters.hasta) params.append('hasta', filters.hasta)
+
+      params.append('page', pagination.currentPage)
+      params.append('per_page', pagination.perPage)
 
       const { data } = await api.get(`/audit-logs?${params}`)
-      setLogs(data.data || data || [])
+
+      setLogs(data.data || [])
+      setPagination(prev => ({
+        ...prev,
+        totalPages: data.last_page || 1,
+        total: data.total || 0
+      }))
     } catch (error) {
       console.error('Error al cargar logs de auditoría:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters, pagination.currentPage, pagination.perPage])
 
-  const loadUsuarios = async () => {
+  const loadUsuarios = useCallback(async () => {
     try {
       const { data } = await api.get('/usuarios')
       setUsuarios(data.data || data || [])
     } catch (error) {
       console.error('Error al cargar usuarios:', error)
     }
-  }
+  }, [])
 
-  const formatDateTime = (dateString) => {
-    if (!dateString) return '-'
-    return new Date(dateString).toLocaleString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    })
-  }
-
-  const getAccionColor = (accion) => {
-    switch (accion?.toLowerCase()) {
-      case 'created': return 'bg-green-100 text-green-800'
-      case 'updated': return 'bg-blue-100 text-blue-800'
-      case 'deleted': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+  useEffect(() => {
+    if (isAdmin) {
+      loadLogs()
+      loadUsuarios()
     }
+  }, [isAdmin, loadLogs, loadUsuarios])
+
+  if (!isAdmin) {
+    return (
+      <div className='text-center py-8'>
+        <ShieldCheckIcon className='h-12 w-12 text-gray-400 mx-auto mb-4' />
+        <p className='text-gray-600'>No tienes permisos para acceder a esta sección</p>
+      </div>
+    )
   }
 
-  const openModal = (log) => {
-    setSelectedLog(log)
+  const openModal = async (log) => {
+    try {
+      const response = await api.get(`/audit-logs/${log.id}`)
+      setSelectedLog(response.data)
+    } catch (error) {
+      console.error('Error al obtener log detallado:', error)
+      setSelectedLog(log) // Fallback to the basic log info
+    }
     setShowModal(true)
   }
 
-  const formatChanges = (changes) => {
-    if (!changes || typeof changes !== 'object') return 'Sin cambios'
-
-    return Object.entries(changes).map(([key, value]) => {
-      if (typeof value === 'object' && value !== null) {
-        return `${key}: ${JSON.stringify(value, null, 2)}`
-      }
-      return `${key}: ${value}`
-    }).join('\n')
+  const closeModal = () => {
+    setShowModal(false)
+    setSelectedLog(null)
   }
 
+  const createDateFromString = (dateString) => {
+    if (!dateString) return null;
+    // The string is in 'YYYY-MM-DD' format. Appending 'T00:00:00' ensures it's parsed as local time.
+    const date = new Date(`${dateString}T00:00:00`);
+    // Check if the created date is valid
+    if (isNaN(date.getTime())) {
+        console.error('Error parsing date:', dateString);
+        return null;
+    }
+    return date;
+  }
+
+  const generatePageNumbers = () => {
+    const pages = []
+    const { currentPage, totalPages } = pagination
+
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i)
+    } else {
+      if (currentPage <= 4) {
+        for (let i = 1; i <= 5; i++) pages.push(i)
+        pages.push('...')
+        pages.push(totalPages)
+      } else if (currentPage >= totalPages - 3) {
+        pages.push(1)
+        pages.push('...')
+        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
+      } else {
+        pages.push(1)
+        pages.push('...')
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i)
+        pages.push('...')
+        pages.push(totalPages)
+      }
+    }
+    return pages
+  }
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= pagination.totalPages) {
+      setPagination(prev => ({ ...prev, currentPage: page }))
+    }
+  }
+
+  const goToPreviousPage = () => {
+    if (pagination.currentPage > 1) {
+      setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }))
+    }
+  }
+
+  const goToNextPage = () => {
+    if (pagination.currentPage < pagination.totalPages) {
+      setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }))
+    }
+  }
+
+  const getLogDescription = (log) => {
+    const action = log.action
+    const modelType = log.model_type.split('\\').pop()
+    const modelId = log.model_id
+
+    const actionText = {
+      created: 'creó',
+      updated: 'modificó',
+      deleted: 'eliminó'
+    }[action] || 'actualizó'
+
+    const modelDescriptions = {
+      Incidencia: `${actionText} la incidencia #${modelId}`,
+      Solicitud: `${actionText} la solicitud #${modelId}`,
+      Jornada: `${actionText} el registro de jornada #${modelId}`,
+      Pausa: `${actionText} el registro de pausa #${modelId}`,
+      User: `${actionText} el usuario #${modelId}`,
+      Festivo: `${actionText} el festivo #${modelId}`,
+      Department: `${actionText} el departamento #${modelId}`,
+      Role: `${actionText} el rol #${modelId}`
+    }
+
+    return modelDescriptions[modelType] || `${actionText} ${modelType} #${modelId}`
+  }
+
+  const usuariosOptions = [
+    { value: '', label: 'Todos los usuarios' },
+    ...usuarios.map(u => ({
+      value: u.id,
+      label: u.nombre && u.apellidos ? `${u.nombre} ${u.apellidos}` : u.email || 'Sin nombre'
+    }))
+  ]
+
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div className='space-y-6'>
+      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className='text-2xl font-bold text-gray-900'>
             Auditoría del Sistema
           </h1>
-          <p className="text-gray-600 mt-1">
-            Consulta el registro de actividades del sistema
+          <p className='text-gray-600 mt-1 auditoria-subtitle'>
+            Retención mínima 4 años • Cumplimiento RDL 8/2019
           </p>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="card">
-        <div className="card-content">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Modelo
-              </label>
-              <select
-                value={filters.model}
-                onChange={(e) => setFilters(prev => ({...prev, model: e.target.value}))}
-                className="form-input"
-              >
-                {MODELOS.map(modelo => (
-                  <option key={modelo.value} value={modelo.value}>
-                    {modelo.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Usuario
-              </label>
-              <select
-                value={filters.usuario_id}
-                onChange={(e) => setFilters(prev => ({...prev, usuario_id: e.target.value}))}
-                className="form-input"
-              >
-                <option value="">Todos los usuarios</option>
-                {usuarios.map(usuario => (
-                  <option key={usuario.id} value={usuario.id}>
-                    {usuario?.nombre && usuario?.apellidos ? `${usuario.nombre} ${usuario.apellidos}` : 'Sin nombre'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Acción
-              </label>
-              <select
-                value={filters.accion}
-                onChange={(e) => setFilters(prev => ({...prev, accion: e.target.value}))}
-                className="form-input"
-              >
-                {ACCIONES.map(accion => (
-                  <option key={accion.value} value={accion.value}>
-                    {accion.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Desde
-              </label>
-              <input
-                type="date"
-                value={filters.desde}
-                onChange={(e) => setFilters(prev => ({...prev, desde: e.target.value}))}
-                className="form-input"
-              />
-            </div>
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hasta
-              </label>
-              <input
-                type="date"
-                value={filters.hasta}
-                onChange={(e) => setFilters(prev => ({...prev, hasta: e.target.value}))}
-                className="form-input"
-              />
-            </div>
+      <Card>
+        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4'>
+          <div className='w-full'>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              Modelo
+            </label>
+            <Select
+              options={MODELOS}
+              value={filters.model}
+              onChange={(option) => setFilters(prev => ({ ...prev, model: option }))}
+              placeholder='Seleccionar modelo'
+              isClearable
+              isSearchable={false}
+              styles={customSelectStyles}
+              components={{ DropdownIndicator }}
+              menuPortalTarget={document.body}
+              menuPosition='fixed'
+            />
+          </div>
+          <div className='w-full'>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              Usuario
+            </label>
+            <Select
+              options={usuariosOptions}
+              value={filters.usuario_id}
+              onChange={(option) => setFilters(prev => ({ ...prev, usuario_id: option }))}
+              placeholder='Seleccionar usuario'
+              isClearable
+              styles={customSelectStyles}
+              components={{ DropdownIndicator }}
+              menuPortalTarget={document.body}
+              menuPosition='fixed'
+            />
+          </div>
+          <div className='w-full'>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              Acción
+            </label>
+            <Select
+              options={ACCIONES}
+              value={filters.accion}
+              onChange={(option) => setFilters(prev => ({ ...prev, accion: option }))}
+              placeholder='Seleccionar acción'
+              isClearable
+              isSearchable={false}
+              styles={customSelectStyles}
+              components={{ DropdownIndicator }}
+              menuPortalTarget={document.body}
+              menuPosition='fixed'
+            />
+          </div>
+          <div className='w-full'>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              Desde
+            </label>
+            <DatePicker
+              selected={createDateFromString(filters.desde)}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+                  setFilters(prev => ({ ...prev, desde: `${year}-${month}-${day}` }))
+                } else {
+                  setFilters(prev => ({ ...prev, desde: '' }))
+                }
+              }}
+              placeholder='Seleccionar fecha'
+            />
+          </div>
+          <div className='w-full'>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>
+              Hasta
+            </label>
+            <DatePicker
+              selected={createDateFromString(filters.hasta)}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear()
+                  const month = String(date.getMonth() + 1).padStart(2, '0')
+                  const day = String(date.getDate()).padStart(2, '0')
+                  setFilters(prev => ({ ...prev, hasta: `${year}-${month}-${day}` }))
+                } else {
+                  setFilters(prev => ({ ...prev, hasta: '' }))
+                }
+              }}
+              placeholder='Seleccionar fecha'
+            />
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* Lista de logs de auditoría con nuevo diseño premium */}
-      <div className="list">
-        <div className="list-header">
-          Registro de Actividades del Sistema
-        </div>
-
-        {loading ? (
-          <div className="list-empty">
-            <div className="list-empty-icon">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-            <div className="list-empty-title">Cargando logs de auditoría...</div>
-            <div className="list-empty-message">Obteniendo registro de actividades</div>
-          </div>
-        ) : logs.length === 0 ? (
-          <div className="list-empty">
-            <ShieldCheckIcon className="list-empty-icon" />
-            <div className="list-empty-title">Sin registros de auditoría</div>
-            <div className="list-empty-message">No se encontraron registros con los filtros seleccionados</div>
-          </div>
-        ) : (
-          <div className="list-scrollable">
-            {logs.map((log) => (
-              <div key={log.id} className="list-item">
-                <div className="list-item-icon">
-                  <ShieldCheckIcon className="h-5 w-5" />
-                </div>
-
-                <div className="list-item-content">
-                  <div className="list-item-title">
-                    {log.model || log.auditable_type?.split('\\').pop()} #{log.auditable_id || log.model_id}
-                    <span className="text-sm text-gray-500 ml-2">
-                      - {log.usuario?.nombre} {log.usuario?.apellidos}
-                    </span>
-                  </div>
-                  <div className="list-item-subtitle">
-                    <div className="flex items-center gap-2">
-                      <ClockIcon className="h-4 w-4 text-gray-500" />
-                      {formatDateTime(log.created_at || log.timestamp)}
-                    </div>
-                  </div>
-                  <div className="list-item-meta">
-                    Actividad del sistema • Usuario ID: {log.user_id}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className={`list-item-badge ${
-                    (log.accion || log.event) === 'created' ? 'success' :
-                    (log.accion || log.event) === 'updated' ? 'info' :
-                    (log.accion || log.event) === 'deleted' ? 'danger' : 'warning'
-                  }`}>
-                    {log.accion || log.event}
-                  </span>
-
-                  <div className="list-item-actions">
-                    <button
-                      onClick={() => openModal(log)}
-                      className="btn btn-xs btn-ghost"
-                      title="Ver detalles completos"
-                    >
-                      <EyeIcon className="icon-left" />
-                      Ver detalles
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      <List
+        items={logs}
+        renderItem={(log) => (
+          <AuditoriaItem
+            log={log}
+            description={getLogDescription(log)}
+            onVerDetalles={openModal}
+          />
         )}
-      </div>
+        config={{
+          variant: 'custom',
+          itemKey: 'id',
+          showHeader: true,
+          headerText: 'Registro de Actividades del Sistema',
+          headerCount: pagination.total,
+          loading,
+          emptyState: (
+            <div className='list-empty'>
+              <ShieldCheckIcon className='list-empty-icon' />
+              <div className='list-empty-title'>Sin registros de auditoría</div>
+              <div className='list-empty-message'>No se encontraron registros con los filtros seleccionados</div>
+            </div>
+          )
+        }}
+      />
 
-      {/* Modal para ver detalles del log */}
-      {showModal && selectedLog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-screen overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">
-              Detalles del Log de Auditoría
-            </h3>
+      {!loading && logs.length > 0 && pagination.totalPages > 1 && (
+        <div className='pagination'>
+          <div className='pagination-controls'>
+            <button
+              onClick={goToPreviousPage}
+              disabled={pagination.currentPage === 1}
+              className='pagination-button'
+              title='Página anterior'
+            >
+              <ChevronLeftIcon className='h-5 w-5' />
+            </button>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Fecha/Hora
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {formatDateTime(selectedLog.created_at || selectedLog.timestamp)}
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Usuario
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {selectedLog.usuario?.nombre} {selectedLog.usuario?.apellidos}
-                    {selectedLog.usuario?.email && ` (${selectedLog.usuario.email})`}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Acción
-                  </label>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getAccionColor(selectedLog.accion || selectedLog.event)}`}>
-                    {selectedLog.accion || selectedLog.event}
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Modelo
-                  </label>
-                  <p className="text-sm text-gray-900">
-                    {selectedLog.model || selectedLog.auditable_type?.split('\\').pop()} #{selectedLog.auditable_id || selectedLog.model_id}
-                  </p>
-                </div>
-              </div>
-
-              {selectedLog.cambios && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Cambios Realizados
-                  </label>
-                  <pre className="bg-gray-100 p-3 rounded-md text-sm overflow-x-auto">
-                    {formatChanges(selectedLog.cambios)}
-                  </pre>
-                </div>
-              )}
-
-              {selectedLog.old_values && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Valores Anteriores
-                  </label>
-                  <pre className="bg-red-50 p-3 rounded-md text-sm overflow-x-auto">
-                    {JSON.stringify(selectedLog.old_values, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {selectedLog.new_values && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Valores Nuevos
-                  </label>
-                  <pre className="bg-green-50 p-3 rounded-md text-sm overflow-x-auto">
-                    {JSON.stringify(selectedLog.new_values, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {selectedLog.ip_address && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dirección IP
-                  </label>
-                  <p className="text-sm text-gray-900 font-mono">{selectedLog.ip_address}</p>
-                </div>
-              )}
-
-              {selectedLog.user_agent && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Navegador
-                  </label>
-                  <p className="text-sm text-gray-600">{selectedLog.user_agent}</p>
-                </div>
-              )}
+            <div className='pagination-pages'>
+              {generatePageNumbers().map((page, index) => (
+                page === '...'
+                  ? (
+                    <span key={`ellipsis-${index}`} className='pagination-ellipsis'>
+                      ...
+                    </span>
+                    )
+                  : (
+                    <button
+                      key={page}
+                      onClick={() => goToPage(page)}
+                      className={`pagination-page ${pagination.currentPage === page ? 'active' : ''}`}
+                    >
+                      {page}
+                    </button>
+                    )
+              ))}
             </div>
 
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
+            <button
+              onClick={goToNextPage}
+              disabled={pagination.currentPage === pagination.totalPages}
+              className='pagination-button'
+              title='Página siguiente'
+            >
+              <ChevronRightIcon className='h-5 w-5' />
+            </button>
+          </div>
+
+          <div className='pagination-info'>
+            Mostrando {((pagination.currentPage - 1) * pagination.perPage) + 1} - {Math.min(pagination.currentPage * pagination.perPage, pagination.total)} de {pagination.total} registros
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={showModal}
+        onClose={closeModal}
+        variant='elegant'
+        size='lg'
+        animationType='fade-scale'
+        title='Registro de Auditoría - Información Detallada'
+        titleClassName='text-lg font-bold text-gray-800'
+      >
+        {selectedLog && <AuditModalBody log={selectedLog} />}
+      </Modal>
     </div>
   )
 }

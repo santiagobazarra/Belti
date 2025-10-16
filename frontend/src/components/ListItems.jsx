@@ -8,7 +8,13 @@ import {
   DocumentTextIcon,
   PencilIcon,
   TrashIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  WrenchScrewdriverIcon,
+  CalendarDaysIcon,
+  PauseIcon,
+  UserGroupIcon,
+  GiftIcon,
+  ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { getIconComponent } from '../lib/departmentIcons';
 
@@ -534,6 +540,147 @@ export const DepartamentoItem = ({
           onClick={() => onVerDetalles(departamento)}
           className="list-btn-resumen"
           title="Ver detalles"
+        >
+          <EyeIcon />
+          {showText && <span>Detalles</span>}
+        </button>
+      </div>
+    </>
+  );
+};
+
+/**
+ * Componente para renderizar elementos de Auditoría
+ */
+export const AuditoriaItem = ({ 
+  log,
+  description,
+  onVerDetalles 
+}) => {
+  const { showText, buttonRef } = useButtonWidth();
+
+  // Función para obtener HeroIcon según el modelo
+  const getModelIcon = (modelType) => {
+    const modelName = modelType || ''
+    switch (modelName.toLowerCase()) {
+      case 'incidencia': 
+        return <WrenchScrewdriverIcon className="h-5 w-5" />
+      case 'solicitud': 
+        return <DocumentTextIcon className="h-5 w-5" />
+      case 'jornada': 
+        return <CalendarDaysIcon className="h-5 w-5" />
+      case 'pausa': 
+        return <PauseIcon className="h-5 w-5" />
+      case 'user': 
+        return <UserIcon className="h-5 w-5" />
+      case 'festivo': 
+        return <GiftIcon className="h-5 w-5" />
+      case 'department': 
+        return <BuildingOfficeIcon className="h-5 w-5" />
+      case 'role': 
+        return <ShieldCheckIcon className="h-5 w-5" />
+      default: 
+        return <DocumentTextIcon className="h-5 w-5" />
+    }
+  }
+
+  // Función para obtener color según la acción
+  const getActionColor = (action) => {
+    switch (action?.toLowerCase()) {
+      case 'created': return 'success'
+      case 'updated': return 'info'
+      case 'deleted': return 'danger'
+      default: return 'warning'
+    }
+  }
+
+  // Función para obtener texto de acción en español
+  const getActionText = (action) => {
+    switch (action?.toLowerCase()) {
+      case 'created': return 'Creación'
+      case 'updated': return 'Actualización'
+      case 'deleted': return 'Eliminación'
+      default: return action || '-'
+    }
+  }
+
+  // Formatear fecha y hora
+  const formatDateTime = (dateString) => {
+    if (!dateString) return { date: '-', time: '-' }
+    const date = new Date(dateString)
+    return {
+      date: date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
+      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    }
+  }
+
+  const modelName = log.model_type || 'Registro'
+  const modelId = log.model_id || '-'
+  const { date, time } = formatDateTime(log.created_at)
+  const action = log.action
+
+  return (
+    <>
+      {/* COLUMNA IZQUIERDA: Icono y fecha */}
+      <div className="list-date-col">
+        <div className="list-date">
+          <div className="list-day">
+            {getModelIcon(log.model_type)}
+          </div>
+          <div className="list-date-number" style={{ fontSize: '0.75rem' }}>
+            {date}
+          </div>
+          <div className="list-month" style={{ fontSize: '0.65rem' }}>
+            {time}
+          </div>
+        </div>
+        <div className={`list-status-indicator ${getActionColor(action)}`}></div>
+      </div>
+
+      {/* COLUMNA CENTRAL: Contenido principal */}
+      <div className="list-info-col">
+        {/* Fila superior: Descripción descriptiva + Badge */}
+        <div className="list-header-row">
+          <div className="list-tipo">
+            {description || `${modelName} #${modelId}`}
+          </div>
+          <span className={`list-badge ${getActionColor(action)}`}>
+            {getActionText(action)}
+          </span>
+        </div>
+
+        {/* Fila de metadata */}
+        <div className="list-meta-row">
+          {log.usuario && (
+            <div className="list-usuario">
+              <UserIcon />
+              {log.usuario.nombre} {log.usuario.apellidos}
+            </div>
+          )}
+          
+          {log.ip_address && (
+            <div className="list-meta-item">
+              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>IP: {log.ip_address}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Descripción: Email del usuario */}
+        {log.usuario?.email && (
+          <div className="list-descripcion">
+            {log.usuario.email}
+          </div>
+        )}
+      </div>
+
+      {/* COLUMNA DERECHA: Acciones */}
+      <div className="list-actions-col">
+        {/* Botón de ver detalles completos */}
+        <button
+          ref={buttonRef}
+          onClick={() => onVerDetalles(log)}
+          className="list-btn-resumen"
+          title="Ver detalles completos"
         >
           <EyeIcon />
           {showText && <span>Detalles</span>}

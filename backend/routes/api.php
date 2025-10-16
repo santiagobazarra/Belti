@@ -123,6 +123,9 @@ Route::middleware([$authMiddleware])->group(function () {
         // Configuración empresa (solo admin)
         Route::get('/configuracion', [ConfigEmpresaController::class,'index']);
         Route::put('/configuracion', [ConfigEmpresaController::class,'update']);
+        
+        // Auditoría (solo admin)
         Route::get('/audit-logs', [AuditLogController::class,'index']);
+        Route::get('/audit-logs/{id}', [AuditLogController::class,'show']);
     });
 });

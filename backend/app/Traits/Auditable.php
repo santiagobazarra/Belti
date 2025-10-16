@@ -39,6 +39,8 @@ trait Auditable
                     'new' => $new,
                     'old' => $old,
                 ],
+                'new_values' => $new,
+                'old_values' => $old,
             ]);
         } catch (\Throwable $e) {
             // swallow to not break main flow
