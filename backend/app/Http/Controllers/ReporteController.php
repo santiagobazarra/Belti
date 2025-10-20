@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\ReporteService;
+use App\Services\AuditReportService;
 
 class ReporteController extends Controller
 {
@@ -15,6 +16,10 @@ class ReporteController extends Controller
             'id_usuario' => 'nullable|integer',
             'id_departamento' => 'nullable|integer'
         ]);
+        
+        // Registrar en auditoría
+        AuditReportService::logReportGeneration('resumen', 'json', $data);
+        
         return $service->resumen($data, Auth::user());
     }
 
@@ -26,6 +31,10 @@ class ReporteController extends Controller
             'id_usuario' => 'nullable|integer',
             'id_departamento' => 'nullable|integer'
         ]);
+        
+        // Registrar en auditoría
+        AuditReportService::logReportDownload('resumen', 'csv', $data);
+        
         $res = $service->resumen($data, Auth::user());
     $lines = [];
     $lines[] = 'fecha,usuario,departamento,horas_netas,horas_extra,pausas_no_computables_horas,pausas_computables_horas';

@@ -41,9 +41,12 @@ trait Auditable
                 ],
                 'new_values' => $new,
                 'old_values' => $old,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
         } catch (\Throwable $e) {
-            // swallow to not break main flow
+            // Log error but don't break main flow
+            error_log('Audit log error: ' . $e->getMessage());
         }
     }
 }

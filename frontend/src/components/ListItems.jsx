@@ -564,23 +564,23 @@ export const AuditoriaItem = ({
     const modelName = modelType || ''
     switch (modelName.toLowerCase()) {
       case 'incidencia': 
-        return <WrenchScrewdriverIcon className="h-5 w-5" />
+        return <WrenchScrewdriverIcon className="h-5 w-5" data-model="incidencia" />
       case 'solicitud': 
-        return <DocumentTextIcon className="h-5 w-5" />
+        return <DocumentTextIcon className="h-5 w-5" data-model="solicitud" />
       case 'jornada': 
-        return <CalendarDaysIcon className="h-5 w-5" />
+        return <CalendarDaysIcon className="h-5 w-5" data-model="jornada" />
       case 'pausa': 
-        return <PauseIcon className="h-5 w-5" />
+        return <PauseIcon className="h-5 w-5" data-model="pausa" />
       case 'user': 
-        return <UserIcon className="h-5 w-5" />
+        return <UserIcon className="h-5 w-5" data-model="user" />
       case 'festivo': 
-        return <GiftIcon className="h-5 w-5" />
+        return <GiftIcon className="h-5 w-5" data-model="festivo" />
       case 'department': 
-        return <BuildingOfficeIcon className="h-5 w-5" />
+        return <BuildingOfficeIcon className="h-5 w-5" data-model="department" />
       case 'role': 
-        return <ShieldCheckIcon className="h-5 w-5" />
+        return <ShieldCheckIcon className="h-5 w-5" data-model="role" />
       default: 
-        return <DocumentTextIcon className="h-5 w-5" />
+        return <DocumentTextIcon className="h-5 w-5" data-model="default" />
     }
   }
 
@@ -604,34 +604,36 @@ export const AuditoriaItem = ({
     }
   }
 
-  // Formatear fecha y hora
+  // Formatear fecha y hora para mostrar en la columna de fecha
   const formatDateTime = (dateString) => {
-    if (!dateString) return { date: '-', time: '-' }
+    if (!dateString) return { day: '-', dateNumber: '-', month: '-', time: '-' }
     const date = new Date(dateString)
     return {
-      date: date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }),
-      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      day: date.toLocaleDateString('es-ES', { weekday: 'short' }),
+      dateNumber: date.getDate(),
+      month: date.toLocaleDateString('es-ES', { month: 'short' }),
+      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
     }
   }
 
   const modelName = log.model_type || 'Registro'
   const modelId = log.model_id || '-'
-  const { date, time } = formatDateTime(log.created_at)
+  const { day, dateNumber, month, time } = formatDateTime(log.created_at)
   const action = log.action
 
   return (
     <>
-      {/* COLUMNA IZQUIERDA: Icono y fecha */}
+      {/* COLUMNA IZQUIERDA: Fecha minimalista con indicador */}
       <div className="list-date-col">
         <div className="list-date">
           <div className="list-day">
-            {getModelIcon(log.model_type)}
+            {day}
           </div>
-          <div className="list-date-number" style={{ fontSize: '0.75rem' }}>
-            {date}
+          <div className="list-date-number">
+            {dateNumber}
           </div>
-          <div className="list-month" style={{ fontSize: '0.65rem' }}>
-            {time}
+          <div className="list-month">
+            {month}
           </div>
         </div>
         <div className={`list-status-indicator ${getActionColor(action)}`}></div>
@@ -639,12 +641,10 @@ export const AuditoriaItem = ({
 
       {/* COLUMNA CENTRAL: Contenido principal */}
       <div className="list-info-col">
-        {/* Fila superior: Descripción descriptiva + Badge */}
+        {/* Fila superior: Descripción + Badge */}
         <div className="list-header-row">
-          <div className="list-tipo">
-            {description || `${modelName} #${modelId}`}
-          </div>
-          <span className={`list-badge ${getActionColor(action)}`}>
+          <h4 className="list-tipo">{description || `${modelName} #${modelId}`}</h4>
+          <span className={`list-badge list-badge-${getActionColor(action)}`}>
             {getActionText(action)}
           </span>
         </div>
@@ -658,9 +658,14 @@ export const AuditoriaItem = ({
             </div>
           )}
           
+          <div className="list-meta-item">
+            {getModelIcon(log.model_type)}
+            <span>{modelName}</span>
+          </div>
+          
           {log.ip_address && (
             <div className="list-meta-item">
-              <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>IP: {log.ip_address}</span>
+              <span>IP: {log.ip_address}</span>
             </div>
           )}
         </div>

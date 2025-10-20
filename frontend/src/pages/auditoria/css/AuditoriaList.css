@@ -1,0 +1,192 @@
+/* ============================================
+   ESTILOS ESPECÍFICOS PARA AUDITORÍAS
+   ============================================
+   Extiende los estilos estándar de List.css
+   ============================================ */
+
+/* Estilos específicos para elementos de auditorías */
+.list-item-auditoria {
+  transition: all 0.2s ease;
+}
+
+.list-item-auditoria:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Iconos específicos para auditorías en la metadata */
+.list-item-auditoria .list-meta-item svg {
+  width: 1rem;
+  height: 1rem;
+  transition: all 0.2s ease;
+}
+
+.list-item-auditoria:hover .list-meta-item svg {
+  transform: scale(1.1);
+}
+
+/* Badges específicos para acciones de auditoría */
+.list-badge-success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.list-badge-info {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.list-badge-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.list-badge-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Indicadores de estado para auditorías */
+.list-status-indicator.success {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.list-status-indicator.info {
+  background: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.list-status-indicator.danger {
+  background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.list-status-indicator.warning {
+  background: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+/* Estilos para el header de auditorías */
+.list-header .list-title {
+  color: #111827;
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.025em;
+}
+
+/* Estilos para el estado vacío de auditorías */
+.list-empty .list-empty-icon {
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.list-empty .list-empty-title {
+  color: #374151;
+  font-weight: 600;
+  font-size: 1.125rem;
+  margin-bottom: 0.5rem;
+}
+
+.list-empty .list-empty-message {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Estilos para el estado de carga de auditorías */
+.list-loading .list-loading-icon {
+  color: #3b82f6;
+  margin-bottom: 1rem;
+}
+
+.list-loading .list-loading-title {
+  color: #374151;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.list-loading .list-loading-message {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+/* Animaciones específicas para auditorías */
+@keyframes auditoria-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.2);
+  }
+}
+
+.list-item-auditoria:hover .list-status-indicator {
+  animation: auditoria-glow 2s ease-in-out infinite;
+}
+
+/* Estilos para el botón de detalles en auditorías */
+.list-btn-resumen {
+  background: white;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.list-btn-resumen:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.list-btn-resumen svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Responsive para auditorías */
+@media (max-width: 768px) {
+  .list-item-auditoria .list-day svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+/* Estilos específicos para diferentes tipos de modelos en auditorías */
+.list-item-auditoria .list-day svg[data-model="incidencia"] {
+  color: #f59e0b;
+}
+
+.list-item-auditoria .list-day svg[data-model="solicitud"] {
+  color: #3b82f6;
+}
+
+.list-item-auditoria .list-day svg[data-model="user"] {
+  color: #10b981;
+}
+
+.list-item-auditoria .list-day svg[data-model="jornada"] {
+  color: #8b5cf6;
+}
+
+.list-item-auditoria .list-day svg[data-model="pausa"] {
+  color: #ef4444;
+}
+
+.list-item-auditoria .list-day svg[data-model="festivo"] {
+  color: #f97316;
+}
+
+.list-item-auditoria .list-day svg[data-model="department"] {
+  color: #06b6d4;
+}
+
+.list-item-auditoria .list-day svg[data-model="role"] {
+  color: #84cc16;
+}

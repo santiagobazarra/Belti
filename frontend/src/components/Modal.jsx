@@ -41,7 +41,7 @@ export default function Modal({
     }
   }, []) // Solo al montar
 
-  // Manejar el estado del modal y animaciones (solo para móvil)
+  // Manejar el estado del modal y animaciones (solo para móvil, o instantáneo si animationType==='none')
   useEffect(() => {
     if (isOpen) {
       // Abrir modal
@@ -51,7 +51,7 @@ export default function Modal({
       document.body.classList.add('modal-open')
     } else if (shouldRender) {
       // Cerrar modal
-      if (isMobile) {
+      if (isMobile && animationType !== 'none') {
         // En móvil: animación de salida
         setIsClosing(true)
         document.body.style.overflow = ''
@@ -120,8 +120,12 @@ export default function Modal({
     minimal: 'modal-minimal'
   }
 
-  // Animaciones solo para móvil
+  // Animaciones solo para móvil, o desactivadas si animationType==='none'
   const getAnimationClasses = () => {
+    if (animationType === 'none') {
+      return { modalAnimationClass: '', backdropAnimationClass: '' }
+    }
+
     if (!isMobile) {
       // Sin animaciones en desktop
       return { modalAnimationClass: '', backdropAnimationClass: '' }
@@ -152,6 +156,13 @@ export default function Modal({
 
   const handleBackdropClick = (e) => {
     if (closeOnBackdrop && !isClosing) {
+      // Evitar cierre si venimos de un drag/swipe que acaba de finalizar
+      if (window.__suppressBackdropOnce) {
+        e.preventDefault()
+        e.stopPropagation()
+        window.__suppressBackdropOnce = false
+        return
+      }
       // Cerrar si se hace click en el backdrop o en el container
       if (e.target === backdropRef.current || e.target.classList.contains('modal-container')) {
         e.preventDefault()

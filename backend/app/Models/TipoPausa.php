@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\Auditable;
 
 class TipoPausa extends Model
 {
+    use Auditable;
     protected $table = 'tipos_pausa';
 
     protected $fillable = [

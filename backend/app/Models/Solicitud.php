@@ -3,11 +3,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use App\Traits\Auditable;
+use App\Traits\AuditActions;
 
 class Solicitud extends Model
 {
-    use HasFactory, Auditable;
+    use HasFactory, Auditable, AuditActions;
 
     protected $table = 'solicitudes';
     protected $primaryKey = 'id_solicitud';
@@ -31,5 +33,35 @@ class Solicitud extends Model
         if(isset($f['desde'])) $q->whereDate('fecha_inicio','>=',$f['desde']);
         if(isset($f['hasta'])) $q->whereDate('fecha_fin','<=',$f['hasta']);
         return $q;
+    }
+
+    /**
+     * Aprobar solicitud y registrar en auditoría
+     */
+    public function aprobar($comentario = null)
+    {
+        $this->estado = 'aprobada';
+        $this->id_aprobador = Auth::id();
+        $this->fecha_resolucion = now();
+        $this->comentario_resolucion = $comentario;
+        $this->save();
+
+        // Registrar en auditoría
+        $this->auditApproval('solicitud', $comentario);
+    }
+
+    /**
+     * Rechazar solicitud y registrar en auditoría
+     */
+    public function rechazar($comentario = null)
+    {
+        $this->estado = 'rechazada';
+        $this->id_aprobador = Auth::id();
+        $this->fecha_resolucion = now();
+        $this->comentario_resolucion = $comentario;
+        $this->save();
+
+        // Registrar en auditoría
+        $this->auditRejection('solicitud', $comentario);
     }
 }
