@@ -20,6 +20,7 @@ import DatePicker from '../../components/DatePicker'
 import Select from 'react-select'
 import List from '../../components/List'
 import { SolicitudItem } from '../../components/ListItems'
+import Toast from '../../components/Toast'
 import './css/Solicitudes.css'
 import '../../components/css-components/modal-styles.css'
 import '../../components/css-components/List.css'
@@ -167,6 +168,7 @@ export default function Solicitudes() {
   const [selectedSolicitud, setSelectedSolicitud] = useState(null)
   const [isResumenMode, setIsResumenMode] = useState(false)
   const [comentarioResolucion, setComentarioResolucion] = useState('')
+  const [toast, setToast] = useState({ show: false, type: 'success', message: '' })
   const [formData, setFormData] = useState({
     fecha_inicio: '',
     fecha_fin: '',
@@ -228,19 +230,19 @@ export default function Solicitudes() {
     
     // Validaciones
     if (!formData.tipo || !formData.fecha_inicio || !formData.fecha_fin || !formData.motivo) {
-      alert('Por favor completa todos los campos requeridos')
+      setToast({ show: true, type: 'error', message: 'Por favor completa todos los campos requeridos' })
       return
     }
 
     // Validar que fecha_fin sea posterior a fecha_inicio
     if (formData.fecha_inicio && formData.fecha_fin && formData.fecha_inicio > formData.fecha_fin) {
-      alert('La fecha de fin debe ser posterior a la fecha de inicio')
+      setToast({ show: true, type: 'error', message: 'La fecha de fin debe ser posterior a la fecha de inicio' })
       return
     }
 
     // Solo permitir editar solicitudes pendientes
     if (selectedSolicitud && selectedSolicitud.estado !== 'pendiente') {
-      alert('Solo se pueden editar solicitudes pendientes')
+      setToast({ show: true, type: 'error', message: 'Solo se pueden editar solicitudes pendientes' })
       return
     }
 
@@ -261,10 +263,12 @@ export default function Solicitudes() {
         tipo: 'vacaciones',
         motivo: ''
       })
+      setToast({ show: true, type: 'success', message: selectedSolicitud ? 'Solicitud actualizada correctamente' : 'Solicitud enviada correctamente' })
+      setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000)
       loadSolicitudes()
     } catch (error) {
       console.error('Error al guardar solicitud:', error)
-      alert('Error al guardar la solicitud')
+      setToast({ show: true, type: 'error', message: 'Error al guardar la solicitud' })
     }
   }
 
@@ -284,10 +288,12 @@ export default function Solicitudes() {
       setShowAprobarModal(false)
       setSelectedSolicitud(null)
       setComentarioResolucion('')
+      setToast({ show: true, type: 'success', message: 'Solicitud aprobada correctamente' })
+      setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000)
       loadSolicitudes()
     } catch (error) {
       console.error('Error al aprobar solicitud:', error)
-      alert('Error al aprobar la solicitud')
+      setToast({ show: true, type: 'error', message: 'Error al aprobar la solicitud' })
     }
   }
 
@@ -307,10 +313,12 @@ export default function Solicitudes() {
       setShowRechazarModal(false)
       setSelectedSolicitud(null)
       setComentarioResolucion('')
+      setToast({ show: true, type: 'success', message: 'Solicitud rechazada correctamente' })
+      setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000)
       loadSolicitudes()
     } catch (error) {
       console.error('Error al rechazar solicitud:', error)
-      alert('Error al rechazar la solicitud')
+      setToast({ show: true, type: 'error', message: 'Error al rechazar la solicitud' })
     }
   }
 
@@ -1169,6 +1177,16 @@ export default function Solicitudes() {
           </div>
         </div>
       </Modal>
+
+      {/* Toast de notificación */}
+      <Toast
+        type={toast.type}
+        message={toast.message}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+        duration={4000}
+        position="bottom-right"
+      />
     </div>
   )
 }

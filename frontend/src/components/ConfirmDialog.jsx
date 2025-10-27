@@ -51,7 +51,7 @@ export default function ConfirmDialog({
       isOpen={isOpen}
       onClose={onClose}
       title=""
-      size="sm"
+      size="md"
       variant={variant}
       animationType="fade-scale"
       showHeader={false}

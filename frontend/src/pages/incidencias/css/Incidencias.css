@@ -567,6 +567,17 @@
   padding: 2.25rem 2.5rem 1rem 2.5rem;
 }
 
+/* Reducir padding en modales de confirmación para aprovechar más altura */
+.modal-confirm-approve,
+.modal-confirm-reject {
+  padding: 0.75rem 0 !important;
+}
+
+.modal-elegant .modal-body:has(.modal-confirm-approve),
+.modal-elegant .modal-body:has(.modal-confirm-reject) {
+  padding: 1.5rem 2rem !important;
+}
+
 .modal-elegant .modal-footer {
   border-top: 1px solid #e2e8f0;
   display: flex;
@@ -1441,7 +1452,9 @@
 /* Los calendarios en modales usan position: absolute sin animación */
 .modal-elegant .modal-body {
   position: relative;
-  overflow: visible;
+  /* Permitir poppers laterales sin romper el scroll vertical del cuerpo */
+  overflow-y: auto;
+  overflow-x: visible;
 }
 
 .modal-elegant .datepicker-wrapper {

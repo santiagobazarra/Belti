@@ -70,6 +70,10 @@ class ReporteController extends Controller
             'id_usuario' => 'nullable|integer',
             'id_departamento' => 'nullable|integer'
         ]);
+        
+        // Registrar en auditoría
+        AuditReportService::logReportDownload('resumen', 'pdf', $data);
+        
         $res = $service->resumen($data, Auth::user());
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reportes.resumen_pdf', array_merge($res, $data));
         $filename = 'reporte_resumen_'.$data['desde'].'_'.$data['hasta'].'.pdf';
@@ -84,6 +88,10 @@ class ReporteController extends Controller
             'id_usuario' => 'nullable|integer',
             'id_departamento' => 'nullable|integer'
         ]);
+        
+        // Registrar en auditoría
+        AuditReportService::logReportGeneration('jornadas', 'json', $data);
+        
         return $service->reporteJornadas($data, Auth::user());
     }
 
@@ -96,6 +104,10 @@ class ReporteController extends Controller
             'id_departamento' => 'nullable|integer',
             'estado' => 'nullable|string|in:pendiente,aprobada,rechazada,cancelada'
         ]);
+        
+        // Registrar en auditoría
+        AuditReportService::logReportGeneration('solicitudes', 'json', $data);
+        
         return $service->reporteSolicitudes($data, Auth::user());
     }
 
@@ -109,6 +121,10 @@ class ReporteController extends Controller
             'tipo' => 'nullable|string|in:falta,retraso,ausencia_parcial,anomalia_horas,otra',
             'estado' => 'nullable|string|in:pendiente,aprobada,rechazada'
         ]);
+        
+        // Registrar en auditoría
+        AuditReportService::logReportGeneration('incidencias', 'json', $data);
+        
         return $service->reporteIncidencias($data, Auth::user());
     }
 

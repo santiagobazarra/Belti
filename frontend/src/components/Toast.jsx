@@ -13,13 +13,24 @@ const Toast = ({
   title,
   message,
   duration = 5000,
-  onClose
+  onClose,
+  isVisible: propIsVisible
 }) => {
-  const [isVisible, setIsVisible] = useState(true)
+  const [isVisible, setIsVisible] = useState(propIsVisible === true)
   const [isLeaving, setIsLeaving] = useState(false)
   const [progress, setProgress] = useState(100)
   const [isPaused, setIsPaused] = useState(false)
   const [isEntering, setIsEntering] = useState(true)
+  
+  useEffect(() => {
+    // Sincronizar con la prop isVisible
+    if (propIsVisible === true && !isVisible) {
+      setIsVisible(true)
+      setIsEntering(true)
+      setIsLeaving(false)
+      setProgress(100)
+    }
+  }, [propIsVisible, isVisible])
   
   useEffect(() => {
     // Animación de entrada
@@ -27,7 +38,7 @@ const Toast = ({
       setIsEntering(false)
     }, 300)
 
-    if (duration > 0) {
+    if (duration > 0 && isVisible && !isLeaving) {
       const timer = setTimeout(() => {
         handleClose()
       }, duration)
@@ -53,7 +64,7 @@ const Toast = ({
     return () => {
       clearTimeout(enterTimer)
     }
-  }, [duration])
+  }, [duration, isVisible, isLeaving, isPaused])
 
   const handleClose = () => {
     setIsLeaving(true)
@@ -63,7 +74,7 @@ const Toast = ({
     }, 300) // Tiempo para la animación de salida
   }
 
-  if (!isVisible) return null
+  if (!isVisible || !message) return null
 
   const getIcon = () => {
     switch (type) {

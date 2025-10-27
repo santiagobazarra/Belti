@@ -17,7 +17,8 @@ import {
   ShieldCheckIcon,
   DocumentChartBarIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 
 // Navegación para usuarios base (empleados)
@@ -190,26 +191,15 @@ export default function Sidebar({ collapsed, onToggle }) {
   return (
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       {/* Header con logo y toggle */}
-      <div className="sidebar-header" style={{ padding: collapsed ? '1.5rem 0.5rem' : '1rem 1rem', minHeight: collapsed ? '4.5rem' : '3.5rem' }}>
-        {!collapsed && (
-          <div className="flex items-center transition-all duration-300">
-            <img
-              src="/logo.svg"
-              alt="Control Laboral"
-              className="h-20 w-auto"
-              title="Control Laboral"
-            />
-          </div>
-        )}
-        {collapsed && (
-          <div className="flex items-center justify-center" title="Control Laboral">
-            <img
-              src="/logo.svg"
-              alt="CL"
-              className="h-6 w-auto"
-            />
-          </div>
-        )}
+      <div className="sidebar-header">
+        <div className="sidebar-logo-container">
+          <img
+            src="/logo.svg"
+            alt="Control Laboral"
+            className="sidebar-logo"
+            title="Control Laboral"
+          />
+        </div>
         <button
           className="toggle-btn"
           onClick={() => onToggle(!collapsed)}
@@ -224,41 +214,32 @@ export default function Sidebar({ collapsed, onToggle }) {
 
       {/* Footer con perfil de usuario */}
       <div className="sidebar-footer">
-        <div className="flex items-center gap-3">
-          <div className="user-avatar" title={fullName}>
+        <div className="sidebar-user-info">
+          <div 
+            className={`user-avatar ${isAdmin ? 'admin' : 'employee'}`}
+            title={fullName}
+          >
             {initials}
           </div>
-          {!collapsed && (
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-gray-900 truncate leading-tight">
-                {fullName}
-              </div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                {isAdmin ? 'Administrador' : (user?.role?.nombre || 'Empleado')}
-              </div>
-              <button
-                onClick={logout}
-                className="text-xs text-gray-500 hover:text-red-600 transition-all duration-200 mt-1 font-medium"
-              >
-                Cerrar sesión
-              </button>
+          <div className="user-text-info">
+            <div className="user-name">
+              {fullName}
             </div>
-          )}
-        </div>
-        {collapsed && (
-          <div className="mt-3 text-center">
-            <div className="text-xs text-gray-400 mb-2" title={fullName}>
-              {isAdmin ? 'A' : (user?.role?.nombre?.[0] || 'E')}
+            <div className="user-role">
+              {isAdmin ? 'Administrador' : (user?.role?.nombre || 'Empleado')}
             </div>
-            <button
-              onClick={logout}
-              className="text-xs text-gray-500 hover:text-red-600 transition-colors duration-200 font-medium"
-              title="Cerrar sesión"
-            >
-              Salir
-            </button>
           </div>
-        )}
+        </div>
+        
+        {/* Botón de cerrar sesión */}
+        <button
+          onClick={logout}
+          className="logout-btn"
+          title="Cerrar sesión"
+        >
+          <ArrowRightOnRectangleIcon />
+          <span className="logout-text">Cerrar sesión</span>
+        </button>
       </div>
     </aside>
   )

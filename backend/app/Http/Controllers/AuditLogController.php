@@ -23,7 +23,14 @@ class AuditLogController extends Controller
             }])
             ->latest('created_at');
             
-        if($request->filled('model')) $query->where('model_type',$request->model);
+        if($request->filled('model')) {
+            // Filtrar por model_type usando LIKE para soportar nombres cortos y con namespace
+            // Buscar tanto "Reporte" como "App\Models\Reporte"
+            $query->where(function($q) use ($request) {
+                $q->where('model_type', 'LIKE', '%' . $request->model)
+                  ->orWhere('model_type', '=', $request->model);
+            });
+        }
         if($request->filled('usuario_id')) $query->where('id_usuario',$request->usuario_id);
         if($request->filled('accion')) $query->where('action',$request->accion);
         if($request->filled('desde')) $query->whereDate('created_at','>=',$request->desde);
@@ -99,7 +106,11 @@ class AuditLogController extends Controller
         $accion = [
             'created' => 'creó',
             'updated' => 'modificó',
-            'deleted' => 'eliminó'
+            'deleted' => 'eliminó',
+            'report_generated' => 'generó',
+            'report_downloaded' => 'descargó',
+            'approved' => 'aprobó',
+            'rejected' => 'rechazó'
         ][$log->action] ?? 'realizó una acción sobre';
 
         $usuario = $log->usuario 
@@ -114,7 +125,8 @@ class AuditLogController extends Controller
             'User' => 'el usuario',
             'Festivo' => 'el festivo',
             'Department' => 'el departamento',
-            'Role' => 'el rol'
+            'Role' => 'el rol',
+            'Reporte' => 'un reporte'
         ][$log->model_type] ?? 'el registro';
 
         return "{$usuario} {$accion} {$entidad} #{$log->model_id}";
@@ -163,7 +175,8 @@ class AuditLogController extends Controller
             'User' => 'Administración',
             'Department' => 'Administración',
             'Role' => 'Administración',
-            'Festivo' => 'Configuración'
+            'Festivo' => 'Configuración',
+            'Reporte' => 'Reportes'
         ];
 
         return $modulos[$modelType] ?? 'Sistema';

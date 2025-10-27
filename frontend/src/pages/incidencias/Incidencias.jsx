@@ -279,6 +279,7 @@ export default function Incidencias() {
         type: 'success',
         message: isEditing ? 'Incidencia actualizada correctamente' : 'Incidencia creada correctamente'
       })
+      setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000)
 
       loadIncidencias()
     } catch (error) {
@@ -301,6 +302,7 @@ export default function Incidencias() {
         type: 'success',
         message: 'Incidencia aprobada correctamente'
       })
+      setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000)
       loadIncidencias()
     } catch (error) {
       console.error('Error al aprobar incidencia:', error)
@@ -336,6 +338,7 @@ export default function Incidencias() {
         type: 'success',
         message: 'Incidencia rechazada correctamente'
       })
+      setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000)
       loadIncidencias()
     } catch (error) {
       console.error('Error al rechazar incidencia:', error)

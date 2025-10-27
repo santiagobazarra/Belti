@@ -120,11 +120,16 @@
     useEffect(() => {
       const initialize = async () => {
         setInitialLoading(true)
-        await Promise.all([
-          loadJornadaActual(),
-          loadTiposPausa()
-        ])
-        setInitialLoading(false)
+        try {
+          await Promise.all([
+            loadJornadaActual(),
+            loadTiposPausa()
+          ])
+        } catch (error) {
+          console.error('Error durante inicialización:', error)
+        } finally {
+          setInitialLoading(false)
+        }
       }
       
       initialize()

@@ -5,6 +5,7 @@ import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
 import DatePicker from '../../components/DatePicker'
 import Select from 'react-select'
+import Toast from '../../components/Toast'
 import {
   CalendarDaysIcon,
   PlusIcon,
@@ -256,6 +257,7 @@ export default function Festivos() {
   const [selectedFestivo, setSelectedFestivo] = useState(null)
   const [showConfirmDelete, setShowConfirmDelete] = useState(false)
   const [festivoToDelete, setFestivoToDelete] = useState(null)
+  const [toast, setToast] = useState({ show: false, type: 'success', message: '' })
   const [formData, setFormData] = useState({
     fecha: '',
     descripcion: '',
@@ -283,8 +285,10 @@ export default function Festivos() {
     try {
       if (selectedFestivo) {
         await api.put(`/festivos/${selectedFestivo.id_festivo}`, formData)
+        setToast({ show: true, type: 'success', message: 'Festivo actualizado correctamente' })
       } else {
         await api.post('/festivos', formData)
+        setToast({ show: true, type: 'success', message: 'Festivo creado correctamente' })
       }
 
       setShowModal(false)
@@ -294,10 +298,11 @@ export default function Festivos() {
         descripcion: '',
         tipo: 'nacional'
       })
+      setTimeout(() => setToast({ show: false, type: '', message: '' }), 4000)
       loadFestivos()
     } catch (error) {
       console.error('Error al guardar festivo:', error)
-      alert('Error al guardar el festivo')
+      setToast({ show: true, type: 'error', message: 'Error al guardar el festivo' })
     }
   }
 
@@ -631,6 +636,16 @@ export default function Festivos() {
         type="danger"
         variant="elegant"
         animationOrigin="center"
+      />
+
+      {/* Toast de notificación */}
+      <Toast
+        type={toast.type}
+        message={toast.message}
+        isVisible={toast.show}
+        onClose={() => setToast({ ...toast, show: false })}
+        duration={4000}
+        position="bottom-right"
       />
     </div>
   )

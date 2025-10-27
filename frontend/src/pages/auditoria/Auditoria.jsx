@@ -16,7 +16,8 @@ import {
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  XMarkIcon as XCircleIcon,
+  XMarkIcon,
+  XCircleIcon,
   PencilIcon,
   UserIcon,
   TrashIcon,
@@ -63,6 +64,33 @@ const DropdownIndicator = (props) => {
       color: props.isFocused ? 'rgb(59, 130, 246)' : 'rgb(156, 163, 175)'
     }}>
       <ChevronDownIcon style={{ width: '1.25rem', height: '1.25rem' }} />
+    </div>
+  )
+}
+
+// Componente personalizado para el botón Clear (X)
+const ClearIndicator = (props) => {
+  const { innerProps } = props
+  return (
+    <div 
+      {...innerProps}
+      style={{ 
+        padding: '4px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        borderRadius: '4px',
+        transition: 'background-color 0.2s ease'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = '#f3f4f6'
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'transparent'
+      }}
+    >
+      <XMarkIcon className="h-4 w-4 text-gray-400 hover:text-gray-600" />
     </div>
   )
 }
@@ -138,7 +166,7 @@ const customSelectStyles = {
   }),
   option: (base, state) => ({
     ...base,
-    borderRadius: '88px',
+    borderRadius: '8px',
     padding: '10px 12px',
     margin: '2px 0',
     backgroundColor: state.isSelected
@@ -150,20 +178,21 @@ const customSelectStyles = {
     fontSize: '0.875rem',
     fontWeight: state.isSelected ? '600' : '500',
     cursor: 'pointer',
-    transition: 'all 0.15s'
+    transition: 'all 0.15s',
+    '&:active': {
+      backgroundColor: state.isSelected ? 'rgb(37, 99, 235)' : 'rgb(219, 234, 254)'
+    }
   })
 }
 
 // Opciones para los selects
 const ACCIONES = [
-  { value: '', label: 'Todas las acciones' },
   { value: 'created', label: 'Creación' },
   { value: 'updated', label: 'Actualización' },
   { value: 'deleted', label: 'Eliminación' }
 ]
 
 const MODELOS = [
-  { value: '', label: 'Todos los modelos' },
   { value: 'Incidencia', label: 'Incidencias' },
   { value: 'Solicitud', label: 'Solicitudes' },
   { value: 'Jornada', label: 'Jornadas' },
@@ -171,7 +200,8 @@ const MODELOS = [
   { value: 'User', label: 'Usuarios' },
   { value: 'Festivo', label: 'Festivos' },
   { value: 'Department', label: 'Departamentos' },
-  { value: 'Role', label: 'Roles' }
+  { value: 'Role', label: 'Roles' },
+  { value: 'Reporte', label: 'Reportes' }
 ]
 
 // Componente para el cuerpo del Modal de Auditoría
@@ -587,7 +617,7 @@ const AuditModalBody = ({ log }) => {
     <div className='audit-section user-info'>
       <h3 className='section-title'><UserIcon /> Usuario que realizó la acción</h3>
       <div className='user-details'>
-        <div className='user-avatar'>
+        <div className='user-avatar-audit'>
           {usuario && usuario.nombre && usuario.apellidos ? `${usuario.nombre.charAt(0)}${usuario.apellidos.charAt(0)}` : 'S'}
         </div>
         <div className='user-identity'>
@@ -924,10 +954,15 @@ export default function Auditoria () {
 
   useEffect(() => {
     if (isAdmin) {
-      loadLogs()
       loadUsuarios()
     }
-  }, [isAdmin, loadLogs, loadUsuarios])
+  }, [isAdmin, loadUsuarios])
+
+  useEffect(() => {
+    if (isAdmin) {
+      loadLogs()
+    }
+  }, [isAdmin, filters, pagination.currentPage, pagination.perPage, loadLogs])
 
   if (!isAdmin) {
     return (
@@ -1051,13 +1086,10 @@ export default function Auditoria () {
     return modelDescriptions[modelType] || `${actionText} ${modelType} #${modelId}`
   }
 
-  const usuariosOptions = [
-    { value: '', label: 'Todos los usuarios' },
-    ...usuarios.map(u => ({
-      value: u.id,
-      label: u.nombre && u.apellidos ? `${u.nombre} ${u.apellidos}` : u.email || 'Sin nombre'
-    }))
-  ]
+  const usuariosOptions = usuarios.map(u => ({
+    value: u.id_usuario || u.id,
+    label: u.nombre && u.apellidos ? `${u.nombre} ${u.apellidos}` : u.email || 'Sin nombre'
+  }))
 
   return (
     <div className='space-y-6'>
@@ -1086,7 +1118,7 @@ export default function Auditoria () {
               isClearable
               isSearchable={false}
               styles={customSelectStyles}
-              components={{ DropdownIndicator }}
+              components={{ DropdownIndicator, ClearIndicator }}
               menuPortalTarget={document.body}
               menuPosition='fixed'
             />
@@ -1102,7 +1134,7 @@ export default function Auditoria () {
               placeholder='Seleccionar usuario'
               isClearable
               styles={customSelectStyles}
-              components={{ DropdownIndicator }}
+              components={{ DropdownIndicator, ClearIndicator }}
               menuPortalTarget={document.body}
               menuPosition='fixed'
             />
@@ -1119,7 +1151,7 @@ export default function Auditoria () {
               isClearable
               isSearchable={false}
               styles={customSelectStyles}
-              components={{ DropdownIndicator }}
+              components={{ DropdownIndicator, ClearIndicator }}
               menuPortalTarget={document.body}
               menuPosition='fixed'
             />

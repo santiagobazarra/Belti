@@ -725,7 +725,7 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.user-avatar {
+.user-avatar-audit {
   width: 4rem;
   height: 4rem;
   border-radius: 50%;
@@ -1701,7 +1701,7 @@
     font-size: 0.75rem;
   }
 
-  .user-avatar {
+  .user-avatar-audit {
     width: 3rem;
     height: 3rem;
     font-size: 1rem;

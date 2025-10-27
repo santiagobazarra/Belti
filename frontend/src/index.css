@@ -59,36 +59,25 @@ body {
     background: linear-gradient(135deg, rgb(var(--color-gray-50)) 0%, rgb(var(--color-gray-100)) 100%);
 }
 
-/* Sidebar pegado completamente a la izquierda */
+/* Sidebar moderno y fluido - estilo ChatGPT */
 .sidebar {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
     width: var(--sidebar-width);
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    border-right: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sidebar);
-    transition: var(--sidebar-transition);
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    transition: width 0.25s ease-out;
     display: flex;
     flex-direction: column;
     z-index: 50;
     user-select: none;
+    overflow: hidden;
 }
 
 .sidebar.collapsed {
     width: var(--sidebar-width-collapsed);
-}
-
-.sidebar::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgb(var(--color-primary) / 0.3), transparent);
 }
 
 /* Contenido principal */
@@ -98,7 +87,7 @@ body {
     height: 100vh;
     overflow-y: auto;
     overflow-x: hidden;
-    transition: var(--sidebar-transition);
+    transition: margin-left 0.25s ease-out, width 0.25s ease-out;
     background: transparent;
     position: relative;
 }
@@ -108,193 +97,353 @@ body {
     width: calc(100vw - var(--sidebar-width-collapsed));
 }
 
-/* Header del sidebar */
+/* Header del sidebar - minimalista sin reposicionamiento */
 .sidebar-header {
-    padding: 1.5rem 1rem;
-    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 4.5rem;
-    background: linear-gradient(135deg, rgb(var(--color-primary-light)) 0%, rgb(255 255 255) 100%);
+    min-height: 4rem;
+    background: transparent;
     position: relative;
-}
-
-.sidebar-header::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 1rem;
-    right: 1rem;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgb(var(--color-primary) / 0.2), transparent);
 }
 
 .sidebar.collapsed .sidebar-header {
-    padding: 1.5rem 0.5rem;
+    padding: 1.25rem 0.5rem;
     justify-content: center;
-    flex-direction: column;
-    gap: 0.5rem;
 }
 
-/* Navegación */
+/* Contenedor del logo - mantiene posición */
+.sidebar-logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    overflow: hidden;
+}
+
+.sidebar.collapsed .sidebar-logo-container {
+    justify-content: center;
+    flex: 0;
+}
+
+/* Logo con transición suave de tamaño */
+.sidebar-logo {
+    height: 5rem;
+    width: auto;
+    transition: height 0.25s ease-out;
+    object-fit: contain;
+}
+
+.sidebar.collapsed .sidebar-logo {
+    height: 2rem;
+}
+
+/* Navegación - estilo moderno */
 .sidebar-nav {
     flex: 1;
-    padding: 1.5rem 0.75rem;
-    overflow: hidden;
+    padding: 0.5rem 0.5rem;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.125rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
 }
 
-/* Items de navegación */
+.sidebar-nav::-webkit-scrollbar {
+    width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* Items de navegación - estilo ChatGPT ultra suave */
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 0.875rem;
-    padding: 0.875rem 1rem;
-    border-radius: 0.75rem;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
     text-decoration: none;
     font-size: 0.875rem;
     font-weight: 500;
-    color: rgb(var(--color-gray-700));
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #374151;
+    transition: background-color 0.15s ease, color 0.15s ease;
     position: relative;
-    overflow: hidden;
-    border: 1px solid transparent;
+    overflow: visible;
+    border: none;
+    background: transparent;
+    white-space: nowrap;
 }
 
 .nav-item.collapsed {
     justify-content: center;
     gap: 0;
-    padding: 0.625rem 0.5rem;
+    padding: 0.625rem;
     min-height: 2.5rem;
 }
 
-.nav-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgb(var(--color-primary) / 0.08), transparent);
-    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.nav-item:hover::before {
-    left: 100%;
-}
-
+/* Hover ultra suave - sin movimientos */
 .nav-item:hover {
-    background: linear-gradient(135deg, rgb(var(--color-gray-100)) 0%, rgb(var(--color-gray-50)) 100%);
-    transform: translateX(3px);
-    border-color: rgb(var(--color-gray-200));
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+    background: rgba(0, 0, 0, 0.04);
+    color: #111827;
 }
 
+/* Estado activo - simple y claro */
 .nav-item.active {
-    background: linear-gradient(135deg, rgb(var(--color-primary-light)) 0%, rgb(255 255 255) 100%);
-    color: rgb(var(--color-primary-dark));
-    border-left: 4px solid rgb(var(--color-primary));
-    border-color: rgb(var(--color-primary) / 0.2);
-    box-shadow: 0 4px 6px -1px rgb(var(--color-primary) / 0.1), 0 2px 4px -1px rgb(var(--color-primary) / 0.06);
-    transform: translateX(2px);
+    background: rgba(59, 130, 246, 0.08);
+    color: #2563eb;
+    font-weight: 600;
 }
 
-.nav-item.active::before {
-    display: none;
-}
-
-.nav-item.svg {
-    transition: all 0.2s ease-out;
-}
-
-.nav-item:hover svg {
-    transform: scale(1.1);
+/* Ícono - sin animaciones bruscas */
+.nav-item svg {
+    flex-shrink: 0;
+    transition: none;
 }
 
 .nav-item.active svg {
-    transform: scale(1.05);
+    color: #2563eb;
 }
 
-.sidebar.collapsed .nav-item {
-    opacity: 1;
-    transform: translateX(0);
+/* Texto con transición suave */
+.nav-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.15s ease;
 }
 
-/* Footer del sidebar */
+.sidebar.collapsed .nav-item span {
+    opacity: 0;
+    width: 0;
+}
+
+/* Footer del sidebar - sin reposicionamiento */
 .sidebar-footer {
-    padding: 1.5rem 1rem;
-    border-top: 1px solid var(--border-color);
-    background: linear-gradient(135deg, rgb(var(--color-gray-50)) 0%, rgb(255 255 255) 100%);
+    padding: 1rem 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background: transparent;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.sidebar-footer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 1rem;
-    right: 1rem;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgb(var(--color-gray-300)), transparent);
+/* Contenedor de info del usuario - bien espaciado */
+.sidebar-user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    overflow: hidden;
+    padding: 0.25rem 0;
 }
 
-/* Avatar del usuario */
-.user-avatar {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgb(var(--color-primary-light)) 0%, rgb(var(--color-primary) / 0.1) 100%);
-    color: rgb(var(--color-primary-dark));
-    display: grid;
-    place-items: center;
-    font-weight: 600;
-    font-size: 0.8rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid rgb(var(--color-primary) / 0.2);
-    position: relative;
+/* Texto del usuario - bien encuadrado y espaciado */
+.user-text-info {
+    min-width: 0;
+    flex: 1;
+    opacity: 1;
+    transition: opacity 0.15s ease, width 0.25s ease-out;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    justify-content: center;
+}
+
+.sidebar.collapsed .user-text-info {
+    opacity: 0;
+    width: 0;
     overflow: hidden;
 }
 
+/* Nombre del usuario - destacado */
+.user-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+/* Rol del usuario - sutil y elegante */
+.user-role {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+}
+
+/* Avatar del usuario - diseño moderno y elegante */
+.user-avatar {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08),
+                0 1px 3px rgba(0, 0, 0, 0.12);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Efecto de brillo sutil en el avatar */
 .user-avatar::before {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(45deg, transparent, rgb(var(--color-primary) / 0.1), transparent);
-    transform: rotate(-45deg);
-    transition: transform 0.6s ease;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.2) 0%, 
+        rgba(255, 255, 255, 0.05) 50%, 
+        transparent 100%);
+    pointer-events: none;
+}
+
+/* Avatar cuando está colapsado - tamaño proporcional */
+.sidebar.collapsed .user-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 0.825rem;
+    border-radius: 0.625rem;
 }
 
 .user-avatar:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 8px 25px rgb(var(--color-primary) / 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12),
+                0 2px 6px rgba(0, 0, 0, 0.16);
 }
 
-.user-avatar:hover::before {
-    transform: rotate(-45deg) translate(50%, 50%);
+/* Avatar de administrador - color verde esmeralda premium */
+.user-avatar.admin {
+    background: linear-gradient(135deg, 
+        #10b981 0%, 
+        #059669 50%, 
+        #047857 100%);
+    border-color: rgba(16, 185, 129, 0.3);
 }
 
-/* Botón toggle mejorado */
+.user-avatar.admin:hover {
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25),
+                0 2px 6px rgba(16, 185, 129, 0.35);
+}
+
+/* Avatar de empleado - azul premium */
+.user-avatar.employee {
+    background: linear-gradient(135deg, 
+        #3b82f6 0%, 
+        #2563eb 50%, 
+        #1d4ed8 100%);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.user-avatar.employee:hover {
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25),
+                0 2px 6px rgba(59, 130, 246, 0.35);
+}
+
+/* Botón toggle - minimalista y suave */
 .toggle-btn {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.375rem;
     background: transparent;
-    border: 1px solid rgb(var(--color-gray-200));
-    color: rgb(var(--color-gray-600));
+    border: none;
+    color: #6b7280;
     display: grid;
     place-items: center;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
+    transition: background-color 0.15s ease, color 0.15s ease;
     flex-shrink: 0;
-    z-index: 10;
+}
+
+.toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #111827;
+}
+
+.toggle-btn:active {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Botón de cerrar sesión - sin reposicionamiento */
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    background: transparent;
+    border: none;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, justify-content 0.25s ease;
+    width: 100%;
+    text-align: left;
+    overflow: hidden;
+}
+
+.logout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.logout-btn svg {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    transition: none;
+}
+
+/* Texto del botón logout - con transición */
+.logout-text {
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 0.15s ease;
+}
+
+.sidebar.collapsed .logout-text {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+/* Botón colapsado - centrado perfecto */
+.sidebar.collapsed .logout-btn {
+    justify-content: center;
+    padding: 0.5rem;
+    gap: 0;
 }
 
 /* Responsive mejorado */
@@ -875,7 +1024,8 @@ body {
 .modal-content {
     position: relative;
     width: 100%;
-    max-height: 90vh;
+    /* Altura por defecto para modales */
+    max-height: 88vh;
     background: white;
     border-radius: 16px;
     box-shadow: 
@@ -888,7 +1038,7 @@ body {
     flex-direction: column;
 }
 
-/* Asegurar que el modal-body use flex para el scroll */
+/* El modal-body tiene el scroll cuando el contenido excede la altura del modal */
 .modal-content .modal-body {
     flex: 1 1 auto;
     min-height: 0;
@@ -954,7 +1104,6 @@ body {
 
 .modal-body {
     padding: 1.5rem;
-    max-height: 60vh;
     overflow-y: auto;
     overflow-x: hidden;
     scroll-behavior: smooth;
@@ -972,9 +1121,19 @@ body {
 }
 
 /* Tamaños de modal */
-.modal-content.max-w-sm { max-width: 24rem; }
-.modal-content.max-w-md { max-width: 28rem; }
-.modal-content.max-w-lg { max-width: 32rem; }
+.modal-content.max-w-sm { 
+  max-width: 24rem;
+}
+.modal-content.max-w-md { 
+  max-width: 28rem;
+  /* Modales medianos (confirmación) usan mucha más altura */
+  max-height: 94vh !important;
+}
+.modal-content.max-w-lg { 
+  max-width: 32rem;
+  /* Modales grandes (confirmación) usan mucha más altura */
+  max-height: 94vh !important;
+}
 .modal-content.max-w-2xl { max-width: 42rem; }
 .modal-content.max-w-4xl { max-width: 56rem; }
 .modal-content.max-w-7xl { max-width: 80rem; }
@@ -1071,7 +1230,7 @@ body {
 
     .modal-content {
         border-radius: 1rem 1rem 0 0; /* Solo esquinas superiores redondeadas */
-        max-height: 95vh; /* Aumentado para aprovechar más espacio */
+        max-height: 100dvh; /* Aprovechar toda la altura del viewport dinámico */
         max-width: 100% !important;
         width: 100vw; /* Ancho completo del viewport */
         margin: 0; /* Sin márgenes laterales */
@@ -1091,7 +1250,7 @@ body {
 
     .modal-body {
         padding: 0.75rem 1rem 0.75rem 1rem; /* Padding lateral reducido */
-        max-height: calc(95vh - 140px); /* Ajustado para el nuevo max-height */
+        /* Sin límite rígido; el scroll lo gestiona el flex del contenedor */
     }
 
     .modal-title {
