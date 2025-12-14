@@ -25,8 +25,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
         ]);
         
-        // CORS ya está habilitado por defecto en Laravel 11 para rutas API
-        // Se configura mediante variables de entorno CORS_ALLOWED_ORIGINS
+        // Habilitar CORS para todas las rutas API
+        $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = function($request){
