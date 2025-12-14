@@ -15,6 +15,11 @@ use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\TipoPausaController;
 
+// Endpoint de prueba simple
+Route::get('/test', function() {
+    return response()->json(['status' => 'ok', 'message' => 'API funcionando']);
+});
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
