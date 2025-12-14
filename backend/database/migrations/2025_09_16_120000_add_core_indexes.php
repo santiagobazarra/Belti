@@ -4,6 +4,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
+    public $withinTransaction = false; // Deshabilitar transacciones para esta migración
+    
     public function up(): void
     {
         if (Schema::hasTable('usuarios') && Schema::hasColumn('usuarios','email')) {

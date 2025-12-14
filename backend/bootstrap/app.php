@@ -24,6 +24,9 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'ensure.admin' => EnsureUserIsAdmin::class,
             'auth' => Authenticate::class,
         ]);
+        
+        // CORS ya está habilitado por defecto en Laravel 11 para rutas API
+        // Se configura mediante variables de entorno CORS_ALLOWED_ORIGINS
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = function($request){
