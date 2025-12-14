@@ -15,29 +15,25 @@ class HandleCors
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $allowedOrigins = env('CORS_ALLOWED_ORIGINS') 
-            ? array_map('trim', explode(',', env('CORS_ALLOWED_ORIGINS'))) 
-            : ['*'];
+        // Permitir todos los orígenes temporalmente para debug
+        $allowedOrigins = env('CORS_ALLOWED_ORIGINS', '*');
         
-        $origin = $request->headers->get('Origin');
+        if ($allowedOrigins === '*') {
+            $allowedOrigin = '*';
+        } else {
+            $origins = array_map('trim', explode(',', $allowedOrigins));
+            $origin = $request->headers->get('Origin');
+            $allowedOrigin = ($origin && in_array($origin, $origins)) ? $origin : null;
+        }
         
-        // Manejar preflight requests primero
+        // Manejar preflight requests
         if ($request->getMethod() === 'OPTIONS') {
             $response = response('', 200);
         } else {
             $response = $next($request);
         }
         
-        // Determinar el origen permitido
-        if (in_array('*', $allowedOrigins)) {
-            $allowedOrigin = '*';
-        } elseif ($origin && in_array($origin, $allowedOrigins)) {
-            $allowedOrigin = $origin;
-        } else {
-            $allowedOrigin = null;
-        }
-        
-        // Agregar headers CORS
+        // Agregar headers CORS siempre
         if ($allowedOrigin) {
             $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
         }
