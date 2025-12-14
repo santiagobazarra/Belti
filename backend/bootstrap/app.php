@@ -26,10 +26,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
         ]);
         
-        // Habilitar CORS solo para rutas API
-        $middleware->api(prepend: [
-            \App\Http\Middleware\HandleCors::class,
-        ]);
+        // CORS temporalmente deshabilitado para debug
+        // $middleware->api(prepend: [
+        //     \App\Http\Middleware\HandleCors::class,
+        // ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = function($request){
