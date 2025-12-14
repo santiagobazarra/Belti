@@ -15,29 +15,34 @@ class HandleCors
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Permitir todos los orígenes temporalmente para debug
-        $allowedOrigins = env('CORS_ALLOWED_ORIGINS', '*');
-        
-        if ($allowedOrigins === '*') {
-            $allowedOrigin = '*';
-        } else {
-            $origins = array_map('trim', explode(',', $allowedOrigins));
-            $origin = $request->headers->get('Origin');
-            $allowedOrigin = ($origin && in_array($origin, $origins)) ? $origin : null;
-        }
-        
-        // Manejar preflight requests
+        // Manejar preflight requests primero
         if ($request->getMethod() === 'OPTIONS') {
             $response = response('', 200);
         } else {
             $response = $next($request);
         }
         
-        // Agregar headers CORS siempre
-        if ($allowedOrigin) {
-            $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
+        // Obtener origen de la petición
+        $origin = $request->headers->get('Origin');
+        
+        // Obtener orígenes permitidos
+        $allowedOrigins = env('CORS_ALLOWED_ORIGINS', '*');
+        
+        // Determinar origen permitido
+        if ($allowedOrigins === '*') {
+            $allowedOrigin = '*';
+        } else {
+            $origins = array_map('trim', explode(',', $allowedOrigins));
+            if ($origin && in_array($origin, $origins)) {
+                $allowedOrigin = $origin;
+            } else {
+                // Si no coincide, permitir el origen de la petición de todas formas para debug
+                $allowedOrigin = $origin ?: '*';
+            }
         }
         
+        // Agregar headers CORS
+        $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
         $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
         $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
         $response->headers->set('Access-Control-Allow-Credentials', 'true');
