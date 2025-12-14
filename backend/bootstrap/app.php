@@ -26,8 +26,8 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
         ]);
         
-        // Habilitar CORS globalmente (para todas las rutas)
-        $middleware->append(\App\Http\Middleware\HandleCors::class);
+        // Habilitar CORS globalmente ANTES de cualquier otra cosa
+        $middleware->prepend(\App\Http\Middleware\HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = function($request){
@@ -76,13 +76,24 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function(NotFoundHttpException $e, $request) use ($isApi) {
             if ($isApi($request) || $request->expectsJson()) {
-                return response()->json([
+                $response = response()->json([
                     'success' => false,
                     'error' => [
                         'code' => 'NOT_FOUND',
                         'message' => 'Recurso no encontrado',
                     ]
                 ], 404);
+                
+                // Agregar headers CORS a la respuesta 404
+                $origin = $request->headers->get('Origin');
+                $allowedOrigins = env('CORS_ALLOWED_ORIGINS', '*');
+                $allowedOrigin = ($allowedOrigins === '*') ? '*' : ($origin ?: '*');
+                $response->headers->set('Access-Control-Allow-Origin', $allowedOrigin);
+                $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+                $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                
+                return $response;
             }
             return null;
         });
