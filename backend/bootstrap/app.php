@@ -10,6 +10,7 @@ use App\Exceptions\FichajeException;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\Authenticate;
+use App\Http\Middleware\HandleCors;
 
 /** @var \Illuminate\Foundation\Application $app */
 $app = Application::configure(basePath: dirname(__DIR__))
@@ -27,7 +28,7 @@ $app = Application::configure(basePath: dirname(__DIR__))
         
         // Habilitar CORS para todas las rutas API
         $middleware->api(prepend: [
-            \Illuminate\Http\Middleware\HandleCors::class,
+            \App\Http\Middleware\HandleCors::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
