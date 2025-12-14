@@ -26,8 +26,15 @@ $app = Application::configure(basePath: dirname(__DIR__))
             'auth' => Authenticate::class,
         ]);
         
-        // Habilitar CORS globalmente ANTES de cualquier otra cosa
-        $middleware->prepend(\App\Http\Middleware\HandleCors::class);
+        // Habilitar CORS para rutas API
+        $middleware->api(prepend: [
+            \App\Http\Middleware\HandleCors::class,
+        ]);
+        
+        // También para rutas web (por si acaso)
+        $middleware->web(append: [
+            \App\Http\Middleware\HandleCors::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $isApi = function($request){
