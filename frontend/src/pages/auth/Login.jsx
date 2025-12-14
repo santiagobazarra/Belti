@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
@@ -11,179 +11,688 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [focusedField, setFocusedField] = useState(null)
+  const [isClosing, setIsClosing] = useState(false)
+  const canvasRef = useRef(null)
+  const errorTimeoutRef = useRef(null)
+
+  const closeError = () => {
+    setIsClosing(true)
+    setTimeout(() => {
+      setError('')
+      setIsClosing(false)
+    }, 300) // Tiempo de la animación de salida
+  }
+
+  useEffect(() => {
+    if (error && !isClosing) {
+      // Limpiar timeout anterior si existe
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current)
+      }
+      // Cerrar automáticamente después de 5 segundos
+      errorTimeoutRef.current = setTimeout(() => {
+        closeError()
+      }, 5000)
+    }
+
+    return () => {
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current)
+      }
+    }
+  }, [error, isClosing])
 
   const onSubmit = async (e) => {
     e.preventDefault()
-    setError('')
+    if (error) closeError()
     const res = await login(email, password)
     if (res.ok) navigate(from, { replace: true })
-    else setError(res.error)
+    else {
+      setError(res.error)
+      setIsClosing(false)
+    }
   }
 
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    let animationFrameId
+    let particles = []
+
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
+
+    class Particle {
+      constructor() {
+        this.reset()
+        this.y = Math.random() * canvas.height
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width
+        this.y = Math.random() * canvas.height
+        this.size = Math.random() * 2 + 0.5
+        this.speedX = (Math.random() - 0.5) * 0.5
+        this.speedY = (Math.random() - 0.5) * 0.5
+        this.opacity = Math.random() * 0.5 + 0.2
+      }
+
+      update() {
+        this.x += this.speedX
+        this.y += this.speedY
+
+        if (this.x < 0 || this.x > canvas.width) this.speedX *= -1
+        if (this.y < 0 || this.y > canvas.height) this.speedY *= -1
+      }
+
+      draw() {
+        ctx.beginPath()
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`
+        ctx.fill()
+      }
+    }
+
+    // Crear partículas
+    for (let i = 0; i < 80; i++) {
+      particles.push(new Particle())
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // Dibujar conexiones entre partículas cercanas
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x
+          const dy = particles[i].y - particles[j].y
+          const distance = Math.sqrt(dx * dx + dy * dy)
+
+          if (distance < 120) {
+            ctx.beginPath()
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * (1 - distance / 120)})`
+            ctx.lineWidth = 0.5
+            ctx.moveTo(particles[i].x, particles[i].y)
+            ctx.lineTo(particles[j].x, particles[j].y)
+            ctx.stroke()
+          }
+        }
+      }
+
+      // Actualizar y dibujar partículas
+      particles.forEach(particle => {
+        particle.update()
+        particle.draw()
+      })
+
+      animationFrameId = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas)
+      cancelAnimationFrame(animationFrameId)
+    }
+  }, [])
+
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-4">
-      {/* Elementos decorativos de fondo */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-400 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+    <div className="login-container">
+      {/* Canvas de partículas */}
+      <canvas ref={canvasRef} className="particles-canvas" />
+      
+      {/* Gradientes animados de fondo */}
+      <div className="animated-background">
+        <div className="gradient-orb orb-1"></div>
+        <div className="gradient-orb orb-2"></div>
+        <div className="gradient-orb orb-3"></div>
       </div>
 
-      <div className="w-full max-w-md relative z-10">
-        {/* Card principal con glassmorphism */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 md:p-10 transform transition-all duration-300 hover:shadow-3xl">
-          {/* Logo/Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg mb-4 transform transition-transform duration-300 hover:scale-110">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      {/* Notificación de error */}
+      {error && (
+        <div className={`error-notification ${isClosing ? 'closing' : ''}`}>
+          <div className="notification-content">
+            <div className="notification-icon-wrapper">
+              <svg className="notification-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Bienvenido
-            </h1>
-            <p className="text-gray-600 text-sm">Inicia sesión para acceder a tu cuenta</p>
+            <div className="notification-text">
+              <p className="notification-title">Error de autenticación</p>
+              <p className="notification-message">{error}</p>
+            </div>
+            <button 
+              onClick={closeError} 
+              className="notification-close"
+              aria-label="Cerrar notificación"
+            >
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="login-wrapper">
+        <div className="login-card">
+          {/* Header minimalista */}
+          <div className="login-header">
+            <h1 className="login-title">Iniciar sesión</h1>
+            <p className="login-subtitle">Accede a tu cuenta</p>
           </div>
 
-          {/* Mensaje de error */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3 animate-slide-down">
-              <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-red-700 text-sm flex-1">{error}</p>
-            </div>
-          )}
 
-          {/* Formulario */}
-          <form onSubmit={onSubmit} className="space-y-5">
-            {/* Campo Email */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Correo electrónico
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                  </svg>
-                </div>
+          {/* Form */}
+          <form onSubmit={onSubmit} className="login-form">
+            {/* Email field */}
+            <div className="form-group">
+              <label className="form-label">Correo electrónico</label>
+              <div className={`input-wrapper ${focusedField === 'email' ? 'focused' : ''}`}>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
-                  placeholder="tu@email.com"
+                  onFocus={() => setFocusedField('email')}
+                  onBlur={() => setFocusedField(null)}
+                  className="form-input"
+                  placeholder="nombre@empresa.com"
                   required
+                  autoComplete="email"
                 />
               </div>
             </div>
 
-            {/* Campo Password */}
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-gray-700">
-                Contraseña
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
+            {/* Password field */}
+            <div className="form-group">
+              <label className="form-label">Contraseña</label>
+              <div className={`input-wrapper ${focusedField === 'password' ? 'focused' : ''}`}>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3.5 bg-white border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
+                  onFocus={() => setFocusedField('password')}
+                  onBlur={() => setFocusedField(null)}
+                  className="form-input"
                   placeholder="••••••••"
                   required
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+                  className="password-toggle"
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                 >
                   {showPassword ? (
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 11-4.243-4.243m4.242 4.242L9.88 9.88" />
                     </svg>
                   ) : (
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <svg className="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   )}
                 </button>
               </div>
             </div>
 
-            {/* Botón de submit */}
+            {/* Submit button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+              className="submit-button"
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg className="spinner" viewBox="0 0 24 24">
+                    <circle className="spinner-circle" cx="12" cy="12" r="10" />
                   </svg>
                   <span>Iniciando sesión...</span>
                 </>
               ) : (
-                <>
-                  <span>Iniciar sesión</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </>
+                <span>Iniciar sesión</span>
               )}
             </button>
           </form>
-
-          {/* Footer */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <p className="text-center text-xs text-gray-500">
-              ¿Necesitas ayuda? Contacta con tu administrador
-            </p>
-          </div>
         </div>
       </div>
 
       <style>{`
-        @keyframes blob {
+        .login-container {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 1.5rem;
+          background: #000000;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .particles-canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 0;
+        }
+
+        .animated-background {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          z-index: 0;
+        }
+
+        .gradient-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          opacity: 0.4;
+          animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+          width: 500px;
+          height: 500px;
+          background: radial-gradient(circle, rgba(59, 130, 246, 0.6) 0%, rgba(59, 130, 246, 0) 70%);
+          top: -200px;
+          left: -200px;
+          animation-delay: 0s;
+        }
+
+        .orb-2 {
+          width: 600px;
+          height: 600px;
+          background: radial-gradient(circle, rgba(99, 102, 241, 0.6) 0%, rgba(99, 102, 241, 0) 70%);
+          bottom: -300px;
+          right: -200px;
+          animation-delay: 7s;
+        }
+
+        .orb-3 {
+          width: 400px;
+          height: 400px;
+          background: radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, rgba(139, 92, 246, 0) 70%);
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          animation-delay: 14s;
+        }
+
+        @keyframes float {
           0%, 100% {
             transform: translate(0, 0) scale(1);
           }
           33% {
-            transform: translate(30px, -50px) scale(1.1);
+            transform: translate(50px, -50px) scale(1.1);
           }
           66% {
-            transform: translate(-20px, 20px) scale(0.9);
+            transform: translate(-30px, 30px) scale(0.9);
           }
         }
-        .animate-blob {
-          animation: blob 7s infinite;
+
+        .login-wrapper {
+          width: 100%;
+          max-width: 400px;
+          position: relative;
+          z-index: 1;
         }
-        .animation-delay-2000 {
-          animation-delay: 2s;
+
+        .login-card {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          padding: 3rem 2.5rem;
+          box-shadow: 
+            0 8px 32px 0 rgba(0, 0, 0, 0.37),
+            0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+          position: relative;
+          z-index: 1;
         }
-        .animation-delay-4000 {
-          animation-delay: 4s;
+
+        .login-header {
+          text-align: center;
+          margin-bottom: 2.5rem;
         }
-        @keyframes slide-down {
+
+        .login-title {
+          font-size: 1.75rem;
+          font-weight: 600;
+          color: #111827;
+          letter-spacing: -0.025em;
+          margin: 0 0 0.5rem 0;
+          line-height: 1.2;
+        }
+
+        .login-subtitle {
+          font-size: 0.9375rem;
+          color: #6b7280;
+          margin: 0;
+          font-weight: 400;
+        }
+
+        .error-notification {
+          position: fixed;
+          top: 2rem;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 1000;
+          animation: slideDownBounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          max-width: 90%;
+          width: 100%;
+          max-width: 420px;
+        }
+
+        .error-notification.closing {
+          animation: slideUpFadeOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .notification-content {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+          padding: 1rem 1.25rem;
+          background: rgba(239, 68, 68, 0.95);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          box-shadow: 
+            0 10px 40px rgba(239, 68, 68, 0.3),
+            0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+            0 0 60px rgba(239, 68, 68, 0.2);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .notification-content::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.5), 
+            transparent
+          );
+          animation: shimmer 2s infinite;
+        }
+
+        .notification-icon-wrapper {
+          flex-shrink: 0;
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 10px;
+          background: rgba(255, 255, 255, 0.2);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          backdrop-filter: blur(10px);
+        }
+
+        .notification-icon {
+          width: 1.25rem;
+          height: 1.25rem;
+          color: #ffffff;
+          animation: pulse 2s ease-in-out infinite;
+        }
+
+        .notification-text {
+          flex: 1;
+          min-width: 0;
+        }
+
+        .notification-title {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #ffffff;
+          margin: 0 0 0.25rem 0;
+          letter-spacing: -0.01em;
+        }
+
+        .notification-message {
+          font-size: 0.8125rem;
+          color: rgba(255, 255, 255, 0.9);
+          margin: 0;
+          line-height: 1.4;
+        }
+
+        .notification-close {
+          flex-shrink: 0;
+          width: 1.75rem;
+          height: 1.75rem;
+          border-radius: 6px;
+          background: rgba(255, 255, 255, 0.1);
+          border: none;
+          color: rgba(255, 255, 255, 0.8);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          padding: 0;
+        }
+
+        .notification-close:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+          transform: scale(1.1);
+        }
+
+        .notification-close svg {
+          width: 1rem;
+          height: 1rem;
+        }
+
+        @keyframes slideDownBounce {
+          0% {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-100%);
+          }
+          60% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(10px);
+          }
+          100% {
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+
+        @keyframes slideUpFadeOut {
+          0% {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-100%) scale(0.95);
+          }
+        }
+
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+          }
+        }
+
+        .login-form {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .form-group {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .form-label {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #374151;
+          letter-spacing: -0.01em;
+        }
+
+        .input-wrapper {
+          position: relative;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          background: #ffffff;
+          transition: all 0.15s ease;
+        }
+
+        .input-wrapper:hover {
+          border-color: #9ca3af;
+        }
+
+        .input-wrapper.focused {
+          border-color: #2563eb;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-input {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          font-size: 0.9375rem;
+          color: #111827;
+          background: transparent;
+          border: none;
+          outline: none;
+          font-family: inherit;
+          line-height: 1.5;
+        }
+
+        .form-input::placeholder {
+          color: #9ca3af;
+        }
+
+        .password-toggle {
+          position: absolute;
+          right: 0.75rem;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          padding: 0.25rem;
+          cursor: pointer;
+          color: #6b7280;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: color 0.15s ease;
+        }
+
+        .password-toggle:hover {
+          color: #374151;
+        }
+
+        .icon {
+          width: 1.25rem;
+          height: 1.25rem;
+        }
+
+        .submit-button {
+          width: 100%;
+          padding: 0.875rem 1.5rem;
+          background: #111827;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.9375rem;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          margin-top: 0.5rem;
+          font-family: inherit;
+          letter-spacing: -0.01em;
+        }
+
+        .submit-button:hover:not(:disabled) {
+          background: #1f2937;
+        }
+
+        .submit-button:active:not(:disabled) {
+          transform: scale(0.99);
+        }
+
+        .submit-button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .spinner {
+          width: 1.125rem;
+          height: 1.125rem;
+          animation: spin 0.8s linear infinite;
+        }
+
+        .spinner-circle {
+          fill: none;
+          stroke: currentColor;
+          stroke-width: 2;
+          stroke-linecap: round;
+          stroke-dasharray: 32;
+          stroke-dashoffset: 24;
+        }
+
+        @keyframes slideDown {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-8px);
           }
           to {
             opacity: 1;
             transform: translateY(0);
           }
         }
-        .animate-slide-down {
-          animation: slide-down 0.3s ease-out;
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @media (max-width: 640px) {
+          .login-card {
+            padding: 2.5rem 2rem;
+          }
+
+          .login-title {
+            font-size: 1.5rem;
+          }
         }
       `}</style>
     </div>
